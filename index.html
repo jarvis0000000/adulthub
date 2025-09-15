@@ -1,29 +1,29 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Dareloom Hub</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Dareloom Hub — Playable</title>
 <link rel="stylesheet" href="style.css">
+<meta name="description" content="Dareloom Hub — trailers managed via Google Sheets (Title, Trailer, Watch)">
 </head>
 <body>
 <header class="site">
-  <div class="brand"><div class="logo">DL</div><div class="title">Dareloom Hub</div><div class="muted">Premium Trailers • Adult</div></div>
+  <div class="brand"><div class="logo">DL</div><div class="title">Dareloom Hub</div></div>
   <div class="nav"><button class="btn" id="ageBtn">I am 18+</button></div>
 </header>
 
 <main class="wrap">
   <section class="hero">
-    <div class="player-card" id="playerWrap"><div class="player-placeholder">Select a video to preview</div></div>
-    <aside class="hero-actions">
+    <div class="player-card" id="playerWrap">Loading...</div>
+    <div class="hero-actions">
       <div id="nowTitle" class="now-title">No video selected</div>
       <div class="controls">
         <div class="pill" id="count">0 items</div>
         <button class="btn" id="shuffleBtn">Scroll</button>
         <button class="btn primary" id="watchNowTop">Watch Now</button>
       </div>
-      <div class="ad-slot small" id="watchAd">Ad space — watch</div>
-    </aside>
+    </div>
   </section>
 
   <section class="section">
@@ -38,22 +38,14 @@
   </section>
 </main>
 
-<footer class="foot">
-  <div class="banner-wrap" style="text-align:center; margin:16px auto;">
-    <script type="text/javascript">
-      atOptions = {'key':'627de0095b96c6bf7f4e1f352a5fa6b5','format':'iframe','height':250,'width':300,'params':{}};
-    </script>
-    <script type="text/javascript" src="//www.highperformanceformat.com/627de0095b96c6bf7f4e1f352a5fa6b5/invoke.js"></script>
-  </div>
-  <div style="margin-top:8px;color:#9fb1c8;font-size:13px">© Dareloom Hub — manage items via Google Sheet. Contact: dareloom.official@gmail.com</div>
-</footer>
+<footer class="foot">© Dareloom Hub — manage items via Google Sheet. Contact: dareloom.official@gmail.com</footer>
 
 <script>
-const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
-const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
+const SHEET_ID = "1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o";
+const API_KEY = "AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
+const AD_SCRIPT = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
 </script>
-
 <script src="script.js"></script>
 </body>
 </html>
