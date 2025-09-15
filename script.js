@@ -5,11 +5,11 @@ const PER_PAGE = 5;
 
 let items = [], current = null, currentPage = 1;
 
+// -------- fetch sheet --------
 async function fetchSheet(){
   try{
-    console.log('[Dareloom] fetching', SHEET_API);
     const res = await fetch(SHEET_API);
-    if(!res.ok) throw new Error('sheet fetch failed ' + res.status);
+    if(!res.ok) throw new Error('Sheet fetch failed ' + res.status);
     const j = await res.json();
     return j.values || [];
   }catch(e){
@@ -18,8 +18,8 @@ async function fetchSheet(){
   }
 }
 
+// -------- parse rows --------
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
-
 function findHeaderIndex(headers, candidates){
   for(let i=0;i<headers.length;i++){
     const h = norm(headers[i]);
@@ -31,56 +31,55 @@ function findHeaderIndex(headers, candidates){
 function parseRows(values){
   if(!values || values.length < 2) return [];
   const headers = values[0].map(h=> (h||'').toString());
-  console.log('[Dareloom] headers:', headers);
   const ti = findHeaderIndex(headers, ['title']);
-  const tr = findHeaderIndex(headers, ['trailer','video','trailer link','trailer_url']);
-  const wa = findHeaderIndex(headers, ['watch','watch ','watch link','watchlink']);
-  const th = findHeaderIndex(headers, ['thumbnail','thumbnail ','poster','poster_url']);
+  const tr = findHeaderIndex(headers, ['trailer','video']);
+  const wa = findHeaderIndex(headers, ['watch','watch link']);
+  const th = findHeaderIndex(headers, ['thumbnail','poster']);
   const dt = findHeaderIndex(headers, ['date']);
+
   const rows = values.slice(1);
   const out = [];
   for(let r of rows){
-    const title = ti !== -1 ? (r[ti]||'').toString() : (r[0]||'').toString();
-    const trailer = tr !== -1 ? (r[tr]||'').toString() : (r[2]||'').toString();
-    const watch = wa !== -1 ? (r[wa]||'').toString() : (r[6]||'').toString();
-    const poster = th !== -1 ? (r[th]||'').toString() : '';
-    const date = dt !== -1 ? (r[dt]||'').toString() : '';
+    const title   = ti !== -1 ? (r[ti]||'') : (r[0]||'');
+    const trailer = tr !== -1 ? (r[tr]||'') : (r[2]||'');
+    const watch   = wa !== -1 ? (r[wa]||'') : (r[6]||'');
+    const poster  = th !== -1 ? (r[th]||'') : '';
+    const date    = dt !== -1 ? (r[dt]||'') : '';
     if((trailer && trailer.trim()) || (watch && watch.trim())){
-      out.push({ id: (title||'') + '|' + (watch||''), title: title||'Untitled', trailer: trailer||'', watch: watch||'', poster: poster||'', date: date||'' });
+      out.push({ id: (title||'') + '|' + (watch||''), title, trailer, watch, poster, date });
     }
   }
   return out;
 }
 
+// -------- utils --------
 function extractYouTubeID(url){
   if(!url) return null;
   const m = url.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
   return m ? m[1] : null;
 }
-
 function makeThumbnail(item){
   if(item.poster && item.poster.trim()) return item.poster;
   const y = extractYouTubeID(item.trailer) || extractYouTubeID(item.watch);
-  if(y) return 'https://img.youtube.com/vi/' + y + '/hqdefault.jpg';
+  if(y) return `https://img.youtube.com/vi/${y}/hqdefault.jpg`;
   return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
-
 function toEmbedUrl(url){
   if(!url) return '';
   url = url.trim();
   const y = extractYouTubeID(url);
-  if(y) return 'https://www.youtube.com/embed/' + y + '?autoplay=1&rel=0';
+  if(y) return `https://www.youtube.com/embed/${y}?autoplay=1&rel=0`;
   if(url.includes('youtube.com/embed')) return url;
   if(url.match(/drive\.google\.com/)){
     const m = url.match(/file\/d\/([A-Za-z0-9_-]+)/);
-    if(m) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
+    if(m) return `https://drive.google.com/file/d/${m[1]}/preview`;
   }
   if(url.match(/\.mp4($|\?)/i)) return url;
   return url;
 }
+function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c])); }
 
-function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
+// -------- renderers --------
 function renderRandom(){
   const g = document.getElementById('randomGrid'); if(!g) return; g.innerHTML='';
   const pool = items.slice(); const picks = [];
@@ -93,19 +92,25 @@ function renderRandom(){
     g.appendChild(card);
   });
 }
-
 function renderLatest(){
   const list = document.getElementById('latestList'); if(!list) return; list.innerHTML='';
   const start = (currentPage-1)*PER_PAGE; const slice = items.slice(start, start+PER_PAGE);
   slice.forEach(it => {
     const div = document.createElement('div'); div.className='latest-item';
     const t = makeThumbnail(it);
-    div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy"><div class="latest-info"><div style="font-weight:700">${escapeHtml(it.title)}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div><div style="margin-top:8px"><button class="btn" onclick="showItemById('${escapeHtml(it.id)}')">Preview</button> <button class="watch-btn" onclick="openWatchById('${escapeHtml(it.id)}')">Watch</button></div></div>`;
+    div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy">
+      <div class="latest-info">
+        <div style="font-weight:700">${escapeHtml(it.title)}</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div>
+        <div style="margin-top:8px">
+          <button class="btn" onclick="showItemById('${escapeHtml(it.id)}')">Preview</button>
+          <button class="watch-btn" onclick="openWatchById('${escapeHtml(it.id)}')">Watch</button>
+        </div>
+      </div>`;
     list.appendChild(div);
   });
   renderPager();
 }
-
 function renderPager(){
   const pager = document.getElementById('pager'); if(!pager) return; pager.innerHTML='';
   const pages = Math.max(1, Math.ceil(items.length / PER_PAGE));
@@ -116,6 +121,7 @@ function renderPager(){
   }
 }
 
+// -------- actions --------
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
 function openWatchById(id){ const it = items.find(x=>x.id===id); if(it) openWatchWithAd(it); }
 
@@ -129,32 +135,28 @@ function showItem(it){
   }
   document.getElementById('nowTitle').textContent = it.title || ''; renderRandom();
 }
-
 function showRandomPick(){ if(items.length===0) return; const pick = items[Math.floor(Math.random()*items.length)]; showItem(pick); renderRandom(); }
-
 function openWatchWithAd(it){
   if(!it) return; const target = it.watch || '#';
-  // inject pop ad script
   const s = document.createElement('script'); s.type='text/javascript'; s.src = AD_POP; s.async = true; document.body.appendChild(s);
   const watchAd = document.getElementById('watchAd'); if(watchAd) watchAd.textContent = 'Opening...';
-  setTimeout(()=>{ try{ window.open(target,'_blank'); }catch(e){ window.open(target,'_blank'); } }, 900);
+  setTimeout(()=>{ window.open(target,'_blank'); }, 900);
 }
 
-window.showItemById = showItemById; window.openWatchById = openWatchById;
+// -------- bootstrap --------
+window.showItemById = showItemById; 
+window.openWatchById = openWatchById;
 document.getElementById && document.getElementById('shuffleBtn').addEventListener('click', showRandomPick);
 document.getElementById && document.getElementById('watchNowTop').addEventListener('click', ()=> openWatchWithAd(current));
 
 async function loadAll(){
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
-  // sort: if date exists use date desc, else assume sheet new rows are at bottom -> reverse to show newest first
   const haveDates = parsed.some(i=>i.date && i.date.trim());
   if(haveDates) parsed.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
   else parsed.reverse();
   items = parsed;
-  console.log('[Dareloom] items', items.length, items.slice(0,6));
-  const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items';
   renderRandom(); renderLatest(); showRandomPick();
 }
-setInterval(loadAll,45000);
+setInterval(loadAll, 45000);
 loadAll();
