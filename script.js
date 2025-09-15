@@ -1,131 +1,96 @@
-const SHEET_ID = "1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o";
-const API_KEY = "AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
-const RANGE = "Sheet1!A1:Z1000";
+// Dareloom Hub — robust final script (template placeholders)
+const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
+const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
+const PER_PAGE = 5;
+let items = [], current = null, currentPage = 1;
 
-const SHEET_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?alt=json&key=${API_KEY}`;
+async function fetchSheet(){ try{ console.log('[Dareloom] fetching', SHEET_API); const r = await fetch(SHEET_API); if(!r.ok) throw new Error('sheet fetch failed ' + r.status); const j = await r.json(); return j.values || []; }catch(e){ console.error('[Dareloom] fetch error', e); return []; } }
 
-let videos = [];
-let currentPage = 1;
-const perPage = 5;
+function norm(s){ return (s||'').toString().trim().toLowerCase(); }
 
-async function fetchVideos() {
-  try {
-    const res = await fetch(SHEET_URL);
-    const data = await res.json();
-    console.log("[Dareloom] Raw sheet data:", data);
-
-    const rows = data.values;
-    if (!rows || rows.length < 2) return;
-
-    const headers = rows[0].map(h => h.trim().toLowerCase());
-    const titleIndex = headers.findIndex(h => h.startsWith("title"));
-    const trailerIndex = headers.findIndex(h => h.startsWith("trailer"));
-    const watchIndex = headers.findIndex(h => h.startsWith("watch"));
-
-    videos = rows.slice(1).map(r => ({
-      title: r[titleIndex] || "Untitled",
-      trailer: r[trailerIndex] || "",
-      watch: r[watchIndex] || ""
-    })).filter(v => v.title && v.trailer);
-
-    renderRandom();
-    renderLatest();
-  } catch (err) {
-    console.error("Error fetching videos:", err);
-  }
+function findHeaderIndex(headers, candidates){
+  for(let i=0;i<headers.length;i++){ const h = norm(headers[i]); for(const c of candidates) if(h === c.toLowerCase()) return i; }
+  return -1;
 }
 
-function getYouTubeThumbnail(url) {
-  try {
-    let videoId = null;
-    if (url.includes("youtu.be/")) {
-      videoId = url.split("youtu.be/")[1].split("?")[0];
-    } else if (url.includes("youtube.com/watch")) {
-      const params = new URL(url).searchParams;
-      videoId = params.get("v");
-    } else if (url.includes("youtube.com/shorts/")) {
-      videoId = url.split("/shorts/")[1].split("?")[0];
+function parseRows(values){
+  if(!values || values.length < 2) return [];
+  const headers = values[0].map(h=> (h||'').toString());
+  const ti = findHeaderIndex(headers, ['title']);
+  const tr = findHeaderIndex(headers, ['trailer','video','trailer link','trailer_url']);
+  const wa = findHeaderIndex(headers, ['watch','watch ','watch link','watchlink']);
+  const th = findHeaderIndex(headers, ['thumbnail','thumbnail ','poster','poster_url']);
+  const dt = findHeaderIndex(headers, ['date']);
+  const rows = values.slice(1);
+  const out = [];
+  for(let r of rows){
+    const title = ti !== -1 ? (r[ti]||'').toString() : (r[0]||'').toString();
+    const trailer = tr !== -1 ? (r[tr]||'').toString() : (r[2]||'').toString();
+    const watch = wa !== -1 ? (r[wa]||'').toString() : (r[6]||'').toString();
+    const poster = th !== -1 ? (r[th]||'').toString() : '';
+    const date = dt !== -1 ? (r[dt]||'').toString() : '';
+    if((trailer && trailer.trim()) || (watch && watch.trim())){
+      out.push({ id: (title||'') + '|' + (watch||''), title: title||'Untitled', trailer: trailer||'', watch: watch||'', poster: poster||'', date: date||'' });
     }
-    return videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : null;
-  } catch {
-    return null;
   }
+  return out;
 }
 
-function renderRandom() {
-  const container = document.getElementById("random-videos");
-  container.innerHTML = "";
-  const randoms = [...videos].sort(() => 0.5 - Math.random()).slice(0, 4);
-
-  randoms.forEach(v => {
-    const thumb = getYouTubeThumbnail(v.trailer);
-    container.innerHTML += `
-      <div class="video-card">
-        ${thumb ? `<img src="${thumb}" alt="thumbnail">` : ""}
-        <h3>${v.title}</h3>
-        <a class="watch-btn" href="${v.watch}" target="_blank" onclick="openPopAd()">Watch Now</a>
-      </div>`;
-  });
+function getYTid(url){
+  if(!url) return null;
+  const m = url.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
+  return m ? m[1] : null;
 }
 
-function renderLatest() {
-  const container = document.getElementById("latest-videos");
-  container.innerHTML = "";
-  const start = (currentPage - 1) * perPage;
-  const end = start + perPage;
-  const pageItems = videos.slice().reverse().slice(start, end);
-
-  pageItems.forEach(v => {
-    const thumb = getYouTubeThumbnail(v.trailer);
-    container.innerHTML += `
-      <div class="video-card">
-        ${thumb ? `<img src="${thumb}" alt="thumbnail">` : ""}
-        <h3>${v.title}</h3>
-        <a class="watch-btn" href="${v.watch}" target="_blank" onclick="openPopAd()">Watch Now</a>
-      </div>`;
-  });
-
-  document.getElementById("page-info").innerText =
-    `Page ${currentPage} of ${Math.ceil(videos.length / perPage)}`;
+function thumbFor(item){
+  if(item.poster && item.poster.trim()) return item.poster;
+  const y = getYTid(item.trailer);
+  if(y) return 'https://img.youtube.com/vi/' + y + '/hqdefault.jpg';
+  return 'https://placehold.co/600x400?text=No+Thumbnail';
 }
 
-document.getElementById("prev").addEventListener("click", () => {
-  if (currentPage > 1) {
-    currentPage--;
-    renderLatest();
-  }
-});
-document.getElementById("next").addEventListener("click", () => {
-  if (currentPage < Math.ceil(videos.length / perPage)) {
-    currentPage++;
-    renderLatest();
-  }
-});
-
-// Pop ad script injection
-function openPopAd() {
-  var pop = document.createElement("script");
-  pop.src = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
-  document.body.appendChild(pop);
+function toEmbed(url){
+  if(!url) return '';
+  url = url.trim();
+  const y = getYTid(url);
+  if(y) return 'https://www.youtube.com/embed/' + y + '?autoplay=1&rel=0';
+  if(url.includes('youtube.com/embed')) return url;
+  if(url.match(/drive\.google\.com/)){ const m = url.match(/file\/d\/([A-Za-z0-9_-]+)/); if(m) return 'https://drive.google.com/file/d/' + m[1] + '/preview'; }
+  if(url.match(/\.mp4($|\?)/i)) return url;
+  return url;
 }
 
-fetchVideos();
+function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-// Banner Ad Injection
-window.onload = () => {
-  const banner = document.createElement("div");
-  banner.innerHTML = `
-    <div style="margin:1em auto;max-width:300px;">
-      <script type="text/javascript">
-        atOptions = {
-          'key' : '627de0095b96c6bf7f4e1f352a5fa6b5',
-          'format' : 'iframe',
-          'height' : 250,
-          'width' : 300,
-          'params' : {}
-        };
-      </script>
-      <script type="text/javascript" src="//www.highperformanceformat.com/627de0095b96c6bf7f4e1f352a5fa6b5/invoke.js"></script>
-    </div>`;
-  document.body.appendChild(banner);
-};
+function renderRandom(){
+  const g = document.getElementById('randomGrid'); if(!g) return; g.innerHTML = '';
+  const pool = items.slice(); const picks = [];
+  while(picks.length < 4 && pool.length) picks.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+  picks.forEach(it => { const card = document.createElement('div'); card.className='card'; const t = thumbFor(it); card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`; card.addEventListener('click', ()=> showItem(it)); g.appendChild(card); });
+}
+
+function renderLatest(){
+  const list = document.getElementById('latestList'); if(!list) return; list.innerHTML='';
+  const start = (currentPage-1)*PER_PAGE; const slice = items.slice(start, start+PER_PAGE);
+  slice.forEach(it => { const div = document.createElement('div'); div.className='latest-item'; const t = thumbFor(it); div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy"><div class="latest-info"><div style="font-weight:700">${escapeHtml(it.title)}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div><div style="margin-top:8px"><button class="btn" onclick="showItemById('${escapeHtml(it.id)}')">Preview</button> <button class="watch-btn" onclick="openWatchById('${escapeHtml(it.id)}')">Watch</button></div></div>`; list.appendChild(div); });
+  renderPager();
+}
+
+function renderPager(){ const pager = document.getElementById('pager'); if(!pager) return; pager.innerHTML=''; const pages = Math.max(1, Math.ceil(items.length / PER_PAGE)); for(let i=1;i<=pages;i++){ const b = document.createElement('button'); b.className='page-btn'; b.textContent = i; if(i===currentPage) b.style.opacity='0.7'; b.addEventListener('click', ()=>{ currentPage = i; renderLatest(); window.scrollTo({top:300,behavior:'smooth'}); }); pager.appendChild(b); } }
+
+function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
+function openWatchById(id){ const it = items.find(x=>x.id===id); if(it) openWatchWithAd(it); }
+
+function showItem(it){ current = it; const embed = toEmbed(it.trailer); const p = document.getElementById('playerWrap'); if(!p) return; p.innerHTML=''; if(!embed) p.innerHTML = '<div style="padding:20px;color:var(--muted)">Trailer not available</div>'; else if(embed.match(/\.mp4($|\?)/i)){ const v = document.createElement('video'); v.controls=true; v.autoplay=true; v.muted=true; v.playsInline=true; v.src = embed; p.appendChild(v); } else { const iframe = document.createElement('iframe'); iframe.src = embed; iframe.allow='autoplay; encrypted-media; picture-in-picture'; iframe.allowFullscreen = true; p.appendChild(iframe); } document.getElementById('nowTitle').textContent = it.title || ''; renderRandom(); }
+
+function showRandomPick(){ if(items.length===0) return; const pick = items[Math.floor(Math.random()*items.length)]; showItem(pick); renderRandom(); }
+
+function openWatchWithAd(it){ if(!it) return; const target = it.watch || '#'; const s = document.createElement('script'); s.type='text/javascript'; s.src = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js"; s.async = true; document.body.appendChild(s); const watchAd = document.getElementById('watchAd'); if(watchAd) watchAd.textContent = 'Opening...'; setTimeout(()=>{ try{ window.open(target,'_blank'); }catch(e){ window.open(target,'_blank'); } }, 900); }
+
+window.showItemById = showItemById; window.openWatchById = openWatchById;
+document.getElementById && document.getElementById('shuffleBtn').addEventListener('click', showRandomPick);
+document.getElementById && document.getElementById('watchNowTop').addEventListener('click', ()=> openWatchWithAd(current));
+
+async function loadAll(){ const vals = await fetchSheet(); const parsed = parseRows(vals); const haveDates = parsed.some(i=>i.date && i.date.trim()); if(haveDates) parsed.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0)); else parsed.reverse(); items = parsed; console.log('[Dareloom] items', items.length, items.slice(0,4)); const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items'; renderRandom(); renderLatest(); showRandomPick(); }
+setInterval(loadAll,45000);
+loadAll();
