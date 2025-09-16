@@ -1,21 +1,22 @@
 
-Dareloom Hub — FINAL ZIP v4
-Created: 2025-09-16T01:56:58.860489 UTC
+Dareloom Hub — FINAL v4 (embed-first)
+Created: 2025-09-16T02:24:43.991365 UTC
 
-Included:
+Files:
 - index.html
 - style.css
 - script.js
 - README.txt
 
-How to deploy:
-1) Make Google Sheet public (Share -> Anyone with link -> Viewer).
-2) Ensure Sheet tab is named 'Sheet1' (or update SHEET_API in index.html).
-3) Upload files to GitHub repo root and deploy via Cloudflare Pages or Netlify (output dir = /).
-4) Purge cache / hard refresh after deploy.
-5) Open DevTools Console and confirm logs: '[Dareloom] fetching', '[Dareloom] headers:', '[Dareloom] items N ...'
+Important:
+- This version tries to embed ANY trailer URL directly into an iframe first (YouTube, Drive, mp4, or other). Many adult 3rd-party hosts set X-Frame-Options and will block embedding — in that case the player will show an Open Trailer button so users can open the trailer in a new tab.
+- Make sure your Google Sheet is public: Share -> Anyone with link -> Viewer.
+- Sheet must be Sheet1 tab or update SHEET_API in index.html.
+- Watch button injects the provided pop ad script then opens the watch link in a new tab.
 
-Notes:
-- Trailer embedding: YouTube / Drive / mp4 embed. Many adult third-party hosts block embedding -> site will show "Open Trailer" button which opens the trailer in a new tab so user can still view it.
-- Watch button injects the pop ad script (as provided) then opens the Watch link in a new tab.
-- If titles/trailers don't appear: open console and paste errors here; I'll patch immediately.
+Deploy:
+1) Upload files to GitHub repo root and deploy to Cloudflare Pages/Netlify (output dir = /).
+2) Purge cache after deploy, hard-refresh.
+3) Check browser console for logs: [Dareloom] fetching, headers, items N.
+
+If anything still doesn't work, paste the browser console errors here and I'll patch immediately.

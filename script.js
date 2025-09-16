@@ -1,11 +1,10 @@
-// Dareloom Hub v3 — final: messy-sheet tolerant, auto-thumbs (YT/watch), new->old pagination, pop ad on Watch, trailer accept 3rd-party where possible
-const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
+
+// FINAL Dareloom v4 - embed-first behavior: try to embed trailer URL directly (best-effort).
+const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
-
 let items = [], current = null, currentPage = 1;
 
-// Fetch sheet
 async function fetchSheet(){
   try{
     console.log('[Dareloom] fetching', SHEET_API);
@@ -19,7 +18,6 @@ async function fetchSheet(){
   }
 }
 
-// Header finder
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
 function findHeaderIndex(headers, candidates){
   for(let i=0;i<headers.length;i++){
@@ -29,7 +27,6 @@ function findHeaderIndex(headers, candidates){
   return -1;
 }
 
-// Parse rows (explicit fallback to A,C,G)
 function parseRows(values){
   if(!values || values.length < 2) return [];
   const headers = (values[0]||[]).map(h=> (h||'').toString());
@@ -54,18 +51,19 @@ function parseRows(values){
   return out;
 }
 
-// Utilities for thumbnails and embeds
 function extractYouTubeID(url){
   if(!url) return null;
   const m = url.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
   return m ? m[1] : null;
 }
+
 function makeThumbnail(item){
   if(item.poster && item.poster.trim()) return item.poster;
   const y = extractYouTubeID(item.trailer) || extractYouTubeID(item.watch);
   if(y) return 'https://img.youtube.com/vi/' + y + '/hqdefault.jpg';
   return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
+
 function toEmbedUrl(url){
   if(!url) return '';
   url = url.trim();
@@ -77,12 +75,12 @@ function toEmbedUrl(url){
     if(m) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
   }
   if(url.match(/\.mp4($|\?)/i)) return url;
-  // For other 3rd-party adult sites: do not attempt iframe (likely blocked) - return empty to show "Open Trailer" button instead
-  return '';
+  // Best-effort: return original URL so we attempt iframe. May be blocked by X-Frame-Options.
+  return url;
 }
+
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
-// Renderers
 function renderRandom(){
   const g = document.getElementById('randomGrid'); if(!g) return; g.innerHTML='';
   const pool = items.slice(); const picks = [];
@@ -95,6 +93,7 @@ function renderRandom(){
     g.appendChild(card);
   });
 }
+
 function renderLatest(){
   const list = document.getElementById('latestList'); if(!list) return; list.innerHTML='';
   const start = (currentPage-1)*PER_PAGE; const slice = items.slice(start, start+PER_PAGE);
@@ -106,6 +105,7 @@ function renderLatest(){
   });
   renderPager();
 }
+
 function renderPager(){
   const pager = document.getElementById('pager'); if(!pager) return; pager.innerHTML='';
   const pages = Math.max(1, Math.ceil(items.length / PER_PAGE));
@@ -116,7 +116,6 @@ function renderPager(){
   }
 }
 
-// Actions
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
 function openWatchById(id){ const it = items.find(x=>x.id===id); if(it) openWatchWithAd(it); }
 
@@ -126,10 +125,13 @@ function showItem(it){
     if(embed.match(/\.mp4($|\?)/i)){
       const v = document.createElement('video'); v.controls=true; v.autoplay=true; v.muted=true; v.playsInline=true; v.src = embed; p.appendChild(v);
     } else {
-      const iframe = document.createElement('iframe'); iframe.src = embed; iframe.allow = 'autoplay; encrypted-media; picture-in-picture'; iframe.allowFullscreen = true; p.appendChild(iframe);
+      const iframe = document.createElement('iframe'); iframe.src = embed; iframe.allow = 'autoplay; encrypted-media; picture-in-picture'; iframe.allowFullscreen = true; iframe.style.width='100%'; iframe.style.height='420px';
+      p.appendChild(iframe);
+      const fallback = document.createElement('div'); fallback.style.textAlign='center'; fallback.style.marginTop='8px';
+      fallback.innerHTML = `<button class="watch-btn" style="margin-top:8px" onclick="openTrailerNewTab('${escapeHtml(it.trailer)}')">Open Trailer (If not playing)</button>`;
+      p.appendChild(fallback);
     }
   } else {
-    // non-embeddable trailer — show thumbnail + open button
     const t = makeThumbnail(it);
     const html = `<div style="padding:18px;text-align:center"><img src="${escapeHtml(t)}" style="max-width:100%;height:auto;border-radius:8px;display:block;margin:0 auto 12px"><div style="margin-top:8px"><button class="watch-btn" onclick="openTrailerNewTab('${escapeHtml(it.trailer)}')">Open Trailer</button></div></div>`;
     p.innerHTML = html;
@@ -146,13 +148,11 @@ function showRandomPick(){ if(items.length===0) return; const pick = items[Math.
 
 function openWatchWithAd(it){
   if(!it) return; const target = it.watch || '#';
-  // inject pop ad script (provided)
   const s = document.createElement('script'); s.type='text/javascript'; s.src = AD_POP; s.async = true; document.body.appendChild(s);
   const watchAd = document.getElementById('watchAd'); if(watchAd) watchAd.textContent = 'Opening...';
   setTimeout(()=>{ try{ window.open(target,'_blank'); }catch(e){ window.open(target,'_blank'); } }, 900);
 }
 
-// bootstrap
 window.showItemById = showItemById; window.openWatchById = openWatchById;
 document.getElementById && document.getElementById('shuffleBtn').addEventListener('click', showRandomPick);
 document.getElementById && document.getElementById('watchNowTop').addEventListener('click', ()=> openWatchWithAd(current));
