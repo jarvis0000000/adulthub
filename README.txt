@@ -1,19 +1,21 @@
 
-Dareloom Hub — static site (Google Sheets driven)
+Dareloom Hub — FINAL ZIP v4
+Created: 2025-09-16T01:56:58.860489 UTC
 
-Files:
+Included:
 - index.html
 - style.css
 - script.js
+- README.txt
 
-How it works:
-1. Edit your Google Sheet (Sheet1) with columns: Title | Trailer | Watch | Poster (optional) | Date (optional)
-2. Make the sheet public: File → Share → Anyone with the link → Viewer
-3. The site uses Google Sheets API v4. The API_KEY and SHEET_ID are already embedded in index.html (replace if you want)
-4. Deploy to Netlify / Cloudflare Pages / GitHub Pages. For Cloudflare Pages, connect a GitHub repo containing these files.
+How to deploy:
+1) Make Google Sheet public (Share -> Anyone with link -> Viewer).
+2) Ensure Sheet tab is named 'Sheet1' (or update SHEET_API in index.html).
+3) Upload files to GitHub repo root and deploy via Cloudflare Pages or Netlify (output dir = /).
+4) Purge cache / hard refresh after deploy.
+5) Open DevTools Console and confirm logs: '[Dareloom] fetching', '[Dareloom] headers:', '[Dareloom] items N ...'
 
 Notes:
-- Trailer embedding supports YouTube, Vimeo, Google Drive, Pornhub (embed/viewkey), and direct .mp4 links.
-- Watch button injects Adsterra script then opens the target link.
-- If some trailers don't embed, that host may block embedding; Watch will still open the link.
-- Remember to restrict your API key to your domain after testing.
+- Trailer embedding: YouTube / Drive / mp4 embed. Many adult third-party hosts block embedding -> site will show "Open Trailer" button which opens the trailer in a new tab so user can still view it.
+- Watch button injects the pop ad script (as provided) then opens the Watch link in a new tab.
+- If titles/trailers don't appear: open console and paste errors here; I'll patch immediately.
