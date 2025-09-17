@@ -63,19 +63,30 @@ function makeThumbnail(item){
   return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
 
-function toEmbedUrl(url){
-  if(!url) return '';
+// Function to check if a URL can be embedded
+function isEmbeddable(url) {
+  if (!url || !url.trim()) return false;
+  url = url.trim().toLowerCase();
+  // We only allow known embeddable sites and direct mp4 files
+  if (url.includes('youtube.com') || url.includes('youtu.be')) return true;
+  if (url.includes('drive.google.com')) return true;
+  if (url.match(/\.mp4($|\?)/i)) return true;
+  // All other sites are considered non-embeddable
+  return false;
+}
+
+// Function to convert URL to embeddable format
+function toEmbedUrl(url) {
+  if (!url || !isEmbeddable(url)) return ''; // Return empty string if not embeddable
   url = url.trim();
   const y = extractYouTubeID(url);
-  if(y) return 'https://www.youtube.com/embed/' + y + '?autoplay=1&rel=0';
-  if(url.includes('youtube.com/embed')) return url;
-  if(url.match(/drive\.google\.com/)){
+  if (y) return 'https://www.youtube.com/embed/' + y + '?autoplay=1&rel=0';
+  if (url.includes('youtube.com/embed')) return url;
+  if (url.match(/drive\.google\.com/)) {
     const m = url.match(/file\/d\/([A-Za-z0-9_-]+)/);
-    if(m) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
+    if (m) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
   }
-  if(url.match(/\.mp4($|\?)/i)) return url;
-  // Best-effort: return original URL so we attempt iframe. May be blocked by X-Frame-Options.
-  return url;
+  return url; // For mp4 files
 }
 
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
@@ -119,14 +130,32 @@ function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(
 function openWatchById(id){ const it = items.find(x=>x.id===id); if(it) openWatchWithAd(it); }
 
 function showItem(it){
-  current = it; const embed = toEmbedUrl(it.trailer); const p = document.getElementById('playerWrap'); if(!p) return; p.innerHTML='';
-  if(embed){ 
-    if(embed.match(/\.mp4($|\?)/i)){
-      const v = document.createElement('video'); v.controls=true; v.autoplay=true; v.muted=true; v.playsInline=true; v.src = embed; p.appendChild(v);
+  current = it;
+  const embed = toEmbedUrl(it.trailer);
+  const p = document.getElementById('playerWrap');
+  if (!p) return;
+  p.innerHTML = '';
+  
+  if (embed) {
+    if (embed.match(/\.mp4($|\?)/i)) {
+      const v = document.createElement('video');
+      v.controls = true;
+      v.autoplay = true;
+      v.muted = true;
+      v.playsInline = true;
+      v.src = embed;
+      p.appendChild(v);
     } else {
-      const iframe = document.createElement('iframe'); iframe.src = embed; iframe.allow = 'autoplay; encrypted-media; picture-in-picture'; iframe.allowFullscreen = true; iframe.style.width='100%'; iframe.style.height='420px';
+      const iframe = document.createElement('iframe');
+      iframe.src = embed;
+      iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+      iframe.allowFullscreen = true;
+      iframe.style.width = '100%';
+      iframe.style.height = '420px';
       p.appendChild(iframe);
-      const fallback = document.createElement('div'); fallback.style.textAlign='center'; fallback.style.marginTop='8px';
+      const fallback = document.createElement('div');
+      fallback.style.textAlign = 'center';
+      fallback.style.marginTop = '8px';
       fallback.innerHTML = `<button class="watch-btn" style="margin-top:8px" onclick="openTrailerNewTab('${escapeHtml(it.trailer)}')">Open Trailer (If not playing)</button>`;
       p.appendChild(fallback);
     }
@@ -135,7 +164,8 @@ function showItem(it){
     const html = `<div style="padding:18px;text-align:center"><img src="${escapeHtml(t)}" style="max-width:100%;height:auto;border-radius:8px;display:block;margin:0 auto 12px"><div style="margin-top:8px"><button class="watch-btn" onclick="openTrailerNewTab('${escapeHtml(it.trailer)}')">Open Trailer</button></div></div>`;
     p.innerHTML = html;
   }
-  document.getElementById('nowTitle').textContent = it.title || ''; renderRandom();
+  document.getElementById('nowTitle').textContent = it.title || '';
+  renderRandom();
 }
 
 function openTrailerNewTab(url){
@@ -169,4 +199,5 @@ async function loadAll(){
 }
 setInterval(loadAll,45000);
 loadAll();
+                                             
       
