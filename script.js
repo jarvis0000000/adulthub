@@ -195,7 +195,7 @@ function openDownloadWithAd(it){
 
 window.showItemById = showItemById; window.openWatchById = openWatchById; window.openDownloadById = openDownloadById;
 document.getElementById && document.getElementById('shuffleBtn').addEventListener('click', showRandomPick);
-document.getElementById && document.getElementById('watchNowTop').addEventListener('click', ()=> openWatchWithAd(current));
+document.getElementById && document.getElementById('downloadNowTop').addEventListener('click', ()=> openDownloadWithAd(current));
 
 async function loadAll(){
   const vals = await fetchSheet();
@@ -210,4 +210,4 @@ async function loadAll(){
 }
 setInterval(loadAll,45000);
 loadAll();
-      
+    
