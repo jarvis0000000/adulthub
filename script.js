@@ -32,7 +32,8 @@ function parseRows(values){
   console.log('[Dareloom] headers:', headers);
   const ti = findHeaderIndex(headers, ['title']);
   const tr = findHeaderIndex(headers, ['trailer','video','trailer link','trailer_url']);
-  const wa = findHeaderIndex(headers, ['watch','watch ','watch link','watchlink']);
+  const dl = findHeaderIndex(headers, ['download','tele', 'telegram']);
+  const wa = findHeaderIndex(headers, ['watch', 'watchonline', 'watch now']);
   const th = findHeaderIndex(headers, ['thumbnail','poster','poster_url']);
   const dt = findHeaderIndex(headers, ['date']);
   const rows = values.slice(1);
@@ -40,11 +41,12 @@ function parseRows(values){
   for(let r of rows){
     const title = ti !== -1 ? (r[ti]||'') : (r[0]||'');
     const trailer = tr !== -1 ? (r[tr]||'') : (r[2]||'');
-    const watch = wa !== -1 ? (r[wa]||'') : (r[6]||'');
+    const download = dl !== -1 ? (r[dl]||'') : (r[6]||'');
+    const watch = wa !== -1 ? (r[wa]||'') : (r[7]||'');
     const poster = th !== -1 ? (r[th]||'') : '';
     const date = dt !== -1 ? (r[dt]||'') : '';
-    if((trailer && trailer.trim()) || (watch && watch.trim())){
-      out.push({ id: (title||'') + '|' + (watch||''), title: title||'Untitled', trailer: trailer||'', watch: watch||'', poster: poster||'', date: date||'' });
+    if((trailer && trailer.trim()) || (download && download.trim())){
+      out.push({ id: (title||'') + '|' + (download||''), title: title||'Untitled', trailer: trailer||'', download: download||'', watch: watch||'', poster: poster||'', date: date||'' });
     }
   }
   return out;
@@ -67,17 +69,15 @@ function makeThumbnail(item){
 function isEmbeddable(url) {
   if (!url || !url.trim()) return false;
   url = url.trim().toLowerCase();
-  // We only allow known embeddable sites and direct mp4 files
   if (url.includes('youtube.com') || url.includes('youtu.be')) return true;
   if (url.includes('drive.google.com')) return true;
   if (url.match(/\.mp4($|\?)/i)) return true;
-  // All other sites are considered non-embeddable
   return false;
 }
 
 // Function to convert URL to embeddable format
 function toEmbedUrl(url) {
-  if (!url || !isEmbeddable(url)) return ''; // Return empty string if not embeddable
+  if (!url || !isEmbeddable(url)) return '';
   url = url.trim();
   const y = extractYouTubeID(url);
   if (y) return 'https://www.youtube.com/embed/' + y + '?autoplay=1&rel=0';
@@ -86,7 +86,7 @@ function toEmbedUrl(url) {
     const m = url.match(/file\/d\/([A-Za-z0-9_-]+)/);
     if (m) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
   }
-  return url; // For mp4 files
+  return url;
 }
 
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
@@ -110,7 +110,10 @@ function renderLatest(){
   slice.forEach(it => {
     const div = document.createElement('div'); div.className='latest-item';
     const t = makeThumbnail(it);
-    div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy"><div class="latest-info"><div style="font-weight:700">${escapeHtml(it.title)}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div><div style="margin-top:8px"><button class="btn" onclick="showItemById('${escapeHtml(it.id)}')">Preview</button> <button class="watch-btn" onclick="openWatchById('${escapeHtml(it.id)}')">Watch</button></div></div>`;
+    const watchButton = it.watch ? `<button class="watch-btn" onclick="openWatchById('${escapeHtml(it.id)}')">Watch Online</button>` : '';
+    const downloadButton = it.download ? `<button class="btn" style="margin-left: 8px;" onclick="openDownloadById('${escapeHtml(it.id)}')">Download</button>` : '';
+    
+    div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy"><div class="latest-info"><div style="font-weight:700">${escapeHtml(it.title)}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div><div style="margin-top:8px"><button class="btn" onclick="showItemById('${escapeHtml(it.id)}')">Preview</button> ${watchButton} ${downloadButton}</div></div>`;
     list.appendChild(div);
   });
   renderPager();
@@ -128,6 +131,7 @@ function renderPager(){
 
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
 function openWatchById(id){ const it = items.find(x=>x.id===id); if(it) openWatchWithAd(it); }
+function openDownloadById(id) { const it = items.find(x=>x.id===id); if(it) openDownloadWithAd(it); }
 
 function showItem(it){
   current = it;
@@ -182,7 +186,14 @@ function openWatchWithAd(it){
   setTimeout(()=>{ try{ window.open(target,'_blank'); }catch(e){ window.open(target,'_blank'); } }, 900);
 }
 
-window.showItemById = showItemById; window.openWatchById = openWatchById;
+function openDownloadWithAd(it){
+  if(!it) return; const target = it.download || '#';
+  const s = document.createElement('script'); s.type='text/javascript'; s.src = AD_POP; s.async = true; document.body.appendChild(s);
+  const watchAd = document.getElementById('watchAd'); if(watchAd) watchAd.textContent = 'Opening...';
+  setTimeout(()=>{ try{ window.open(target,'_blank'); }catch(e){ window.open(target,'_blank'); } }, 900);
+}
+
+window.showItemById = showItemById; window.openWatchById = openWatchById; window.openDownloadById = openDownloadById;
 document.getElementById && document.getElementById('shuffleBtn').addEventListener('click', showRandomPick);
 document.getElementById && document.getElementById('watchNowTop').addEventListener('click', ()=> openWatchWithAd(current));
 
@@ -199,5 +210,4 @@ async function loadAll(){
 }
 setInterval(loadAll,45000);
 loadAll();
-                                             
       
