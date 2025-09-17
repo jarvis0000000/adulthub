@@ -211,4 +211,3 @@ async function loadAll(){
 }
 setInterval(loadAll,45000);
 loadAll();
-  
