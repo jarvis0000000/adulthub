@@ -206,8 +206,9 @@ async function loadAll(){
   items = parsed;
   console.log('[Dareloom] items', items.length, items.slice(0,6));
   const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items';
-  renderRandom(); renderLatest(); showRandomPick();
+  renderRandom(); renderLatest();
+  // We don't call showRandomPick() here anymore, to prevent the trailer from changing automatically.
 }
 setInterval(loadAll,45000);
 loadAll();
-    
+  
