@@ -33,7 +33,6 @@ function parseRows(values){
   const ti = findHeaderIndex(headers, ['title']);
   const tr = findHeaderIndex(headers, ['trailer','video','trailer link','trailer_url']);
   const dl = findHeaderIndex(headers, ['download','tele', 'telegram']);
-  const wa = findHeaderIndex(headers, ['watch', 'watchonline', 'watch now']);
   const th = findHeaderIndex(headers, ['thumbnail','poster','poster_url']);
   const dt = findHeaderIndex(headers, ['date']);
   const rows = values.slice(1);
@@ -42,7 +41,7 @@ function parseRows(values){
     const title = ti !== -1 ? (r[ti]||'') : (r[0]||'');
     const trailer = tr !== -1 ? (r[tr]||'') : (r[2]||'');
     const download = dl !== -1 ? (r[dl]||'') : (r[6]||'');
-    const watch = wa !== -1 ? (r[wa]||'') : (r[7]||'');
+    const watch = ''; // Set watch to an empty string to remove the 'Watch' column
     const poster = th !== -1 ? (r[th]||'') : '';
     const date = dt !== -1 ? (r[dt]||'') : '';
     if((trailer && trailer.trim()) || (download && download.trim())){
@@ -65,7 +64,6 @@ function makeThumbnail(item){
   return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
 
-// Function to check if a URL can be embedded
 function isEmbeddable(url) {
   if (!url || !url.trim()) return false;
   url = url.trim().toLowerCase();
@@ -75,7 +73,6 @@ function isEmbeddable(url) {
   return false;
 }
 
-// Function to convert URL to embeddable format
 function toEmbedUrl(url) {
   if (!url || !isEmbeddable(url)) return '';
   url = url.trim();
@@ -110,10 +107,9 @@ function renderLatest(){
   slice.forEach(it => {
     const div = document.createElement('div'); div.className='latest-item';
     const t = makeThumbnail(it);
-    const watchButton = it.watch ? `<button class="watch-btn" onclick="openWatchById('${escapeHtml(it.id)}')">Watch Online</button>` : '';
-    const downloadButton = it.download ? `<button class="btn" style="margin-left: 8px;" onclick="openDownloadById('${escapeHtml(it.id)}')">Download</button>` : '';
+    const watchButton = it.download ? `<button class="btn" onclick="openDownloadById('${escapeHtml(it.id)}')">Watch Online</button>` : '';
     
-    div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy"><div class="latest-info"><div style="font-weight:700">${escapeHtml(it.title)}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div><div style="margin-top:8px"><button class="btn" onclick="showItemById('${escapeHtml(it.id)}')">Preview</button> ${watchButton} ${downloadButton}</div></div>`;
+    div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy"><div class="latest-info"><div style="font-weight:700">${escapeHtml(it.title)}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div><div style="margin-top:8px"><button class="btn" onclick="showItemById('${escapeHtml(it.id)}')">Preview</button> ${watchButton}</div></div>`;
     list.appendChild(div);
   });
   renderPager();
@@ -130,7 +126,6 @@ function renderPager(){
 }
 
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
-function openWatchById(id){ const it = items.find(x=>x.id===id); if(it) openWatchWithAd(it); }
 function openDownloadById(id) { const it = items.find(x=>x.id===id); if(it) openDownloadWithAd(it); }
 
 function showItem(it){
@@ -179,13 +174,6 @@ function openTrailerNewTab(url){
 
 function showRandomPick(){ if(items.length===0) return; const pick = items[Math.floor(Math.random()*items.length)]; showItem(pick); renderRandom(); }
 
-function openWatchWithAd(it){
-  if(!it) return; const target = it.watch || '#';
-  const s = document.createElement('script'); s.type='text/javascript'; s.src = AD_POP; s.async = true; document.body.appendChild(s);
-  const watchAd = document.getElementById('watchAd'); if(watchAd) watchAd.textContent = 'Opening...';
-  setTimeout(()=>{ try{ window.open(target,'_blank'); }catch(e){ window.open(target,'_blank'); } }, 900);
-}
-
 function openDownloadWithAd(it){
   if(!it) return; const target = it.download || '#';
   const s = document.createElement('script'); s.type='text/javascript'; s.src = AD_POP; s.async = true; document.body.appendChild(s);
@@ -193,9 +181,9 @@ function openDownloadWithAd(it){
   setTimeout(()=>{ try{ window.open(target,'_blank'); }catch(e){ window.open(target,'_blank'); } }, 900);
 }
 
-window.showItemById = showItemById; window.openWatchById = openWatchById; window.openDownloadById = openDownloadById;
+window.showItemById = showItemById; window.openDownloadById = openDownloadById;
 document.getElementById && document.getElementById('shuffleBtn').addEventListener('click', showRandomPick);
-document.getElementById && document.getElementById('downloadNowTop').addEventListener('click', ()=> openDownloadWithAd(current));
+document.getElementById && document.getElementById('watchNowTop').addEventListener('click', ()=> openDownloadWithAd(current));
 
 async function loadAll(){
   const vals = await fetchSheet();
@@ -207,7 +195,6 @@ async function loadAll(){
   console.log('[Dareloom] items', items.length, items.slice(0,6));
   const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items';
   renderRandom(); renderLatest();
-  // We don't call showRandomPick() here anymore, to prevent the trailer from changing automatically.
 }
 setInterval(loadAll,45000);
 loadAll();
