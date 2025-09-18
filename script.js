@@ -133,9 +133,15 @@ function renderPager(){
   }
 }
 
+// openAdAndChangePage function (Updated)
 function openAdAndChangePage(page){
+  // No delay, page is changed instantly
+  currentPage = page; 
+  renderLatest(); 
+  window.scrollTo({top:300,behavior:'smooth'}); 
+
+  // Ad script is loaded after the action
   const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
-  setTimeout(()=>{ currentPage = page; renderLatest(); window.scrollTo({top:300,behavior:'smooth'}); }, 900);
 }
 
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
@@ -178,12 +184,27 @@ function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
 
 function showRandomPick(){ if(items.length===0) return; const pick = items[Math.floor(Math.random()*items.length)]; showItem(pick); renderRandom(); }
 
+// openWatchWithAd function (Updated)
 function openWatchWithAd(it){
   if(!it) return; 
   const target = it.watch || '#';
-  const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
-  const watchAd = document.getElementById('watchAd'); if(watchAd) watchAd.textContent = 'Opening...';
-  setTimeout(()=>{ window.open(target,'_blank'); }, 900);
+  
+  // Open the link in a new tab immediately on user click
+  const newWindow = window.open(target,'_blank');
+
+  // Then load the ad script
+  const s = document.createElement('script'); 
+  s.src = AD_POP; 
+  s.async = true; 
+  document.body.appendChild(s);
+  
+  const watchAd = document.getElementById('watchAd');
+  if(watchAd) watchAd.textContent = 'Opening...';
+  
+  // Check if the pop-up was blocked
+  if(!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {
+    if(watchAd) watchAd.textContent = 'Pop-up blocked. Please disable your ad-blocker.';
+  }
 }
 
 window.showItemById = showItemById; 
@@ -204,3 +225,5 @@ async function loadAll(){
 }
 
 loadAll();
+
+      
