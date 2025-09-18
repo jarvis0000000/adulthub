@@ -1,5 +1,5 @@
-// FINAL Dareloom v5 - YouTube + Streamtape + Ads in pagination & watch
-const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
+// FINAL Dareloom v6 - YouTube + Streamtape + Drive + Telegram + Ads
+const SHEET_API = "YOUR_GOOGLE_SHEET_API";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
 let items = [], current = null, currentPage = 1;
@@ -63,19 +63,20 @@ function makeThumbnail(item){
 function toEmbedUrl(url){
   if(!url) return '';
   url = url.trim();
+
+  // YouTube
   const y = extractYouTubeID(url);
   if(y) return 'https://www.youtube.com/embed/' + y + '?autoplay=1&rel=0';
   if(url.includes('youtube.com/embed')) return url;
 
   // Google Drive
   if(url.match(/drive\.google\.com/)){
-    const m = url.match(/file\/d\/([A-Za-z0-9_-]+)/);
-    if(m) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
+    const m = url.match(/[-\w]{25,}/); // file id
+    if(m) return 'https://drive.google.com/file/d/' + m[0] + '/preview';
   }
 
-  // Streamtape embed
+  // Streamtape
   if(url.includes("streamtape.com")) {
-    // Normal link -> convert to embed
     if(url.includes("/v/")) {
       const id = url.split("/v/")[1].split("/")[0];
       return "https://streamtape.com/e/" + id + "/";
@@ -83,7 +84,14 @@ function toEmbedUrl(url){
     if(url.includes("/e/")) return url;
   }
 
+  // Telegram (embed not possible → button only)
+  if(url.includes("t.me/") || url.includes("telegram.me/")){
+    return ''; 
+  }
+
+  // MP4 direct
   if(url.match(/\.mp4($|\?)/i)) return url;
+
   return url;
 }
 
@@ -133,10 +141,18 @@ function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(
 function openWatchById(id){ const it = items.find(x=>x.id===id); if(it) openWatchWithAd(it); }
 
 function showItem(it){
-  current = it; const embed = toEmbedUrl(it.trailer); const p = document.getElementById('playerWrap'); if(!p) return; p.innerHTML='';
+  current = it; 
+  const embed = toEmbedUrl(it.trailer); 
+  const p = document.getElementById('playerWrap'); 
+  if(!p) return; 
+  p.innerHTML='';
+
   if(embed){
     if(embed.match(/\.mp4($|\?)/i)){
-      const v = document.createElement('video'); v.controls=true; v.autoplay=true; v.muted=true; v.playsInline=true; v.src = embed; p.appendChild(v);
+      const v = document.createElement('video'); 
+      v.controls=true; v.autoplay=true; v.muted=true; v.playsInline=true; 
+      v.src = embed; 
+      p.appendChild(v);
     } else {
       const iframe = document.createElement('iframe'); 
       iframe.src = embed; 
@@ -144,12 +160,16 @@ function showItem(it){
       iframe.allowFullscreen = true; 
       iframe.style.width='100%'; iframe.style.height='420px';
       p.appendChild(iframe);
-      const fallback = document.createElement('div'); 
-      fallback.style.textAlign='center'; fallback.style.marginTop='8px';
-      fallback.innerHTML = `<button class="watch-btn" style="margin-top:8px" onclick="openTrailerNewTab('${escapeHtml(it.trailer)}')">Open Trailer (If not playing)</button>`;
-      p.appendChild(fallback);
     }
+  } else {
+    // Telegram ya unsupported link
+    const msg = document.createElement('div');
+    msg.style.textAlign='center';
+    msg.style.padding='20px';
+    msg.innerHTML = `<button class="watch-btn" onclick="openTrailerNewTab('${escapeHtml(it.trailer)}')">Open in Telegram</button>`;
+    p.appendChild(msg);
   }
+
   document.getElementById('nowTitle').textContent = it.title || ''; 
   renderRandom();
 }
@@ -159,7 +179,8 @@ function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
 function showRandomPick(){ if(items.length===0) return; const pick = items[Math.floor(Math.random()*items.length)]; showItem(pick); renderRandom(); }
 
 function openWatchWithAd(it){
-  if(!it) return; const target = it.watch || '#';
+  if(!it) return; 
+  const target = it.watch || '#';
   const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
   const watchAd = document.getElementById('watchAd'); if(watchAd) watchAd.textContent = 'Opening...';
   setTimeout(()=>{ window.open(target,'_blank'); }, 900);
