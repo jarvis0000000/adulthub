@@ -1,4 +1,4 @@
-// FINAL Dareloom v6 - YouTube + Streamtape + Drive + Telegram + Ads
+// FINAL Dareloom v7 - YouTube + Streamtape + Drive + Telegram + Ads
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
@@ -133,15 +133,9 @@ function renderPager(){
   }
 }
 
-// openAdAndChangePage function (Updated)
 function openAdAndChangePage(page){
-  // No delay, page is changed instantly
-  currentPage = page; 
-  renderLatest(); 
-  window.scrollTo({top:300,behavior:'smooth'}); 
-
-  // Ad script is loaded after the action
   const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
+  setTimeout(()=>{ currentPage = page; renderLatest(); window.scrollTo({top:300,behavior:'smooth'}); }, 900);
 }
 
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
@@ -184,27 +178,34 @@ function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
 
 function showRandomPick(){ if(items.length===0) return; const pick = items[Math.floor(Math.random()*items.length)]; showItem(pick); renderRandom(); }
 
-// openWatchWithAd function (Updated)
+// ✅ FIXED FUNCTION
 function openWatchWithAd(it){
   if(!it) return; 
   const target = it.watch || '#';
-  
-  // Open the link in a new tab immediately on user click
-  const newWindow = window.open(target,'_blank');
 
-  // Then load the ad script
+  // Ad script load
   const s = document.createElement('script'); 
   s.src = AD_POP; 
   s.async = true; 
   document.body.appendChild(s);
-  
-  const watchAd = document.getElementById('watchAd');
+
+  const watchAd = document.getElementById('watchAd'); 
   if(watchAd) watchAd.textContent = 'Opening...';
-  
-  // Check if the pop-up was blocked
-  if(!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {
-    if(watchAd) watchAd.textContent = 'Pop-up blocked. Please disable your ad-blocker.';
-  }
+
+  setTimeout(()=>{
+    try {
+      if(target.includes("t.me/") || target.includes("telegram.me/")){
+        // Telegram → open same tab
+        window.location.href = target;
+      } else {
+        const newWindow = window.open(target,'_blank');
+        if(!newWindow) window.location.href = target;
+      }
+    } catch(e){
+      console.error("Open error:", e);
+      window.location.href = target;
+    }
+  }, 900);
 }
 
 window.showItemById = showItemById; 
@@ -225,5 +226,3 @@ async function loadAll(){
 }
 
 loadAll();
-
-      
