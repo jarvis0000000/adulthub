@@ -1,5 +1,5 @@
 // FINAL Dareloom v6 - YouTube + Streamtape + Drive + Telegram + Ads
-const SHEET_API = "https://sheets.googleapis.com/v6/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
+const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
 let items = [], current = null, currentPage = 1;
@@ -11,6 +11,7 @@ async function fetchSheet(){
     const j = await res.json();
     return j.values || [];
   }catch(e){
+    console.error("Fetch error:", e);
     return [];
   }
 }
@@ -162,7 +163,6 @@ function showItem(it){
       p.appendChild(iframe);
     }
   } else {
-    // Telegram ya unsupported link
     const msg = document.createElement('div');
     msg.style.textAlign='center';
     msg.style.padding='20px';
