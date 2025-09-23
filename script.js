@@ -178,24 +178,18 @@ function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
 
 function showRandomPick(){ if(items.length===0) return; const pick = items[Math.floor(Math.random()*items.length)]; showItem(pick); renderRandom(); }
 
-// ✅ FIXED FUNCTION
 function openWatchWithAd(it){
   if(!it) return; 
   const target = it.watch || '#';
-
-  // Ad script load
   const s = document.createElement('script'); 
   s.src = AD_POP; 
   s.async = true; 
   document.body.appendChild(s);
-
   const watchAd = document.getElementById('watchAd'); 
   if(watchAd) watchAd.textContent = 'Opening...';
-
   setTimeout(()=>{
     try {
       if(target.includes("t.me/") || target.includes("telegram.me/")){
-        // Telegram → open same tab
         window.location.href = target;
       } else {
         const newWindow = window.open(target,'_blank');
@@ -215,14 +209,4 @@ document.getElementById && document.getElementById('shuffleBtn').addEventListene
 document.getElementById && document.getElementById('watchNowTop').addEventListener('click', ()=> openWatchWithAd(current));
 
 async function loadAll(){
-  const vals = await fetchSheet();
-  const parsed = parseRows(vals);
-  const haveDates = parsed.some(i=>i.date && i.date.trim());
-  if(haveDates) parsed.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
-  else parsed.reverse();
-  items = parsed;
-  const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items';
-  renderRandom(); renderLatest(); showRandomPick();
-}
-
-loadAll();
+  const vals = await fetch
