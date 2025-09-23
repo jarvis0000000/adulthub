@@ -1,0 +1,27 @@
+name: Update Sitemap
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  build-sitemap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - name: Install dependencies
+        run: npm install node-fetch@2
+      - name: Generate sitemap
+        run: node scripts/generate-sitemap.js
+      - name: Commit & Push
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add public/sitemap.xml
+          git commit -m "Auto-update sitemap [skip ci]" || echo "No changes"
+          git push
