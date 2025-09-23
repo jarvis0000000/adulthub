@@ -1,21 +1,23 @@
-// FINAL Dareloom v7 - YouTube + Streamtape + Drive + Telegram + Ads
+// FINAL Dareloom v8 - YouTube + Streamtape + Drive + Telegram + Ads + Dynamic Schema
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
 let items = [], current = null, currentPage = 1;
 
-async function fetchSheet(){
-  try{
+// --------- Fetch Google Sheet ---------
+async function fetchSheet() {
+  try {
     const res = await fetch(SHEET_API);
     if(!res.ok) throw new Error('sheet fetch failed ' + res.status);
     const j = await res.json();
     return j.values || [];
-  }catch(e){
+  } catch(e) {
     console.error("Fetch error:", e);
     return [];
   }
 }
 
+// --------- Parse Rows ---------
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
 function findHeaderIndex(headers, candidates){
   for(let i=0;i<headers.length;i++){
@@ -48,6 +50,7 @@ function parseRows(values){
   return out;
 }
 
+// --------- Utilities ---------
 function extractYouTubeID(url){
   if(!url) return null;
   const m = url.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
@@ -64,19 +67,13 @@ function makeThumbnail(item){
 function toEmbedUrl(url){
   if(!url) return '';
   url = url.trim();
-
-  // YouTube
   const y = extractYouTubeID(url);
   if(y) return 'https://www.youtube.com/embed/' + y + '?autoplay=1&rel=0';
   if(url.includes('youtube.com/embed')) return url;
-
-  // Google Drive
   if(url.match(/drive\.google\.com/)){
-    const m = url.match(/[-\w]{25,}/); // file id
+    const m = url.match(/[-\w]{25,}/);
     if(m) return 'https://drive.google.com/file/d/' + m[0] + '/preview';
   }
-
-  // Streamtape
   if(url.includes("streamtape.com")) {
     if(url.includes("/v/")) {
       const id = url.split("/v/")[1].split("/")[0];
@@ -84,20 +81,14 @@ function toEmbedUrl(url){
     }
     if(url.includes("/e/")) return url;
   }
-
-  // Telegram (embed not possible → button only)
-  if(url.includes("t.me/") || url.includes("telegram.me/")){
-    return ''; 
-  }
-
-  // MP4 direct
+  if(url.includes("t.me/") || url.includes("telegram.me/")) return '';
   if(url.match(/\.mp4($|\?)/i)) return url;
-
   return url;
 }
 
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
+// --------- Render Functions ---------
 function renderRandom(){
   const g = document.getElementById('randomGrid'); if(!g) return; g.innerHTML='';
   const pool = items.slice(); const picks = [];
@@ -138,6 +129,7 @@ function openAdAndChangePage(page){
   setTimeout(()=>{ currentPage = page; renderLatest(); window.scrollTo({top:300,behavior:'smooth'}); }, 900);
 }
 
+// --------- Show Video ---------
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
 function openWatchById(id){ const it = items.find(x=>x.id===id); if(it) openWatchWithAd(it); }
 
@@ -172,21 +164,15 @@ function showItem(it){
 
   document.getElementById('nowTitle').textContent = it.title || ''; 
   renderRandom();
+  injectSchema(it); // Dynamic schema
 }
 
-function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
-
-function showRandomPick(){ if(items.length===0) return; const pick = items[Math.floor(Math.random()*items.length)]; showItem(pick); renderRandom(); }
-
+// --------- Open Watch with Ad ---------
 function openWatchWithAd(it){
   if(!it) return; 
   const target = it.watch || '#';
-  const s = document.createElement('script'); 
-  s.src = AD_POP; 
-  s.async = true; 
-  document.body.appendChild(s);
-  const watchAd = document.getElementById('watchAd'); 
-  if(watchAd) watchAd.textContent = 'Opening...';
+  const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
+  const watchAd = document.getElementById('watchAd'); if(watchAd) watchAd.textContent = 'Opening...';
   setTimeout(()=>{
     try {
       if(target.includes("t.me/") || target.includes("telegram.me/")){
@@ -202,11 +188,52 @@ function openWatchWithAd(it){
   }, 900);
 }
 
+// --------- Schema Injection ---------
+function injectSchema(it){
+  const oldSchema = document.getElementById('video-schema');
+  if(oldSchema) oldSchema.remove();
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.id = 'video-schema';
+  const thumb = makeThumbnail(it);
+  script.text = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    "name": it.title,
+    "description": it.title,
+    "thumbnailUrl": thumb,
+    "uploadDate": it.date || new Date().toISOString().split("T")[0],
+    "contentUrl": it.watch,
+    "embedUrl": toEmbedUrl(it.trailer),
+    "publisher": {
+      "@type": "Organization",
+      "name": "Dareloom Hub",
+      "url": "https://dareloom.fun"
+    }
+  });
+  document.head.appendChild(script);
+}
+
+// --------- Misc ---------
+function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
+function showRandomPick(){ if(items.length===0) return; const pick = items[Math.floor(Math.random()*items.length)]; showItem(pick); renderRandom(); }
+
 window.showItemById = showItemById; 
 window.openWatchById = openWatchById;
 
 document.getElementById && document.getElementById('shuffleBtn').addEventListener('click', showRandomPick);
 document.getElementById && document.getElementById('watchNowTop').addEventListener('click', ()=> openWatchWithAd(current));
 
+// --------- Load All ---------
 async function loadAll(){
-  const vals = await fetch
+  const vals = await fetchSheet();
+  const parsed = parseRows(vals);
+  const haveDates = parsed.some(i=>i.date && i.date.trim());
+  if(haveDates) parsed.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
+  else parsed.reverse();
+  items = parsed;
+  const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items';
+  renderRandom(); renderLatest(); showRandomPick();
+}
+
+loadAll();
