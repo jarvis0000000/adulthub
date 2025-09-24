@@ -17,7 +17,7 @@ async function fetchSheet() {
   }
 }
 
-// --------- Parse Rows ---------
+// --------- Parse Rows (Updated for Description and Category) ---------
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
 function findHeaderIndex(headers, candidates){
   for(let i=0;i<headers.length;i++){
@@ -35,6 +35,8 @@ function parseRows(values){
   const wa = findHeaderIndex(headers, ['watch','watch ','watch link','watchlink']);
   const th = findHeaderIndex(headers, ['thumbnail','poster','poster_url']);
   const dt = findHeaderIndex(headers, ['date']);
+  const de = findHeaderIndex(headers, ['description', 'desc']); // ✅ Description Column Index
+  const ca = findHeaderIndex(headers, ['category', 'cat']);   // ✅ Category Column Index
   const rows = values.slice(1);
   const out = [];
   for(let r of rows){
@@ -43,8 +45,20 @@ function parseRows(values){
     const watch = wa !== -1 ? (r[wa]||'') : (r[6]||'');
     const poster = th !== -1 ? (r[th]||'') : '';
     const date = dt !== -1 ? (r[dt]||'') : '';
+    const description = de !== -1 ? (r[de]||'') : ''; // ✅ Description value
+    const category = ca !== -1 ? (r[ca]||'') : ''; // ✅ Category value
+
     if((trailer && trailer.trim()) || (watch && watch.trim())){
-      out.push({ id: (title||'') + '|' + (watch||''), title: title||'Untitled', trailer: trailer||'', watch: watch||'', poster: poster||'', date: date||'' });
+      out.push({ 
+        id: (title||'') + '|' + (watch||''), 
+        title: title||'Untitled', 
+        trailer: trailer||'', 
+        watch: watch||'', 
+        poster: poster||'', 
+        date: date||'', 
+        description: description, // ✅ Add to item object
+        category: category         // ✅ Add to item object
+      });
     }
   }
   return out;
@@ -205,7 +219,7 @@ function openWatchWithAd(it){
 }
 
 
-// --------- Schema Injection ---------
+// --------- Schema Injection (Updated for Description) ---------
 function injectSchema(it){
   const oldSchema = document.getElementById('video-schema');
   if(oldSchema) oldSchema.remove();
@@ -217,7 +231,7 @@ function injectSchema(it){
     "@context": "https://schema.org",
     "@type": "VideoObject",
     "name": it.title,
-    "description": it.title,
+    "description": it.description && it.description.trim() ? it.description : it.title, // ✅ Use description if available, else title
     "thumbnailUrl": thumb,
     "uploadDate": it.date || new Date().toISOString().split("T")[0],
     "contentUrl": it.watch,
@@ -254,3 +268,4 @@ async function loadAll(){
 }
 
 loadAll();
+  
