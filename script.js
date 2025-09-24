@@ -1,4 +1,4 @@
-// FINAL Dareloom v8 - YouTube + Streamtape + Drive + Telegram + Ads + Dynamic Schema
+// FINAL Dareloom v9 - YouTube + Streamtape + Drive + Telegram + Ads + Dynamic Schema
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
@@ -128,32 +128,58 @@ function renderLatest(){
   renderPager();
 }
 
-// --------- Updated Function to Render Categories ---------
-function renderCategories(){
-  const categories = ["Drama", "Action", "Thriller", "Family", "Lesbian"]; // Yahi categories hain jo index.html mein hain
-  
-  categories.forEach(cat => {
-    const catId = cat.toLowerCase() + "List";
-    const container = document.getElementById(catId);
-    if(container){
-      container.innerHTML = ''; // Purane content ko saaf karein
-      
-      const filteredItems = items.filter(item => {
-        // Ek video ko multiple categories se match karne ka naya logic
-        const videoCategories = item.category ? item.category.toLowerCase().split(',').map(c => c.trim()) : [];
-        return videoCategories.includes(cat.toLowerCase());
-      });
-      
-      filteredItems.forEach(it => {
+// --------- New Function to Render Categories Dropdown ---------
+function renderCategoryDropdown(){
+    const categories = Array.from(new Set(items.flatMap(item => 
+        (item.category ? item.category.toLowerCase().split(',').map(c => c.trim()) : []))));
+    
+    categories.sort();
+    
+    const dropdown = document.getElementById('categoryDropdown');
+    dropdown.innerHTML = '';
+    
+    const allBtn = document.createElement('a');
+    allBtn.href = '#';
+    allBtn.textContent = 'All';
+    allBtn.addEventListener('click', () => { 
+        renderCategoryGrid(items, 'All Categories');
+        window.scrollTo({top: 0, behavior: 'smooth'}); 
+    });
+    dropdown.appendChild(allBtn);
+
+    categories.forEach(cat => {
+        const a = document.createElement('a');
+        a.href = '#';
+        a.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);
+        a.addEventListener('click', () => {
+            const filtered = items.filter(item => {
+                const videoCategories = item.category ? item.category.toLowerCase().split(',').map(c => c.trim()) : [];
+                return videoCategories.includes(cat);
+            });
+            renderCategoryGrid(filtered, cat.charAt(0).toUpperCase() + cat.slice(1));
+            window.scrollTo({top: 0, behavior: 'smooth'}); 
+        });
+        dropdown.appendChild(a);
+    });
+}
+
+// --------- New Function to Render a specific Category Grid ---------
+function renderCategoryGrid(videoList, title){
+    const container = document.getElementById('categoryGrid');
+    const titleEl = document.getElementById('categoryTitle');
+    if(!container || !titleEl) return;
+    
+    container.innerHTML = '';
+    titleEl.textContent = title;
+    
+    videoList.forEach(it => {
         const card = document.createElement('div'); 
         card.className='card';
         const t = makeThumbnail(it);
         card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
         card.addEventListener('click', ()=> showItem(it));
         container.appendChild(card);
-      });
-    }
-  });
+    });
 }
 
 function renderPager(){
@@ -294,9 +320,9 @@ async function loadAll(){
   const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items';
   renderRandom(); 
   renderLatest(); 
-  renderCategories(); // ✅ Naya function yahaan call hoga
+  renderCategoryDropdown(); // ✅ Naya function yahaan call hoga
+  renderCategoryGrid(items, 'All Videos'); // ✅ Default view sabhi videos ke liye
   showRandomPick();
 }
 
 loadAll();
-                                                               
