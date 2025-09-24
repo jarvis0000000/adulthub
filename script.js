@@ -1,4 +1,4 @@
-// FINAL Dareloom v10 - YouTube + Streamtape + Drive + Telegram + Ads + Dynamic Schema
+// FINAL Dareloom v11 - YouTube + Streamtape + Drive + Telegram + Ads + Dynamic Schema
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
@@ -343,10 +343,11 @@ async function loadAll(){
   renderRandom(); 
   renderLatest(); 
   renderCategoryDropdown(); 
-  renderCategoryGrid(items, 'All Videos'); 
   showRandomPick();
+  
+  // Naya kaam: category section ko shuru mein hide rakho
+  const categorySection = document.getElementById('categorySection');
+  if(categorySection) categorySection.style.display = 'none';
 }
 
 loadAll();
-
-    
