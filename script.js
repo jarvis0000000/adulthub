@@ -124,9 +124,15 @@ function renderPager(){
   }
 }
 
+// openAdAndChangePage function (Updated for pop-up blocker)
 function openAdAndChangePage(page){
+  // No delay, page is changed instantly
+  currentPage = page; 
+  renderLatest(); 
+  window.scrollTo({top:300,behavior:'smooth'}); 
+
+  // Ad script is loaded after the action
   const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
-  setTimeout(()=>{ currentPage = page; renderLatest(); window.scrollTo({top:300,behavior:'smooth'}); }, 900);
 }
 
 // --------- Show Video ---------
@@ -134,23 +140,23 @@ function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(
 function openWatchById(id){ const it = items.find(x=>x.id===id); if(it) openWatchWithAd(it); }
 
 function showItem(it){
-  current = it; 
-  const embed = toEmbedUrl(it.trailer); 
-  const p = document.getElementById('playerWrap'); 
-  if(!p) return; 
+  current = it;
+  const embed = toEmbedUrl(it.trailer);
+  const p = document.getElementById('playerWrap');
+  if(!p) return;
   p.innerHTML='';
 
   if(embed){
     if(embed.match(/\.mp4($|\?)/i)){
-      const v = document.createElement('video'); 
-      v.controls=true; v.autoplay=true; v.muted=true; v.playsInline=true; 
-      v.src = embed; 
+      const v = document.createElement('video');
+      v.controls=true; v.autoplay=true; v.muted=true; v.playsInline=true;
+      v.src = embed;
       p.appendChild(v);
     } else {
-      const iframe = document.createElement('iframe'); 
-      iframe.src = embed; 
-      iframe.allow = 'autoplay; encrypted-media; picture-in-picture'; 
-      iframe.allowFullscreen = true; 
+      const iframe = document.createElement('iframe');
+      iframe.src = embed;
+      iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+      iframe.allowFullscreen = true;
       iframe.style.width='100%'; iframe.style.height='420px';
       p.appendChild(iframe);
     }
@@ -162,31 +168,42 @@ function showItem(it){
     p.appendChild(msg);
   }
 
-  document.getElementById('nowTitle').textContent = it.title || ''; 
+  document.getElementById('nowTitle').textContent = it.title || '';
   renderRandom();
   injectSchema(it); // Dynamic schema
 }
 
-// --------- Open Watch with Ad ---------
+// --------- Open Watch with Ad (Updated for pop-up blocker with fallback) ---------
 function openWatchWithAd(it){
-  if(!it) return; 
+  if(!it) return;
   const target = it.watch || '#';
-  const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
-  const watchAd = document.getElementById('watchAd'); if(watchAd) watchAd.textContent = 'Opening...';
-  setTimeout(()=>{
-    try {
-      if(target.includes("t.me/") || target.includes("telegram.me/")){
-        window.location.href = target;
-      } else {
-        const newWindow = window.open(target,'_blank');
-        if(!newWindow) window.location.href = target;
-      }
-    } catch(e){
-      console.error("Open error:", e);
+  let newWindow = null;
+
+  try {
+    if(target.includes("t.me/") || target.includes("telegram.me/")){
+      // Telegram links always use window.location.href to ensure they open
       window.location.href = target;
+    } else {
+      // For other links, try to open in a new window immediately
+      newWindow = window.open(target,'_blank');
+      // If newWindow is null (blocked by pop-up blocker), redirect current tab
+      if(!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {
+        window.location.href = target;
+      }
     }
-  }, 900);
+  } catch(e){
+    console.error("Open error:", e);
+    // Fallback if any error occurs during window.open
+    window.location.href = target;
+  }
+
+  // Then load the ad script (after the user action)
+  const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
+  
+  const watchAd = document.getElementById('watchAd');
+  if(watchAd) watchAd.textContent = 'Opening...'; // This message might not be seen if direct redirect
 }
+
 
 // --------- Schema Injection ---------
 function injectSchema(it){
@@ -218,7 +235,7 @@ function injectSchema(it){
 function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
 function showRandomPick(){ if(items.length===0) return; const pick = items[Math.floor(Math.random()*items.length)]; showItem(pick); renderRandom(); }
 
-window.showItemById = showItemById; 
+window.showItemById = showItemById;
 window.openWatchById = openWatchById;
 
 document.getElementById && document.getElementById('shuffleBtn').addEventListener('click', showRandomPick);
