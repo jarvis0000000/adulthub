@@ -1,4 +1,4 @@
-// FINAL Dareloom v9 - YouTube + Streamtape + Drive + Telegram + Ads + Dynamic Schema
+// FINAL Dareloom v10 - YouTube + Streamtape + Drive + Telegram + Ads + Dynamic Schema
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
@@ -128,7 +128,7 @@ function renderLatest(){
   renderPager();
 }
 
-// --------- New Function to Render Categories Dropdown ---------
+// --------- Render Categories Dropdown (Updated) ---------
 function renderCategoryDropdown(){
     const categories = Array.from(new Set(items.flatMap(item => 
         (item.category ? item.category.toLowerCase().split(',').map(c => c.trim()) : []))));
@@ -138,12 +138,12 @@ function renderCategoryDropdown(){
     const dropdown = document.getElementById('categoryDropdown');
     dropdown.innerHTML = '';
     
+    // Naya "Home / All" button
     const allBtn = document.createElement('a');
     allBtn.href = '#';
-    allBtn.textContent = 'All';
+    allBtn.textContent = 'All Videos';
     allBtn.addEventListener('click', () => { 
-        renderCategoryGrid(items, 'All Categories');
-        window.scrollTo({top: 0, behavior: 'smooth'}); 
+        showCategoryView('All Videos');
     });
     dropdown.appendChild(allBtn);
 
@@ -156,14 +156,36 @@ function renderCategoryDropdown(){
                 const videoCategories = item.category ? item.category.toLowerCase().split(',').map(c => c.trim()) : [];
                 return videoCategories.includes(cat);
             });
-            renderCategoryGrid(filtered, cat.charAt(0).toUpperCase() + cat.slice(1));
-            window.scrollTo({top: 0, behavior: 'smooth'}); 
+            showCategoryView(cat.charAt(0).toUpperCase() + cat.slice(1), filtered);
         });
         dropdown.appendChild(a);
     });
 }
 
-// --------- New Function to Render a specific Category Grid ---------
+// --------- Naya Function to show/hide sections ---------
+function showCategoryView(title, filteredVideos = items){
+  const randomSection = document.getElementById('randomSection');
+  const latestSection = document.getElementById('latestSection');
+  const categorySection = document.getElementById('categorySection');
+  
+  if(title === 'All Videos'){
+    // Sab sections dikhao
+    if(randomSection) randomSection.style.display = 'block';
+    if(latestSection) latestSection.style.display = 'block';
+    if(categorySection) categorySection.style.display = 'none';
+    
+  } else {
+    // Sirf category section dikhao
+    if(randomSection) randomSection.style.display = 'none';
+    if(latestSection) latestSection.style.display = 'none';
+    if(categorySection) categorySection.style.display = 'block';
+    renderCategoryGrid(filteredVideos, title);
+  }
+
+  window.scrollTo({top: 0, behavior: 'smooth'}); 
+}
+
+// --------- Function to Render a specific Category Grid ---------
 function renderCategoryGrid(videoList, title){
     const container = document.getElementById('categoryGrid');
     const titleEl = document.getElementById('categoryTitle');
@@ -320,9 +342,11 @@ async function loadAll(){
   const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items';
   renderRandom(); 
   renderLatest(); 
-  renderCategoryDropdown(); // ✅ Naya function yahaan call hoga
-  renderCategoryGrid(items, 'All Videos'); // ✅ Default view sabhi videos ke liye
+  renderCategoryDropdown(); 
+  renderCategoryGrid(items, 'All Videos'); 
   showRandomPick();
 }
 
 loadAll();
+
+    
