@@ -39,6 +39,14 @@
   .pill { background:#222; padding:5px 10px; border-radius:12px; }
   footer.foot { background:#111; padding:20px; text-align:center; margin-top:40px; }
   .category-icon { margin-right:8px; color:#ff4b91; }
+
+  /* Naye dropdown menu ke liye style */
+  .header { display:flex; justify-content:space-between; align-items:center; }
+  .dropdown { position:relative; display:inline-block; }
+  .dropdown-content { display:none; position:absolute; right:0; background:#161616; min-width:160px; box-shadow:0px 8px 16px 0px rgba(0,0,0,0.2); z-index:1; border-radius:8px; }
+  .dropdown-content a { color:#fff; padding:12px 16px; text-decoration:none; display:block; transition: background-color 0.3s; }
+  .dropdown-content a:hover { background-color:#222; }
+  .dropdown:hover .dropdown-content { display:block; }
 </style>
 </head>
 <body>
@@ -78,30 +86,20 @@
     <div id="pager" class="pager" style="margin-top:15px;text-align:center;"></div>
   </section>
 
+  <hr>
+  
   <section class="section">
-    <h2><span class="category-icon">🎭</span> Drama</h2>
-    <div id="dramaList" class="grid"></div>
+    <div class="header" style="justify-content:space-between">
+      <h2 id="categoryTitle">All Videos</h2>
+      <div class="dropdown">
+        <button class="btn">Categories ▼</button>
+        <div class="dropdown-content" id="categoryDropdown">
+          </div>
+      </div>
+    </div>
+    <div id="categoryGrid" class="grid"></div>
   </section>
 
-  <section class="section">
-    <h2><span class="category-icon">💥</span> Action</h2>
-    <div id="actionList" class="grid"></div>
-  </section>
-
-  <section class="section">
-    <h2><span class="category-icon">😱</span> Thriller</h2>
-    <div id="thrillerList" class="grid"></div>
-  </section>
-
-  <section class="section">
-    <h2><span class="category-icon">👨‍👩‍👧</span> Family</h2>
-    <div id="familyList" class="grid"></div>
-  </section>
-
-  <section class="section">
-    <h2><span class="category-icon">👩‍❤️‍👩</span> Lesbian</h2>
-    <div id="lesbianList" class="grid"></div>
-  </section>
 </main>
 
 <footer class="foot">
