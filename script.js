@@ -128,7 +128,7 @@ function renderLatest(){
   renderPager();
 }
 
-// --------- New Function to Render Categories ---------
+// --------- Updated Function to Render Categories ---------
 function renderCategories(){
   const categories = ["Drama", "Action", "Thriller", "Family", "Lesbian"]; // Yahi categories hain jo index.html mein hain
   
@@ -137,7 +137,12 @@ function renderCategories(){
     const container = document.getElementById(catId);
     if(container){
       container.innerHTML = ''; // Purane content ko saaf karein
-      const filteredItems = items.filter(item => norm(item.category) === norm(cat));
+      
+      const filteredItems = items.filter(item => {
+        // Ek video ko multiple categories se match karne ka naya logic
+        const videoCategories = item.category ? item.category.toLowerCase().split(',').map(c => c.trim()) : [];
+        return videoCategories.includes(cat.toLowerCase());
+      });
       
       filteredItems.forEach(it => {
         const card = document.createElement('div'); 
@@ -294,3 +299,4 @@ async function loadAll(){
 }
 
 loadAll();
+                                                               
