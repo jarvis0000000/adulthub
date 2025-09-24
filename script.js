@@ -17,7 +17,7 @@ async function fetchSheet() {
   }
 }
 
-// --------- Parse Rows (Updated for Description and Category) ---------
+// --------- Parse Rows ---------
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
 function findHeaderIndex(headers, candidates){
   for(let i=0;i<headers.length;i++){
@@ -35,8 +35,8 @@ function parseRows(values){
   const wa = findHeaderIndex(headers, ['watch','watch ','watch link','watchlink']);
   const th = findHeaderIndex(headers, ['thumbnail','poster','poster_url']);
   const dt = findHeaderIndex(headers, ['date']);
-  const de = findHeaderIndex(headers, ['description', 'desc']); // ✅ Description Column Index
-  const ca = findHeaderIndex(headers, ['category', 'cat']);   // ✅ Category Column Index
+  const de = findHeaderIndex(headers, ['description', 'desc']);
+  const ca = findHeaderIndex(headers, ['category', 'cat']);
   const rows = values.slice(1);
   const out = [];
   for(let r of rows){
@@ -45,8 +45,8 @@ function parseRows(values){
     const watch = wa !== -1 ? (r[wa]||'') : (r[6]||'');
     const poster = th !== -1 ? (r[th]||'') : '';
     const date = dt !== -1 ? (r[dt]||'') : '';
-    const description = de !== -1 ? (r[de]||'') : ''; // ✅ Description value
-    const category = ca !== -1 ? (r[ca]||'') : ''; // ✅ Category value
+    const description = de !== -1 ? (r[de]||'') : '';
+    const category = ca !== -1 ? (r[ca]||'') : '';
 
     if((trailer && trailer.trim()) || (watch && watch.trim())){
       out.push({ 
@@ -56,8 +56,8 @@ function parseRows(values){
         watch: watch||'', 
         poster: poster||'', 
         date: date||'', 
-        description: description, // ✅ Add to item object
-        category: category         // ✅ Add to item object
+        description: description,
+        category: category         
       });
     }
   }
@@ -126,6 +126,29 @@ function renderLatest(){
     list.appendChild(div);
   });
   renderPager();
+}
+
+// --------- New Function to Render Categories ---------
+function renderCategories(){
+  const categories = ["Drama", "Action", "Thriller", "Family", "Lesbian"]; // Yahi categories hain jo index.html mein hain
+  
+  categories.forEach(cat => {
+    const catId = cat.toLowerCase() + "List";
+    const container = document.getElementById(catId);
+    if(container){
+      container.innerHTML = ''; // Purane content ko saaf karein
+      const filteredItems = items.filter(item => norm(item.category) === norm(cat));
+      
+      filteredItems.forEach(it => {
+        const card = document.createElement('div'); 
+        card.className='card';
+        const t = makeThumbnail(it);
+        card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
+        card.addEventListener('click', ()=> showItem(it));
+        container.appendChild(card);
+      });
+    }
+  });
 }
 
 function renderPager(){
@@ -219,7 +242,7 @@ function openWatchWithAd(it){
 }
 
 
-// --------- Schema Injection (Updated for Description) ---------
+// --------- Schema Injection ---------
 function injectSchema(it){
   const oldSchema = document.getElementById('video-schema');
   if(oldSchema) oldSchema.remove();
@@ -231,7 +254,7 @@ function injectSchema(it){
     "@context": "https://schema.org",
     "@type": "VideoObject",
     "name": it.title,
-    "description": it.description && it.description.trim() ? it.description : it.title, // ✅ Use description if available, else title
+    "description": it.description && it.description.trim() ? it.description : it.title,
     "thumbnailUrl": thumb,
     "uploadDate": it.date || new Date().toISOString().split("T")[0],
     "contentUrl": it.watch,
@@ -264,8 +287,10 @@ async function loadAll(){
   else parsed.reverse();
   items = parsed;
   const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items';
-  renderRandom(); renderLatest(); showRandomPick();
+  renderRandom(); 
+  renderLatest(); 
+  renderCategories(); // ✅ Naya function yahaan call hoga
+  showRandomPick();
 }
 
 loadAll();
-  
