@@ -24,7 +24,16 @@
 <style>
   body { background:#0a0a0a; color:#fff; font-family:sans-serif; }
   header.site { display:flex; justify-content:space-between; align-items:center; padding:15px 20px; background:#111; border-bottom:2px solid #ff4b91; }
-  .brand .logo { font-size:28px; font-weight:900; color:#ff4b91; }
+  
+  /* LOGO IMAGE STYLE (Yahi style kaam karega) */
+  .brand .logo-img { 
+    height: 40px; /* Logo ki height */
+    width: auto; 
+    margin-right: 10px; 
+    border-radius: 8px; /* Thoda sa rounded corners */
+  }
+  .brand { display: flex; align-items: center; } 
+
   .brand .title { margin:0; font-size:20px; }
   .muted { font-size:13px; color:#bbb; }
   .nav .btn { background:#ff4b91; border:none; color:#fff; padding:8px 14px; border-radius:20px; cursor:pointer; }
@@ -52,9 +61,12 @@
 <body>
 <header class="site">
   <div class="brand">
-    <div class="logo">DL</div>
-    <h1 class="title">Dareloom Hub</h1>
-    <div class="muted">Premium Trailers • Adult</div>
+    <img class="logo-img" src="logo.png" alt="Dareloom Hub Logo">
+    
+    <div style="display: block;">
+        <h1 class="title">Dareloom Hub</h1>
+        <div class="muted">Premium Trailers • Adult</div>
+    </div>
   </div>
   <div class="nav"><button class="btn" id="ageBtn">I am 18+</button></div>
 </header>
@@ -123,4 +135,3 @@
 <script src="script.js?v=6"></script>
 </body>
 </html>
-
