@@ -34,29 +34,46 @@ header.site {
   flex-shrink: 1;
 }
 
-.brand .logo-img { 
-  height: 40px; 
-  width: auto; 
-  margin-right: 10px; 
-  border-radius: 8px; 
+/* ❌ YEH PURANE LOGO IMAGE AUR TEXT KE STYLES HATA DIYE GAYE HAIN YA OVERRIDE KIYE GAYE HAIN */
+.brand .logo-img, .brand .title, .muted { 
+  display: none; 
 }
+/* ❌ OVERRIDE END */
 
-.brand .title { 
-  margin: 0; 
-  font-size: 20px; 
-  color: var(--text-color);
-}
-
-.muted { 
-  font-size: 13px; 
-  color: var(--muted-color); 
-}
 
 .nav { 
   display: flex; 
   align-items: center; 
   flex-shrink: 0;
   margin-left: 15px;
+}
+
+/* --- ✅ NEW: Logo as Background Image Style --- */
+.logo-link {
+    /* Logo image ka naam aur location */
+    /* Humne assume kiya hai ki aapne file ka naam 1000118534.png hi rakha hai */
+    background-image: url('/1000118534.png'); 
+    background-size: cover; 
+    background-repeat: no-repeat;
+    background-position: center;
+    
+    /* Text ko chhupana, lekin screen readers ke liye rakhna */
+    text-indent: -9999px;
+    
+    /* Size set karein */
+    width: 140px; 
+    height: 40px; 
+    
+    /* Font styles (agar image load nahi hui to text dikhega) */
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--primary-color);
+    text-decoration: none;
+    
+    /* Display properties */
+    display: block;
+    border-radius: 8px; 
+    overflow: hidden; 
 }
 
 /* --- Search Input Style --- */
@@ -66,7 +83,7 @@ header.site {
   border-radius: 20px;
   background-color: #222;
   color: var(--text-color);
-  width: 130px; /* Mobile par chota rakho */
+  width: 130px; 
   transition: all 0.3s ease-in-out;
   font-size: 14px;
 }
@@ -339,13 +356,20 @@ footer.foot {
     padding: 10px;
   }
   
-  .brand .title {
-    font-size: 18px;
-  }
-  
-  .brand .logo-img {
+  .logo-link { /* Mobile par logo chota karna */
+    width: 120px;
     height: 35px;
   }
+
+  /* Purana .brand .title style ki jagah .logo-link override ho raha hai */
+  /* .brand .title { 
+    font-size: 18px;
+  } */
+  
+  /* Purana .brand .logo-img style ki jagah .logo-link override ho raha hai */
+  /* .brand .logo-img {
+    height: 35px;
+  } */
   
   .nav {
     flex-wrap: wrap;
@@ -391,5 +415,4 @@ footer.foot {
   margin-top: 12px;
   color: #999;
   font-size: 13px;
-  }
-  
+}
