@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Latest Step-Family Adult Videos & Porn Drama | Dareloom Hub</title>
+<title>Latest Adult Videos & Porn Drama | Dareloom Hub</title>
 
 <meta name="description" content="Watch the latest, trending step-family drama, action, and thriller adult videos in HD. Premium content updated daily on Dareloom Hub.">
 <meta name="keywords" content="stepmom, stepdaughter, stepdad, stepbrother, stepsister, step-family, porn drama, adult thriller, action porn, 480p, erotic movies, viral videos, hot clips, dareloom hub, latest videos">
@@ -15,76 +15,44 @@
 <meta property="og:url" content="https://dareloom.fun">
 <meta property="og:image" content="https://yourdomain.com/preview.jpg">
 
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="manifest" href="/site.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=2">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=2">
+<link rel="manifest" href="/site.webmanifest?v=2">
+<link rel="shortcut icon" href="/favicon.ico?v=2">
 
-<link rel="stylesheet" href="style.css">
-<style>
-  body { background:#0a0a0a; color:#fff; font-family:sans-serif; }
-  header.site { display:flex; justify-content:space-between; align-items:center; padding:15px 20px; background:#111; border-bottom:2px solid #ff4b91; }
-  
-  /* Logo Image ka style */
-  .brand .logo-img { 
-    height: 40px; 
-    width: auto; 
-    margin-right: 10px; 
-    border-radius: 8px; /* Thoda sa rounded corners */
-  }
-  .brand { display: flex; align-items: center; } /* Branding elements ko align karne ke liye */
+<link rel="stylesheet" href="style.css?v=20240926"> 
 
-  .brand .logo { font-size:28px; font-weight:900; color:#ff4b91; display: none; }
-  .brand .title { margin:0; font-size:20px; }
-  .muted { font-size:13px; color:#bbb; }
-  .nav .btn { background:#ff4b91; border:none; color:#fff; padding:8px 14px; border-radius:20px; cursor:pointer; }
-  .wrap { max-width:1100px; margin:auto; padding:20px; }
-  h2 { margin:30px 0 15px; font-size:22px; border-left:4px solid #ff4b91; padding-left:8px; }
-  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:15px; }
-  .card, .latest-item { background:#161616; border-radius:12px; overflow:hidden; transition:.3s; }
-  .card:hover, .latest-item:hover { transform:translateY(-4px); box-shadow:0 4px 12px rgba(0,0,0,.5); }
-  .thumb, .latest-thumb { width:100%; height:150px; object-fit:cover; }
-  .latest-info { padding:10px; }
-  .btn.primary, .watch-btn { background:#ff4b91; border:none; color:#fff; padding:6px 12px; margin:4px 2px; border-radius:6px; cursor:pointer; }
-  .pill { background:#222; padding:5px 10px; border-radius:12px; }
-  footer.foot { background:#111; padding:20px; text-align:center; margin-top:40px; }
-  .category-icon { margin-right:8px; color:#ff4b91; }
-
-  /* Naye dropdown menu ke liye style */
-  .header { display:flex; justify-content:space-between; align-items:center; }
-  .dropdown { position:relative; display:inline-block; }
-  .dropdown-content { display:none; position:absolute; right:0; background:#161616; min-width:160px; box-shadow:0px 8px 16px 0px rgba(0,0,0,0.2); z-index:1; border-radius:8px; }
-  .dropdown-content a { color:#fff; padding:12px 16px; text-decoration:none; display:block; transition: background-color 0.3s; }
-  .dropdown-content a:hover { background-color:#222; }
-  .dropdown:hover .dropdown-content { display:block; }
-</style>
 </head>
 <body>
 <header class="site">
   <div class="brand">
-    <img class="logo-img" src="https://i.imgur.com/PP076Me.jpeg" alt="Dareloom Hub Logo">
+    <img class="logo-img" src="https://graph.org/file/537c54328aca70ef7863d-3a3ea3ae9981b7d817.jpg" alt="Dareloom Hub Logo">
     
     <div style="display: block;">
         <h1 class="title">Dareloom Hub</h1>
         <div class="muted">Premium Trailers • Adult</div>
     </div>
   </div>
-  <div class="nav"><button class="btn" id="ageBtn">I am 18+</button></div>
+  <div class="nav">
+    <input type="text" id="searchInput" placeholder="Search titles..." onkeyup="filterVideos(this.value)">
+    <button class="btn" id="ageBtn">I am 18+</button>
+  </div>
 </header>
 
 <main class="wrap">
   <section class="hero">
-    <div class="player-card" id="playerWrap" style="background:#161616;border-radius:12px;overflow:hidden;padding:10px;text-align:center;">
+    <div class="player-card" id="playerWrap">
       <div class="player-placeholder">🎬 Select a video to preview</div>
     </div>
-    <aside class="hero-actions" style="margin-top:15px;text-align:center;">
-      <div id="nowTitle" class="now-title" style="font-size:18px;font-weight:600;margin-bottom:8px;">No video selected</div>
+    <aside class="hero-actions">
+      <div id="nowTitle" class="now-title">No video selected</div>
       <div class="controls">
         <div class="pill" id="count">0 items</div>
         <button class="btn" id="shuffleBtn">🎲 Shuffle</button>
         <button class="btn primary" id="watchNowTop">▶ Watch Now</button>
       </div>
-      <div class="ad-slot small" id="watchAd" style="margin-top:12px;color:#999;font-size:13px;">Ad space — watch</div>
+      <div class="ad-slot small" id="watchAd">Ad space — watch</div>
     </aside>
   </section>
   
@@ -96,13 +64,13 @@
   <section class="section" id="latestSection">
     <h2>📺 Latest Uploads</h2>
     <div id="latestList" class="latest-list"></div>
-    <div id="pager" class="pager" style="margin-top:15px;text-align:center;"></div>
+    <div id="pager" class="pager"></div>
   </section>
 
   <hr>
   
   <section class="section" id="categorySection">
-    <div class="header" style="justify-content:space-between">
+    <div class="header">
       <h2 id="categoryTitle">All Videos</h2>
       <div class="dropdown">
         <button class="btn">Categories ▼</button>
@@ -110,13 +78,13 @@
           </div>
       </div>
     </div>
-    <div id="categoryGrid" class="grid"></div>
+    <div id="categoryGrid" class="grid"></div> 
   </section>
 
 </main>
 
 <footer class="foot">
-  <div class="banner-wrap" style="text-align:center; margin:16px auto;">
+  <div class="banner-wrap">
     <script type="text/javascript">
       atOptions = {
         'key':'627de0095b96c6bf7f4e1f352a5fa6b5',
@@ -128,8 +96,8 @@
     </script>
     <script type="text/javascript" src="//www.highperformanceformat.com/627de0095b96c6bf7f4e1f352a5fa6b5/invoke.js"></script>
   </div>
-  <div style="margin-top:8px;color:#aaa;font-size:13px">
-    © Dareloom Hub. Contact: <a href="mailto:dareloom.official@gmail.com" style="color:#ff4b91;">dareloom.official@gmail.com</a>
+  <div class="footer-info">
+    © Dareloom Hub. Contact: <a href="mailto:dareloom.official@gmail.com">dareloom.official@gmail.com</a>
   </div>
 </footer>
 
