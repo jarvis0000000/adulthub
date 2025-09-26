@@ -128,7 +128,7 @@ function renderLatest(){
   renderPager();
 }
 
-// --------- Render Categories Dropdown (Updated) ---------
+// --------- Render Categories Dropdown ---------
 function renderCategoryDropdown(){
     const categories = Array.from(new Set(items.flatMap(item => 
         (item.category ? item.category.toLowerCase().split(',').map(c => c.trim()) : []))));
@@ -144,6 +144,8 @@ function renderCategoryDropdown(){
     allBtn.textContent = 'All Videos';
     allBtn.addEventListener('click', () => { 
         showCategoryView('All Videos');
+        // Search band hone par category view hamesha 'All Videos' dikhaye
+        document.getElementById('searchInput').value = ''; 
     });
     dropdown.appendChild(allBtn);
 
@@ -157,6 +159,8 @@ function renderCategoryDropdown(){
                 return videoCategories.includes(cat);
             });
             showCategoryView(cat.charAt(0).toUpperCase() + cat.slice(1), filtered);
+            // Category select hone par search box clear karo
+            document.getElementById('searchInput').value = ''; 
         });
         dropdown.appendChild(a);
     });
@@ -185,7 +189,7 @@ function showCategoryView(title, filteredVideos = items){
   window.scrollTo({top: 0, behavior: 'smooth'}); 
 }
 
-// --------- Function to Render a specific Category Grid ---------
+// --------- Function to Render a specific Category Grid (Now used for Search too) ---------
 function renderCategoryGrid(videoList, title){
     const container = document.getElementById('categoryGrid');
     const titleEl = document.getElementById('categoryTitle');
@@ -214,7 +218,7 @@ function renderPager(){
   }
 }
 
-// openAdAndChangePage function (Updated for pop-up blocker)
+// openAdAndChangePage function
 function openAdAndChangePage(page){
   // No delay, page is changed instantly
   currentPage = page; 
@@ -223,6 +227,26 @@ function openAdAndChangePage(page){
 
   // Ad script is loaded after the action
   const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
+}
+
+// --------- ✅ NEW SEARCH FUNCTIONALITY (filterVideos) ---------
+window.filterVideos = function(query) {
+    query = (query || '').trim().toLowerCase();
+    
+    if (query.length > 0) {
+        // Videos ko filter karo
+        const filtered = items.filter(item => 
+            (item.title && item.title.toLowerCase().includes(query)) ||
+            (item.category && item.category.toLowerCase().includes(query))
+        );
+        
+        // Search results ko category view mein dikhao
+        showCategoryView('Search Results (' + filtered.length + ')', filtered);
+        
+    } else {
+        // Query khali hone par, wapas main view par jao
+        showCategoryView('All Videos');
+    }
 }
 
 // --------- Show Video ---------
@@ -351,3 +375,4 @@ async function loadAll(){
 }
 
 loadAll();
+      
