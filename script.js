@@ -77,7 +77,7 @@ function makeThumbnail(item){
 }
 
 // ✅ CORRECTED: toEmbedUrl function. Yeh Streamtape aur YouTube ko embed karega.
-// Note: Yeh function sirf trailer/preview ke liye hai, watch link isko nahi aani chahiye.
+// Note: Yeh function sirf trailer/preview ke liye hai.
 function toEmbedUrl(url){
   if(!url) return '';
   url = url.trim();
@@ -89,12 +89,12 @@ function toEmbedUrl(url){
     if(m) return 'https://drive.google.com/file/d/' + m[0] + '/preview';
   }
   
-  // ✅ Streamtape EMBED LOGIC for PREVIEW (Trailer/Preview URL hi is function mein aani chahiye)
+  // ✅ Streamtape EMBED LOGIC for PREVIEW
   if(url.includes("streamtape.com")) {
     let id;
     if(url.includes("/v/")) {
       id = url.split("/v/")[1].split("/")[0];
-      return "https://streamtape.com/e/" + id + "/"; // Embed link de diya
+      return "https://streamtape.com/e/" + id + "/"; 
     }
     if(url.includes("/e/")) return url;
   }
@@ -291,6 +291,36 @@ window.filterVideos = function(query) {
     }
 }
 
+// --- Share Functionality (NEW) ---
+function shareItem(it) {
+    if (!it || !it.title) {
+        alert("Pehle koi video select karo!");
+        return;
+    }
+    
+    // Video ka unique URL banao (Jismein ID ho)
+    const shareUrl = window.location.origin + window.location.pathname + '#v=' + encodeURIComponent(it.id);
+    const shareText = `🔥 MUST WATCH: ${it.title}\n${it.description && it.description.trim() ? it.description + '\n' : ''}\n🔗 Watch here FREE: ${shareUrl}`;
+
+    // Mobile Native Share Check
+    if (navigator.share) {
+        navigator.share({
+            title: it.title,
+            text: shareText,
+            url: shareUrl,
+        }).catch((error) => console.log('Sharing failed', error));
+    } else {
+        // Desktop ya jahan native share nahi chalta, wahan URL copy karo
+        navigator.clipboard.writeText(shareText).then(() => {
+            alert("Share link copy ho gaya hai! Ab WhatsApp/Telegram par paste kar do.");
+        }).catch(err => {
+            console.error('Copy karne mein error:', err);
+            prompt("Share karne ke liye yeh link copy karein:", shareUrl);
+        });
+    }
+}
+
+
 // --- Show Video ---
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
 function openWatchById(id){ const it = items.find(x=>x.id===id); if(it) openWatchWithAd(it); }
@@ -404,7 +434,7 @@ window.openWatchById = openWatchById;
 document.getElementById && document.getElementById('shuffleBtn').addEventListener('click', showRandomPick);
 document.getElementById && document.getElementById('watchNowTop').addEventListener('click', ()=> openWatchWithAd(current));
 
-// --- Load All ---
+// --- Load All (Updated for Sharing) ---
 async function loadAll(){
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
@@ -416,11 +446,21 @@ async function loadAll(){
   renderRandom(); 
   renderLatest(); 
   renderCategoryDropdown(); 
-  showRandomPick();
+  
+  // ✅ NEW: URL Hash check (Sharing ke liye)
+  const hash = window.location.hash.substring(1); // #v=ID se sirf v=ID lega
+  if(hash.startsWith('v=')){
+      const id = decodeURIComponent(hash.substring(2));
+      const sharedItem = items.find(x => x.id === id);
+      if(sharedItem) showItem(sharedItem); // Agar ID mili toh wahi video dikhao
+      else showRandomPick(); // Varna random dikhao
+  } else {
+    showRandomPick();
+  }
   
   const categorySection = document.getElementById('categorySection');
   if(categorySection) categorySection.style.display = 'none';
 }
 
 loadAll();
-      
+                  
