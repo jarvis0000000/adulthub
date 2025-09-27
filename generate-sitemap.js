@@ -1,12 +1,14 @@
-Import fs from "fs";
-import fetch from "node-fetch";
+const fs = require("fs");
+const fetch = require("node-fetch");
 
-// !!! YAHAN APNA WEBSITE KA BASE URL DALEIN (E.g., https://dareloom.fun) !!!
+// !!! KRIPYA YAHAN APNA WEBSITE KA BASE URL DALEIN (E.g., https://dareloom.fun) !!!
 const BASE_URL = "https://dareloom.fun"; 
 // !!! UPWALA URL CHANGE KARNA NA BHOOLEIN !!!
 
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
-const SITEMAP_PATH = "./public/sitemap.xml";
+// OUTPUT PATH: Agar aapka deployment system public/ folder use karta hai, to isse waise hi rehne dein.
+// Agar aap root folder mein output chahte hain: "./sitemap.xml" ya "public/sitemap.xml"
+const SITEMAP_PATH = "./sitemap.xml"; 
 
 // --- Functions to fetch and parse data are kept to determine the latest date ---
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
@@ -36,6 +38,8 @@ async function generateSitemap(){
     const res = await fetch(SHEET_API);
     const j = await res.json();
     const dates = parseRows(j.values);
+    
+    // Default to today's date
     let latestMod = new Date().toISOString().split("T")[0];
 
     // Find the latest update date from the sheet
@@ -48,11 +52,11 @@ async function generateSitemap(){
     let xml = `<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n`;
     xml += `<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n`;
 
-    // Only add the Home Page URL
+    // Home Page URL (Most Important)
     xml += `  <url>\n`;
-    xml += `    <loc>${BASE_URL}</loc>\n`;
+    xml += `    <loc>${BASE_URL}/</loc>\n`;
     xml += `    <lastmod>${latestMod}</lastmod>\n`;
-    xml += `    <priority>1.0</priority>\n`; // Home page ki priority 1.0 rakhein
+    xml += `    <priority>1.0</priority>\n`; 
     xml += `  </url>\n`;
 
     xml += `</urlset>`;
