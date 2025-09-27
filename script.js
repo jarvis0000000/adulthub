@@ -63,7 +63,7 @@ function parseRows(values){
   return out;
 }
 
-// --- Utilities (No change needed) ---
+// --- Utilities ---
 function extractYouTubeID(url){
   if(!url) return null;
   const m = url.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
@@ -75,6 +75,8 @@ function makeThumbnail(item){
   if(y) return 'https://img.youtube.com/vi/' + y + '/hqdefault.jpg';
   return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
+
+// ✅ UPDATED: toEmbedUrl function for Streamtape and Telegram handling
 function toEmbedUrl(url){
   if(!url) return '';
   url = url.trim();
@@ -85,17 +87,26 @@ function toEmbedUrl(url){
     const m = url.match(/[-\w]{25,}/);
     if(m) return 'https://drive.google.com/file/d/' + m[0] + '/preview';
   }
+  
+  // ✅ CORRECTED STREAMTAPE EMBED LOGIC
   if(url.includes("streamtape.com")) {
+    let id;
     if(url.includes("/v/")) {
-      const id = url.split("/v/")[1].split("/")[0];
+      id = url.split("/v/")[1].split("/")[0];
       return "https://streamtape.com/e/" + id + "/";
     }
     if(url.includes("/e/")) return url;
   }
-  if(url.includes("t.me/") || url.includes("telegram.me/")) return '';
+  
+  // Telegram links should not be embedded, so return empty string
+  if(url.includes("t.me/") || url.includes("telegram.me/")) return ''; 
+  
   if(url.match(/\.mp4($|\?)/i)) return url;
-  return url;
+  
+  // Agar koi aur link hai, toh use direct return kar de 
+  return url; 
 }
+
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
 // --- Render Functions (No change needed) ---
@@ -279,13 +290,16 @@ window.filterVideos = function(query) {
     }
 }
 
-// --- Show Video (No change needed) ---
+// --- Show Video ---
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
 function openWatchById(id){ const it = items.find(x=>x.id===id); if(it) openWatchWithAd(it); }
 
+// ✅ UPDATED: showItem function to prioritize WATCH link for embedding
 function showItem(it){
   current = it;
-  const embed = toEmbedUrl(it.trailer);
+  // ✅ Pehle Watch Link ko embed karne ki koshish karo, phir Trailer ko
+  const embed = toEmbedUrl(it.watch || it.trailer); 
+  
   const p = document.getElementById('playerWrap');
   if(!p) return;
   p.innerHTML='';
@@ -305,10 +319,11 @@ function showItem(it){
       p.appendChild(iframe);
     }
   } else {
+    // Agar Watch Link embed nahi ho sakti (jaise Telegram), toh Watch button dikhao
     const msg = document.createElement('div');
     msg.style.textAlign='center';
-    msg.style.padding='20px';
-    msg.innerHTML = `<button class="watch-btn" onclick="openTrailerNewTab('${escapeHtml(it.trailer)}')">Open in Telegram</button>`;
+    msg.style.padding='100px 20px';
+    msg.innerHTML = `<div style="font-size:18px;color:var(--primary-color)">This content opens in a new tab.</div><button class="watch-btn" style="margin-top:10px;" onclick="openWatchWithAd(current)">▶ Watch Now (Opens New Tab)</button>`;
     p.appendChild(msg);
   }
 
@@ -369,7 +384,7 @@ function injectSchema(it){
     "thumbnailUrl": thumb,
     "uploadDate": it.date || new Date().toISOString().split("T")[0],
     "contentUrl": it.watch,
-    "embedUrl": toEmbedUrl(it.trailer),
+    "embedUrl": toEmbedUrl(it.watch), // Schema ke liye bhi Watch link use kiya
     "publisher": {
       "@type": "Organization",
       "name": "Dareloom Hub",
