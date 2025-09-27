@@ -76,7 +76,8 @@ function makeThumbnail(item){
   return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
 
-// ✅ UPDATED: toEmbedUrl function for Streamtape and Telegram handling
+// ✅ CORRECTED: toEmbedUrl function. Yeh Streamtape aur YouTube ko embed karega.
+// Note: Yeh function sirf trailer/preview ke liye hai, watch link isko nahi aani chahiye.
 function toEmbedUrl(url){
   if(!url) return '';
   url = url.trim();
@@ -88,23 +89,23 @@ function toEmbedUrl(url){
     if(m) return 'https://drive.google.com/file/d/' + m[0] + '/preview';
   }
   
-  // ✅ CORRECTED STREAMTAPE EMBED LOGIC
+  // ✅ Streamtape EMBED LOGIC for PREVIEW (Trailer/Preview URL hi is function mein aani chahiye)
   if(url.includes("streamtape.com")) {
     let id;
     if(url.includes("/v/")) {
       id = url.split("/v/")[1].split("/")[0];
-      return "https://streamtape.com/e/" + id + "/";
+      return "https://streamtape.com/e/" + id + "/"; // Embed link de diya
     }
     if(url.includes("/e/")) return url;
   }
   
-  // Telegram links should not be embedded, so return empty string
+  // Telegram ya koi dusri non-embeddable link ko ignore karo 
   if(url.includes("t.me/") || url.includes("telegram.me/")) return ''; 
   
   if(url.match(/\.mp4($|\?)/i)) return url;
   
-  // Agar koi aur link hai, toh use direct return kar de 
-  return url; 
+  // Agar Embed nahi ho sakta, toh empty string return karo
+  return ''; 
 }
 
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
@@ -294,11 +295,11 @@ window.filterVideos = function(query) {
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
 function openWatchById(id){ const it = items.find(x=>x.id===id); if(it) openWatchWithAd(it); }
 
-// ✅ UPDATED: showItem function to prioritize WATCH link for embedding
+// ✅ CORRECTED: showItem function. Yeh sirf Trailer ko embed karega (jaise aap chahte the)
 function showItem(it){
   current = it;
-  // ✅ Pehle Watch Link ko embed karne ki koshish karo, phir Trailer ko
-  const embed = toEmbedUrl(it.watch || it.trailer); 
+  // ✅ Yahan sirf TRAILER link use ho rahi hai (jaisa original code mein tha)
+  const embed = toEmbedUrl(it.trailer); 
   
   const p = document.getElementById('playerWrap');
   if(!p) return;
@@ -319,11 +320,12 @@ function showItem(it){
       p.appendChild(iframe);
     }
   } else {
-    // Agar Watch Link embed nahi ho sakti (jaise Telegram), toh Watch button dikhao
+    // Agar Trailer link embed nahi ho sakti, toh Watch button dikhao
     const msg = document.createElement('div');
     msg.style.textAlign='center';
     msg.style.padding='100px 20px';
-    msg.innerHTML = `<div style="font-size:18px;color:var(--primary-color)">This content opens in a new tab.</div><button class="watch-btn" style="margin-top:10px;" onclick="openWatchWithAd(current)">▶ Watch Now (Opens New Tab)</button>`;
+    // ✅ Trailer na chalne par Watch button dikhao
+    msg.innerHTML = `<div style="font-size:18px;color:var(--muted)">Trailer not available for embed.</div><button class="watch-btn" style="margin-top:10px;" onclick="openWatchWithAd(current)">▶ Watch Now</button>`;
     p.appendChild(msg);
   }
 
@@ -333,9 +335,10 @@ function showItem(it){
 }
 
 // --- ✅ FINAL: Open Watch with Double Ad Logic (MAX Clicks) ---
+// Yeh function Watch Link ko naye tab mein kholega (jaisa aap chahte hain)
 function openWatchWithAd(it){
   if(!it) return;
-  const target = it.watch || '#';
+  const target = it.watch || '#'; // Watch link ko target banao
   const watchAdCode = 'pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js';
   const AD_POP_URL = `//${watchAdCode}`;
   
@@ -350,13 +353,10 @@ function openWatchWithAd(it){
   // --- Open Target Link (After 2 seconds to ensure ad loads) ---
   setTimeout(() => {
     try {
-        if(target.includes("t.me/") || target.includes("telegram.me/")){
+        // Watch link hamesha naye tab mein khulegi
+        let newWindow = window.open(target,'_blank');
+        if(!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {
             window.location.href = target;
-        } else {
-            let newWindow = window.open(target,'_blank');
-            if(!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {
-                window.location.href = target;
-            }
         }
     } catch(e){
       window.location.href = target;
@@ -384,7 +384,7 @@ function injectSchema(it){
     "thumbnailUrl": thumb,
     "uploadDate": it.date || new Date().toISOString().split("T")[0],
     "contentUrl": it.watch,
-    "embedUrl": toEmbedUrl(it.watch), // Schema ke liye bhi Watch link use kiya
+    "embedUrl": toEmbedUrl(it.trailer), // Schema ke liye Trailer use kiya
     "publisher": {
       "@type": "Organization",
       "name": "Dareloom Hub",
