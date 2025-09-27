@@ -4,10 +4,11 @@
 :root {
   --primary-color: #ff4b91;
   --bg-color: #0a0a0a;
-  --card-bg: #161616;
+  --card-bg: #1e1e1e; /* Thoda lighter for depth */
   --header-bg: #111;
   --text-color: #fff;
   --muted-color: #bbb;
+  --shadow-color: rgba(255, 75, 145, 0.2); /* Pink shadow */
 }
 
 body { 
@@ -34,11 +35,26 @@ header.site {
   flex-shrink: 1;
 }
 
-/* ❌ YEH PURANE LOGO IMAGE AUR TEXT KE STYLES HATA DIYE GAYE HAIN YA OVERRIDE KIYE GAYE HAIN */
-.brand .logo-img, .brand .title, .muted { 
-  display: none; 
+/* ✅ Logo/Title styles ko wapas laaya gaya hai */
+.brand .logo-img { 
+  height: 40px; 
+  width: auto; 
+  margin-right: 10px; 
+  border-radius: 8px; 
+  display: block; /* Logo dikhao */
 }
-/* ❌ OVERRIDE END */
+
+.brand .title { 
+  margin: 0; 
+  font-size: 20px; 
+  color: var(--text-color);
+  display: block; /* Title dikhao */
+}
+
+/* ❌ Unwanted styles hata diye gaye hain */
+.muted, .logo-link { 
+  display: none !important; 
+}
 
 
 .nav { 
@@ -48,38 +64,10 @@ header.site {
   margin-left: 15px;
 }
 
-/* --- ✅ NEW: Logo as Background Image Style --- */
-.logo-link {
-    /* Logo image ka naam aur location */
-    /* Humne assume kiya hai ki aapne file ka naam 1000118534.png hi rakha hai */
-    background-image: url('/1000118534.png'); 
-    background-size: cover; 
-    background-repeat: no-repeat;
-    background-position: center;
-    
-    /* Text ko chhupana, lekin screen readers ke liye rakhna */
-    text-indent: -9999px;
-    
-    /* Size set karein */
-    width: 140px; 
-    height: 40px; 
-    
-    /* Font styles (agar image load nahi hui to text dikhega) */
-    font-size: 20px;
-    font-weight: 900;
-    color: var(--primary-color);
-    text-decoration: none;
-    
-    /* Display properties */
-    display: block;
-    border-radius: 8px; 
-    overflow: hidden; 
-}
-
 /* --- Search Input Style --- */
 #searchInput {
   padding: 8px 12px;
-  border: 1px solid #333;
+  border: 1px solid var(--primary-color); /* Primary border for focus */
   border-radius: 20px;
   background-color: #222;
   color: var(--text-color);
@@ -90,7 +78,7 @@ header.site {
 
 #searchInput:focus {
   width: 180px;
-  border-color: var(--primary-color);
+  box-shadow: 0 0 10px var(--shadow-color); /* Futuristic glow */
   outline: none;
 }
 
@@ -132,11 +120,13 @@ hr {
   overflow: hidden; 
   transition: transform .3s, box-shadow .3s;
   cursor: pointer;
+  border: 1px solid #333; /* Soft border */
 }
 
 .card:hover { 
   transform: translateY(-4px); 
-  box-shadow: 0 8px 20px rgba(0,0,0,.5); 
+  box-shadow: 0 8px 25px var(--shadow-color); /* More prominent glow */
+  border-color: var(--primary-color); 
 }
 
 .thumb { 
@@ -170,10 +160,12 @@ hr {
   overflow: hidden;
   transition: transform .3s, box-shadow .3s;
   align-items: center;
+  border: 1px solid #333;
 }
 
 .latest-item:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,.5);
+  box-shadow: 0 4px 15px var(--shadow-color);
+  border-color: var(--primary-color); 
 }
 
 .latest-thumb {
@@ -195,6 +187,7 @@ hr {
   overflow: hidden;
   padding: 10px;
   text-align: center;
+  border: 1px solid var(--primary-color); /* Highlight the player */
 }
 
 .player-placeholder {
@@ -219,6 +212,7 @@ hr {
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 8px;
+  color: var(--primary-color); /* Highlight current video title */
 }
 
 .controls {
@@ -231,23 +225,30 @@ hr {
 
 /* --- Buttons & Pills --- */
 .btn { 
-  background: var(--primary-color); 
-  border: none; 
+  background: #222; /* Default buttons dark */
+  border: 1px solid var(--primary-color); /* Primary border for contrast */
   color: var(--text-color); 
   padding: 8px 14px; 
   border-radius: 20px; 
   cursor: pointer; 
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, box-shadow 0.2s;
 }
 
 .btn:hover { 
-  background-color: #e63e81; 
+  background-color: var(--primary-color); 
+  box-shadow: 0 0 10px var(--shadow-color);
 }
 
 .btn.primary, .watch-btn { 
   background: var(--primary-color); 
   padding: 8px 16px; 
   border-radius: 6px; 
+  border: none;
+  font-weight: bold;
+}
+
+.btn.primary:hover, .watch-btn:hover { 
+  background-color: #e63e81; 
 }
 
 .pill { 
@@ -255,6 +256,7 @@ hr {
   padding: 5px 10px; 
   border-radius: 12px; 
   font-size: 13px;
+  border: 1px solid #333;
 }
 
 /* --- Pager (Pagination) --- */
@@ -269,15 +271,24 @@ hr {
 .page-btn {
   background: var(--card-bg);
   color: var(--text-color);
-  border: 1px solid #333;
+  border: 1px solid #555;
   padding: 6px 12px;
   border-radius: 6px;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: background-color 0.2s, box-shadow 0.2s;
 }
 
 .page-btn:hover {
-  opacity: 0.9;
+  background-color: #222;
+  border-color: var(--primary-color);
+}
+
+/* ✅ Active Page Button Style (Jaisa aapne chaha) */
+.page-btn.active {
+  background: var(--primary-color) !important;
+  border-color: var(--primary-color) !important;
+  font-weight: bold;
+  box-shadow: 0 0 8px var(--shadow-color);
 }
 
 /* --- Footer --- */
@@ -286,6 +297,7 @@ footer.foot {
   padding: 20px; 
   text-align: center; 
   margin-top: 40px; 
+  border-top: 2px solid #222;
 }
 
 .banner-wrap {
@@ -323,11 +335,12 @@ footer.foot {
   right: 0; 
   background: var(--card-bg); 
   min-width: 160px; 
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4); 
+  box-shadow: 0px 8px 20px 0px rgba(0,0,0,0.8); 
   z-index: 10; 
   border-radius: 8px; 
   max-height: 300px;
   overflow-y: auto;
+  border: 1px solid var(--primary-color);
 }
 
 .dropdown-content a { 
@@ -346,6 +359,20 @@ footer.foot {
   display: block; 
 }
 
+/* --- Sticky Footer Ad Style (for Clicks) --- */
+.sticky-ad-footer {
+    position: fixed;
+    bottom: 0; 
+    left: 0;
+    width: 100%;
+    text-align: center;
+    background: #000;
+    padding: 5px 0;
+    z-index: 1000; 
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.7);
+}
+
+
 /* --- Mobile Responsiveness (Screen size < 600px) --- */
 @media (max-width: 600px) {
   header.site { 
@@ -356,21 +383,10 @@ footer.foot {
     padding: 10px;
   }
   
-  .logo-link { /* Mobile par logo chota karna */
-    width: 120px;
-    height: 35px;
+  .brand .logo-img {
+    height: 35px; /* Mobile par chota logo */
   }
 
-  /* Purana .brand .title style ki jagah .logo-link override ho raha hai */
-  /* .brand .title { 
-    font-size: 18px;
-  } */
-  
-  /* Purana .brand .logo-img style ki jagah .logo-link override ho raha hai */
-  /* .brand .logo-img {
-    height: 35px;
-  } */
-  
   .nav {
     flex-wrap: wrap;
     justify-content: flex-end;
@@ -380,7 +396,7 @@ footer.foot {
   #searchInput {
     width: 100%;
     margin-bottom: 8px;
-    order: 1; /* Search bar ko alag line mein bhejo */
+    order: 1; 
   }
   
   .btn {
@@ -415,4 +431,4 @@ footer.foot {
   margin-top: 12px;
   color: #999;
   font-size: 13px;
-}
+  }
