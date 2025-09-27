@@ -1,4 +1,4 @@
-// FINAL Dareloom v11 - YouTube + Streamtape + Drive + Telegram + Ads + Dynamic Schema
+// FINAL Dareloom v12 - Double Ad, Advanced Pagination, Clean Branding
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
@@ -116,19 +116,27 @@ function renderRandom(){
   });
 }
 
-function renderLatest(){
+function renderLatest(page = currentPage){
   const list = document.getElementById('latestList'); if(!list) return; list.innerHTML='';
-  const start = (currentPage-1)*PER_PAGE; const slice = items.slice(start, start+PER_PAGE);
+  const totalItems = items.length;
+  const totalPages = Math.max(1, Math.ceil(totalItems / PER_PAGE));
+  currentPage = page;
+
+  const start = (currentPage-1)*PER_PAGE; 
+  const slice = items.slice(start, start+PER_PAGE);
+
   slice.forEach(it => {
     const div = document.createElement('div'); div.className='latest-item';
     const t = makeThumbnail(it);
     div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy"><div class="latest-info"><div style="font-weight:700">${escapeHtml(it.title)}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div><div style="margin-top:8px"><button class="btn" onclick="showItemById('${escapeHtml(it.id)}')">Preview</button> <button class="watch-btn" onclick="openWatchById('${escapeHtml(it.id)}')">Watch</button></div></div>`;
     list.appendChild(div);
   });
-  renderPager();
+  
+  // Naye pagination function ko call karein
+  displayPagination(totalPages, currentPage);
 }
 
-// --------- Render Categories Dropdown ---------
+// --------- Render Categories Dropdown (No change needed here) ---------
 function renderCategoryDropdown(){
     const categories = Array.from(new Set(items.flatMap(item => 
         (item.category ? item.category.toLowerCase().split(',').map(c => c.trim()) : []))));
@@ -166,7 +174,7 @@ function renderCategoryDropdown(){
     });
 }
 
-// --------- Naya Function to show/hide sections ---------
+// --------- Naya Function to show/hide sections (No change needed here) ---------
 function showCategoryView(title, filteredVideos = items){
   const randomSection = document.getElementById('randomSection');
   const latestSection = document.getElementById('latestSection');
@@ -189,7 +197,7 @@ function showCategoryView(title, filteredVideos = items){
   window.scrollTo({top: 0, behavior: 'smooth'}); 
 }
 
-// --------- Function to Render a specific Category Grid (Now used for Search too) ---------
+// --------- Function to Render a specific Category Grid (Now used for Search too - No change needed here) ---------
 function renderCategoryGrid(videoList, title){
     const container = document.getElementById('categoryGrid');
     const titleEl = document.getElementById('categoryTitle');
@@ -208,48 +216,95 @@ function renderCategoryGrid(videoList, title){
     });
 }
 
-function renderPager(){
-  const pager = document.getElementById('pager'); if(!pager) return; pager.innerHTML='';
-  const pages = Math.max(1, Math.ceil(items.length / PER_PAGE));
-  for(let i=1;i<=pages;i++){
-    const b = document.createElement('button'); b.className='page-btn'; b.textContent = i; if(i===currentPage) b.style.opacity='0.7';
-    b.addEventListener('click', ()=>{ openAdAndChangePage(i); });
-    pager.appendChild(b);
-  }
+// --------- ✅ NEW: Advanced Pagination Logic ---------
+
+function displayPagination(totalPages, currentPage) {
+    const pager = document.getElementById('pager');
+    pager.innerHTML = ''; // Purane buttons hatao
+
+    if (totalPages <= 1) return; 
+
+    let startPage, endPage;
+    
+    // Logic: Agar total pages 5 se zyada hain, toh hum sirf 5 buttons dikhayenge (current + 2 left/right)
+    if (totalPages <= 5) {
+        startPage = 1;
+        endPage = totalPages;
+    } else {
+        if (currentPage <= 3) {
+            startPage = 1;
+            endPage = 5;
+        } else if (currentPage + 1 >= totalPages) {
+            startPage = totalPages - 4;
+            endPage = totalPages;
+        } else {
+            startPage = currentPage - 2;
+            endPage = currentPage + 2;
+        }
+    }
+
+    // --- First/Prev Buttons ---
+    if (currentPage > 1) {
+        pager.appendChild(createPageButton('« Prev', currentPage - 1));
+    }
+
+    // --- Page Buttons ---
+    for (let i = startPage; i <= endPage; i++) {
+        const btn = createPageButton(i, i);
+        if (i === currentPage) {
+            btn.classList.add('active'); // Current page ko highlight karo
+        }
+        pager.appendChild(btn);
+    }
+    
+    // --- Next/Last Buttons ---
+    if (currentPage < totalPages) {
+        pager.appendChild(createPageButton('Next »', currentPage + 1));
+    }
 }
 
-// openAdAndChangePage function
+
+function createPageButton(text, pageNum) {
+    const btn = document.createElement('button');
+    btn.className = 'page-btn';
+    btn.textContent = text;
+    btn.setAttribute('data-page', pageNum); // Page number store karo
+    btn.onclick = function() { 
+        openAdAndChangePage(pageNum); // Ad ke saath page change karo
+    };
+    return btn;
+}
+
+// openAdAndChangePage function (ab ad ko page change ke saath load karega)
 function openAdAndChangePage(page){
-  // No delay, page is changed instantly
   currentPage = page; 
-  renderLatest(); 
-  window.scrollTo({top:300,behavior:'smooth'}); 
+  renderLatest(page); 
+  // Scroll up to latest section
+  const latestSection = document.getElementById('latestSection');
+  if(latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' }); 
 
   // Ad script is loaded after the action
   const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
 }
 
-// --------- ✅ NEW SEARCH FUNCTIONALITY (filterVideos) ---------
+// --------- NEW SEARCH FUNCTIONALITY (filterVideos - No change needed here) ---------
 window.filterVideos = function(query) {
     query = (query || '').trim().toLowerCase();
     
     if (query.length > 0) {
-        // Videos ko filter karo
         const filtered = items.filter(item => 
             (item.title && item.title.toLowerCase().includes(query)) ||
             (item.category && item.category.toLowerCase().includes(query))
         );
         
-        // Search results ko category view mein dikhao
         showCategoryView('Search Results (' + filtered.length + ')', filtered);
         
     } else {
-        // Query khali hone par, wapas main view par jao
         showCategoryView('All Videos');
     }
 }
 
-// --------- Show Video ---------
+// --------- Show Video (No change needed here) ---------
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
 function openWatchById(id){ const it = items.find(x=>x.id===id); if(it) openWatchWithAd(it); }
 
@@ -287,39 +342,53 @@ function showItem(it){
   injectSchema(it); // Dynamic schema
 }
 
-// --------- Open Watch with Ad (Updated for pop-up blocker with fallback) ---------
+// --------- ✅ UPDATED: Open Watch with Double Ad Logic ---------
 function openWatchWithAd(it){
   if(!it) return;
   const target = it.watch || '#';
-  let newWindow = null;
-
-  try {
-    if(target.includes("t.me/") || target.includes("telegram.me/")){
-      // Telegram links always use window.location.href to ensure they open
-      window.location.href = target;
-    } else {
-      // For other links, try to open in a new window immediately
-      newWindow = window.open(target,'_blank');
-      // If newWindow is null (blocked by pop-up blocker), redirect current tab
-      if(!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {
-        window.location.href = target;
-      }
-    }
-  } catch(e){
-    console.error("Open error:", e);
-    // Fallback if any error occurs during window.open
-    window.location.href = target;
-  }
-
-  // Then load the ad script (after the user action)
-  const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
+  const watchAdCode = 'pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js';
+  const AD_POP_URL = `//${watchAdCode}`;
   
+  // --- Ad 1: First Pop-under (Immediate) ---
+  let s1 = document.createElement('script');
+  s1.src = AD_POP_URL;
+  s1.async = true;
+  document.body.appendChild(s1);
+
+  // --- Ad 2: Second Pop-under (Delayed for aggressive monetization) ---
+  setTimeout(() => {
+      let s2 = document.createElement('script');
+      s2.src = AD_POP_URL; 
+      s2.async = true;
+      document.body.appendChild(s2);
+  }, 1000); // 1 second delay
+
+  // --- Open Target Link (After 2 seconds to ensure ad loads) ---
+  setTimeout(() => {
+    try {
+        if(target.includes("t.me/") || target.includes("telegram.me/")){
+            // Telegram links redirect the current tab immediately for reliability
+            window.location.href = target;
+        } else {
+            // For other links, try to open in a new window after ads loaded
+            let newWindow = window.open(target,'_blank');
+            // Pop-up blocker fallback: If blocked, redirect current tab
+            if(!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {
+                window.location.href = target;
+            }
+        }
+    } catch(e){
+      // Final fallback
+      window.location.href = target;
+    }
+  }, 2000); // 2 second delay
+
   const watchAd = document.getElementById('watchAd');
-  if(watchAd) watchAd.textContent = 'Opening...'; // This message might not be seen if direct redirect
+  if(watchAd) watchAd.textContent = 'Opening in 2 seconds...';
 }
 
 
-// --------- Schema Injection ---------
+// --------- Schema Injection (No change needed here) ---------
 function injectSchema(it){
   const oldSchema = document.getElementById('video-schema');
   if(oldSchema) oldSchema.remove();
@@ -345,7 +414,7 @@ function injectSchema(it){
   document.head.appendChild(script);
 }
 
-// --------- Misc ---------
+// --------- Misc (No change needed here) ---------
 function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
 function showRandomPick(){ if(items.length===0) return; const pick = items[Math.floor(Math.random()*items.length)]; showItem(pick); renderRandom(); }
 
@@ -375,4 +444,4 @@ async function loadAll(){
 }
 
 loadAll();
-      
+  
