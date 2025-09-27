@@ -8,7 +8,7 @@
   --header-bg: #111;
   --text-color: #fff;
   --muted-color: #bbb;
-  --shadow-color: rgba(255, 75, 145, 0.2); /* Pink shadow */
+  --shadow-color: rgba(255, 75, 145, 0.4); /* Pink shadow for glow */
 }
 
 body { 
@@ -27,6 +27,7 @@ header.site {
   padding: 15px 20px; 
   background: var(--header-bg); 
   border-bottom: 2px solid var(--primary-color); 
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); /* Header shadow */
 }
 
 .brand { 
@@ -35,27 +36,20 @@ header.site {
   flex-shrink: 1;
 }
 
-/* ✅ Logo/Title styles ko wapas laaya gaya hai */
 .brand .logo-img { 
   height: 40px; 
   width: auto; 
   margin-right: 10px; 
   border-radius: 8px; 
-  display: block; /* Logo dikhao */
+  display: block; 
 }
 
 .brand .title { 
   margin: 0; 
   font-size: 20px; 
   color: var(--text-color);
-  display: block; /* Title dikhao */
+  display: block; 
 }
-
-/* ❌ Unwanted styles hata diye gaye hain */
-.muted, .logo-link { 
-  display: none !important; 
-}
-
 
 .nav { 
   display: flex; 
@@ -67,7 +61,7 @@ header.site {
 /* --- Search Input Style --- */
 #searchInput {
   padding: 8px 12px;
-  border: 1px solid var(--primary-color); /* Primary border for focus */
+  border: 1px solid var(--primary-color); 
   border-radius: 20px;
   background-color: #222;
   color: var(--text-color);
@@ -78,7 +72,7 @@ header.site {
 
 #searchInput:focus {
   width: 180px;
-  box-shadow: 0 0 10px var(--shadow-color); /* Futuristic glow */
+  box-shadow: 0 0 15px var(--shadow-color); /* Stronger futuristic glow */
   outline: none;
 }
 
@@ -94,6 +88,7 @@ h2 {
   font-size: 22px; 
   border-left: 4px solid var(--primary-color); 
   padding-left: 8px; 
+  text-shadow: 0 0 5px rgba(255, 75, 145, 0.2);
 }
 
 .section { 
@@ -120,12 +115,12 @@ hr {
   overflow: hidden; 
   transition: transform .3s, box-shadow .3s;
   cursor: pointer;
-  border: 1px solid #333; /* Soft border */
+  border: 1px solid #333;
 }
 
 .card:hover { 
-  transform: translateY(-4px); 
-  box-shadow: 0 8px 25px var(--shadow-color); /* More prominent glow */
+  transform: translateY(-5px); /* Thoda zyada uthega */
+  box-shadow: 0 10px 30px var(--shadow-color); 
   border-color: var(--primary-color); 
 }
 
@@ -164,15 +159,18 @@ hr {
 }
 
 .latest-item:hover {
-  box-shadow: 0 4px 15px var(--shadow-color);
+  box-shadow: 0 4px 18px var(--shadow-color);
   border-color: var(--primary-color); 
 }
 
+/* ✅ FINAL THUMBNAIL SIZE FOR CLICKS */
 .latest-thumb {
-  width: 120px;
+  width: 160px; 
   height: 100px;
   object-fit: cover;
   flex-shrink: 0;
+  box-shadow: 0 0 5px var(--primary-color);
+  border-radius: 4px;
 }
 
 .latest-info {
@@ -187,7 +185,8 @@ hr {
   overflow: hidden;
   padding: 10px;
   text-align: center;
-  border: 1px solid var(--primary-color); /* Highlight the player */
+  border: 2px solid var(--primary-color); 
+  box-shadow: 0 0 20px var(--shadow-color);
 }
 
 .player-placeholder {
@@ -212,7 +211,8 @@ hr {
   font-size: 18px;
   font-weight: 600;
   margin-bottom: 8px;
-  color: var(--primary-color); /* Highlight current video title */
+  color: var(--primary-color); 
+  text-shadow: 0 0 8px rgba(255, 75, 145, 0.3);
 }
 
 .controls {
@@ -225,18 +225,20 @@ hr {
 
 /* --- Buttons & Pills --- */
 .btn { 
-  background: #222; /* Default buttons dark */
-  border: 1px solid var(--primary-color); /* Primary border for contrast */
+  background: #222; 
+  border: 1px solid var(--primary-color); 
   color: var(--text-color); 
   padding: 8px 14px; 
   border-radius: 20px; 
   cursor: pointer; 
-  transition: background-color 0.2s, box-shadow 0.2s;
+  transition: background-color 0.2s, box-shadow 0.2s, border-color 0.2s;
+  font-weight: 500;
 }
 
 .btn:hover { 
   background-color: var(--primary-color); 
-  box-shadow: 0 0 10px var(--shadow-color);
+  box-shadow: 0 0 12px var(--shadow-color);
+  border-color: var(--primary-color);
 }
 
 .btn.primary, .watch-btn { 
@@ -249,6 +251,7 @@ hr {
 
 .btn.primary:hover, .watch-btn:hover { 
   background-color: #e63e81; 
+  box-shadow: 0 0 15px var(--shadow-color);
 }
 
 .pill { 
@@ -283,12 +286,11 @@ hr {
   border-color: var(--primary-color);
 }
 
-/* ✅ Active Page Button Style (Jaisa aapne chaha) */
 .page-btn.active {
   background: var(--primary-color) !important;
   border-color: var(--primary-color) !important;
   font-weight: bold;
-  box-shadow: 0 0 8px var(--shadow-color);
+  box-shadow: 0 0 10px var(--shadow-color);
 }
 
 /* --- Footer --- */
@@ -298,6 +300,7 @@ footer.foot {
   text-align: center; 
   margin-top: 40px; 
   border-top: 2px solid #222;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5); 
 }
 
 .banner-wrap {
@@ -314,6 +317,11 @@ footer.foot {
 .footer-info a {
   color: var(--primary-color);
   text-decoration: none;
+  transition: color 0.2s;
+}
+
+.footer-info a:hover {
+    color: #e63e81;
 }
 
 /* --- Category Dropdown --- */
@@ -334,8 +342,8 @@ footer.foot {
   position: absolute; 
   right: 0; 
   background: var(--card-bg); 
-  min-width: 160px; 
-  box-shadow: 0px 8px 20px 0px rgba(0,0,0,0.8); 
+  min-width: 180px; 
+  box-shadow: 0px 8px 25px 0px rgba(0,0,0,0.8); 
   z-index: 10; 
   border-radius: 8px; 
   max-height: 300px;
@@ -352,7 +360,7 @@ footer.foot {
 }
 
 .dropdown-content a:hover { 
-  background-color: #222; 
+  background-color: #2e2e2e; 
 }
 
 .dropdown:hover .dropdown-content { 
@@ -369,7 +377,7 @@ footer.foot {
     background: #000;
     padding: 5px 0;
     z-index: 1000; 
-    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.7);
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.8);
 }
 
 
@@ -384,7 +392,7 @@ footer.foot {
   }
   
   .brand .logo-img {
-    height: 35px; /* Mobile par chota logo */
+    height: 35px; 
   }
 
   .nav {
@@ -426,9 +434,9 @@ footer.foot {
   }
 }
 
-/* --- Inline styles removed from HTML and moved here --- */
 .ad-slot.small { 
   margin-top: 12px;
   color: #999;
   font-size: 13px;
   }
+  
