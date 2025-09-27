@@ -1,4 +1,4 @@
-// FINAL Dareloom v12 - Double Ad, Advanced Pagination, Clean Branding
+// FINAL Dareloom v13 - Double Link, Ad Blocker Bypass, Dynamic Buttons
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
@@ -63,7 +63,7 @@ function parseRows(values){
   return out;
 }
 
-// --- Utilities ---
+// --- Utilities (No change needed) ---
 function extractYouTubeID(url){
   if(!url) return null;
   const m = url.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
@@ -76,8 +76,7 @@ function makeThumbnail(item){
   return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
 
-// ✅ CORRECTED: toEmbedUrl function. Yeh Streamtape aur YouTube ko embed karega.
-// Note: Yeh function sirf trailer/preview ke liye hai.
+// ✅ toEmbedUrl function.
 function toEmbedUrl(url){
   if(!url) return '';
   url = url.trim();
@@ -110,7 +109,7 @@ function toEmbedUrl(url){
 
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
-// --- Render Functions (No change needed) ---
+// --- Render Functions (Updated renderLatest) ---
 function renderRandom(){
   const g = document.getElementById('randomGrid'); if(!g) return; g.innerHTML='';
   const pool = items.slice(); const picks = [];
@@ -136,12 +135,15 @@ function renderLatest(page = currentPage){
   slice.forEach(it => {
     const div = document.createElement('div'); div.className='latest-item';
     const t = makeThumbnail(it);
-    div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy"><div class="latest-info"><div style="font-weight:700">${escapeHtml(it.title)}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div><div style="margin-top:8px"><button class="btn" onclick="showItemById('${escapeHtml(it.id)}')">Preview</button> <button class="watch-btn" onclick="openWatchById('${escapeHtml(it.id)}')">Watch</button></div></div>`;
+    // ✅ Both buttons now call showItemById, which is correct for dynamic buttons
+    div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy"><div class="latest-info"><div style="font-weight:700">${escapeHtml(it.title)}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div><div style="margin-top:8px"><button class="btn" onclick="showItemById('${escapeHtml(it.id)}')">Preview</button> <button class="watch-btn" onclick="showItemById('${escapeHtml(it.id)}')">Watch</button></div></div>`;
     list.appendChild(div);
   });
   
   displayPagination(totalPages, currentPage);
 }
+
+// ... (renderCategoryDropdown and related functions unchanged) ...
 
 function renderCategoryDropdown(){
     const categories = Array.from(new Set(items.flatMap(item => 
@@ -211,6 +213,7 @@ function renderCategoryGrid(videoList, title){
         container.appendChild(card);
     });
 }
+
 
 // --- Pagination Logic (No change needed) ---
 function displayPagination(totalPages, currentPage) {
@@ -291,7 +294,7 @@ window.filterVideos = function(query) {
     }
 }
 
-// --- Share Functionality (NEW) ---
+// --- Share Functionality (No change needed) ---
 function shareItem(it) {
     if (!it || !it.title) {
         alert("Pehle koi video select karo!");
@@ -321,20 +324,22 @@ function shareItem(it) {
 }
 
 
-// --- Show Video ---
+// --- Show Video (Updated Logic) ---
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
-function openWatchById(id){ const it = items.find(x=>x.id===id); if(it) openWatchWithAd(it); }
+// openWatchById ab hat gaya hai, kyunki showItemById hi sab handle karta hai.
 
-// ✅ CORRECTED: showItem function. Yeh sirf Trailer ko embed karega (jaise aap chahte the)
+// ✅ FINAL showItem function: Dynamic buttons aur Watch link options ke saath
 function showItem(it){
   current = it;
-  // ✅ Yahan sirf TRAILER link use ho rahi hai (jaisa original code mein tha)
+  // Trailer link use ho rahi hai (embed ke liye)
   const embed = toEmbedUrl(it.trailer); 
   
   const p = document.getElementById('playerWrap');
-  if(!p) return;
-  p.innerHTML='';
+  const controlsContainer = document.getElementById('controlsContainer'); // New ID
+  if(!p || !controlsContainer) return;
 
+  // --- Player Setup ---
+  p.innerHTML='';
   if(embed){
     if(embed.match(/\.mp4($|\?)/i)){
       const v = document.createElement('video');
@@ -350,51 +355,85 @@ function showItem(it){
       p.appendChild(iframe);
     }
   } else {
-    // Agar Trailer link embed nahi ho sakti, toh Watch button dikhao
+    // Agar Trailer link embed nahi ho sakti, toh sirf ek placeholder dikhao
     const msg = document.createElement('div');
     msg.style.textAlign='center';
     msg.style.padding='100px 20px';
-    // ✅ Trailer na chalne par Watch button dikhao
-    msg.innerHTML = `<div style="font-size:18px;color:var(--muted)">Trailer not available for embed.</div><button class="watch-btn" style="margin-top:10px;" onclick="openWatchWithAd(current)">▶ Watch Now</button>`;
+    msg.innerHTML = `<div style="font-size:18px;color:var(--muted)">Trailer not available for embed.</div>`;
     p.appendChild(msg);
   }
 
   document.getElementById('nowTitle').textContent = it.title || '';
+  
+  // --- ✅ NEW: Dynamic Watch Options Button Rendering ---
+  const watchUrls = (it.watch || '').split(',').map(url => url.trim()).filter(url => url.length > 0);
+  let buttonHTML = '';
+  
+  // 1. Static items
+  buttonHTML += `<div class="pill" id="count">${items.length} items</div>`;
+  buttonHTML += `<button class="btn" onclick="showRandomPick()">🎲 Shuffle</button>`;
+
+  // 2. Watch Buttons
+  watchUrls.forEach(url => {
+      let btnText = 'Watch Now';
+      let btnClass = 'watch-btn'; 
+      
+      if(url.includes('streamtape.com') || url.includes('stape.fun')) {
+          btnText = 'Streamtape Watch';
+      } else if (url.includes('t.me') || url.includes('telegram')) {
+          btnText = 'Telegram Download';
+          btnClass = 'btn primary'; 
+      }
+      
+      buttonHTML += `<button class="${btnClass}" onclick="openWatchWithAd('${escapeHtml(url)}')">${btnText}</button>`;
+  });
+  
+  // 3. Share Button
+  buttonHTML += `<button class="btn" style="background-color: #28a745;" onclick="shareItem(current)">🔗 Share</button>`;
+
+  // controlsContainer को update करो
+  controlsContainer.innerHTML = buttonHTML;
+  // --- End of Dynamic Button Rendering ---
+
   renderRandom();
   injectSchema(it); 
+  
+  // Player ko scroll karo
+  window.scrollTo({ top: 0, behavior: 'smooth' }); 
 }
 
-// --- ✅ FINAL: Open Watch with Double Ad Logic (MAX Clicks) ---
-// Yeh function Watch Link ko naye tab mein kholega (jaisa aap chahte hain)
-function openWatchWithAd(it){
-  if(!it) return;
-  const target = it.watch || '#'; // Watch link ko target banao
+// --- ✅ FINAL: Open Watch with Double Ad Logic (URL string lega) ---
+// Ad Blocker Bypass ke liye 100ms delay use kiya gaya hai.
+function openWatchWithAd(targetUrl){
+  if(!targetUrl || targetUrl === '#') return;
+  const target = targetUrl; 
   const watchAdCode = 'pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js';
   const AD_POP_URL = `//${watchAdCode}`;
   
   // --- Ad 1: First Pop-under (Immediate) ---
   const s1 = document.createElement('script'); s1.src = AD_POP_URL; document.body.appendChild(s1);
 
+  // --- Open Target Link (100ms delay - Ad Blocker se bachne ka try) ---
+  setTimeout(() => {
+    try {
+        let newWindow = window.open(target,'_blank');
+        
+        // Agar browser ne block kiya (newWindow null/closed), toh alert dega
+        if(!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {
+            alert("Please allow pop-ups to open the link in a new tab!");
+        }
+    } catch(e){
+      // Fail silently
+    }
+  }, 100); 
+
   // --- Ad 2: Second Pop-under (Delayed for aggressive monetization) ---
   setTimeout(() => {
       const s2 = document.createElement('script'); s2.src = AD_POP_URL; document.body.appendChild(s2);
-  }, 1000); // 1 second delay
-
-  // --- Open Target Link (After 2 seconds to ensure ad loads) ---
-  setTimeout(() => {
-    try {
-        // Watch link hamesha naye tab mein khulegi
-        let newWindow = window.open(target,'_blank');
-        if(!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {
-            window.location.href = target;
-        }
-    } catch(e){
-      window.location.href = target;
-    }
-  }, 2000); // 2 second delay
+  }, 1500); 
 
   const watchAd = document.getElementById('watchAd');
-  if(watchAd) watchAd.textContent = 'Opening in 2 seconds...';
+  if(watchAd) watchAd.textContent = 'Opening link... (Allow Pop-ups)';
 }
 
 
@@ -424,17 +463,21 @@ function injectSchema(it){
   document.head.appendChild(script);
 }
 
-// --- Misc (No change needed) ---
+// --- Misc (Cleaned up event listeners) ---
 function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
-function showRandomPick(){ if(items.length===0) return; const pick = items[Math.floor(Math.random()*items.length)]; showItem(pick); renderRandom(); }
+function showRandomPick(){ 
+  if(items.length===0) return; 
+  const pick = items[Math.floor(Math.random()*items.length)]; 
+  showItem(pick); 
+  renderRandom(); 
+}
 
 window.showItemById = showItemById;
-window.openWatchById = openWatchById;
+// window.openWatchById ab remove ho gaya hai
 
-document.getElementById && document.getElementById('shuffleBtn').addEventListener('click', showRandomPick);
-document.getElementById && document.getElementById('watchNowTop').addEventListener('click', ()=> openWatchWithAd(current));
+// ✅ Static event listeners removed, as buttons are dynamic.
 
-// --- Load All (Updated for Sharing) ---
+// --- Load All (No change needed) ---
 async function loadAll(){
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
@@ -443,6 +486,11 @@ async function loadAll(){
   else parsed.reverse();
   items = parsed;
   const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items';
+  
+  // count pill ko initial value do
+  const controlsContainer = document.getElementById('controlsContainer');
+  if(controlsContainer) controlsContainer.innerHTML = `<div class="pill" id="count">${items.length} items</div>`;
+
   renderRandom(); 
   renderLatest(); 
   renderCategoryDropdown(); 
@@ -463,4 +511,3 @@ async function loadAll(){
 }
 
 loadAll();
-                  
