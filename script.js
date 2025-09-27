@@ -4,7 +4,7 @@ const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c91
 const PER_PAGE = 5;
 let items = [], current = null, currentPage = 1;
 
-// --------- Fetch Google Sheet ---------
+// --- Fetch Google Sheet (No change needed) ---
 async function fetchSheet() {
   try {
     const res = await fetch(SHEET_API);
@@ -17,7 +17,7 @@ async function fetchSheet() {
   }
 }
 
-// --------- Parse Rows ---------
+// --- Parse Rows (No change needed) ---
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
 function findHeaderIndex(headers, candidates){
   for(let i=0;i<headers.length;i++){
@@ -26,7 +26,6 @@ function findHeaderIndex(headers, candidates){
   }
   return -1;
 }
-
 function parseRows(values){
   if(!values || values.length < 2) return [];
   const headers = (values[0]||[]).map(h=> (h||'').toString());
@@ -64,20 +63,18 @@ function parseRows(values){
   return out;
 }
 
-// --------- Utilities ---------
+// --- Utilities (No change needed) ---
 function extractYouTubeID(url){
   if(!url) return null;
   const m = url.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
   return m ? m[1] : null;
 }
-
 function makeThumbnail(item){
   if(item.poster && item.poster.trim()) return item.poster;
   const y = extractYouTubeID(item.trailer) || extractYouTubeID(item.watch);
   if(y) return 'https://img.youtube.com/vi/' + y + '/hqdefault.jpg';
   return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
-
 function toEmbedUrl(url){
   if(!url) return '';
   url = url.trim();
@@ -99,10 +96,9 @@ function toEmbedUrl(url){
   if(url.match(/\.mp4($|\?)/i)) return url;
   return url;
 }
-
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
-// --------- Render Functions ---------
+// --- Render Functions (No change needed) ---
 function renderRandom(){
   const g = document.getElementById('randomGrid'); if(!g) return; g.innerHTML='';
   const pool = items.slice(); const picks = [];
@@ -132,11 +128,9 @@ function renderLatest(page = currentPage){
     list.appendChild(div);
   });
   
-  // Naye pagination function ko call karein
   displayPagination(totalPages, currentPage);
 }
 
-// --------- Render Categories Dropdown (No change needed here) ---------
 function renderCategoryDropdown(){
     const categories = Array.from(new Set(items.flatMap(item => 
         (item.category ? item.category.toLowerCase().split(',').map(c => c.trim()) : []))));
@@ -146,13 +140,11 @@ function renderCategoryDropdown(){
     const dropdown = document.getElementById('categoryDropdown');
     dropdown.innerHTML = '';
     
-    // Naya "Home / All" button
     const allBtn = document.createElement('a');
     allBtn.href = '#';
     allBtn.textContent = 'All Videos';
     allBtn.addEventListener('click', () => { 
         showCategoryView('All Videos');
-        // Search band hone par category view hamesha 'All Videos' dikhaye
         document.getElementById('searchInput').value = ''; 
     });
     dropdown.appendChild(allBtn);
@@ -167,27 +159,21 @@ function renderCategoryDropdown(){
                 return videoCategories.includes(cat);
             });
             showCategoryView(cat.charAt(0).toUpperCase() + cat.slice(1), filtered);
-            // Category select hone par search box clear karo
             document.getElementById('searchInput').value = ''; 
         });
         dropdown.appendChild(a);
     });
 }
-
-// --------- Naya Function to show/hide sections (No change needed here) ---------
 function showCategoryView(title, filteredVideos = items){
   const randomSection = document.getElementById('randomSection');
   const latestSection = document.getElementById('latestSection');
   const categorySection = document.getElementById('categorySection');
   
   if(title === 'All Videos'){
-    // Sab sections dikhao
     if(randomSection) randomSection.style.display = 'block';
     if(latestSection) latestSection.style.display = 'block';
     if(categorySection) categorySection.style.display = 'none';
-    
   } else {
-    // Sirf category section dikhao
     if(randomSection) randomSection.style.display = 'none';
     if(latestSection) latestSection.style.display = 'none';
     if(categorySection) categorySection.style.display = 'block';
@@ -196,8 +182,6 @@ function showCategoryView(title, filteredVideos = items){
 
   window.scrollTo({top: 0, behavior: 'smooth'}); 
 }
-
-// --------- Function to Render a specific Category Grid (Now used for Search too - No change needed here) ---------
 function renderCategoryGrid(videoList, title){
     const container = document.getElementById('categoryGrid');
     const titleEl = document.getElementById('categoryTitle');
@@ -216,17 +200,15 @@ function renderCategoryGrid(videoList, title){
     });
 }
 
-// --------- ✅ NEW: Advanced Pagination Logic ---------
-
+// --- Pagination Logic (No change needed) ---
 function displayPagination(totalPages, currentPage) {
     const pager = document.getElementById('pager');
-    pager.innerHTML = ''; // Purane buttons hatao
+    pager.innerHTML = ''; 
 
     if (totalPages <= 1) return; 
 
     let startPage, endPage;
     
-    // Logic: Agar total pages 5 se zyada hain, toh hum sirf 5 buttons dikhayenge (current + 2 left/right)
     if (totalPages <= 5) {
         startPage = 1;
         endPage = totalPages;
@@ -243,51 +225,44 @@ function displayPagination(totalPages, currentPage) {
         }
     }
 
-    // --- First/Prev Buttons ---
     if (currentPage > 1) {
         pager.appendChild(createPageButton('« Prev', currentPage - 1));
     }
 
-    // --- Page Buttons ---
     for (let i = startPage; i <= endPage; i++) {
         const btn = createPageButton(i, i);
         if (i === currentPage) {
-            btn.classList.add('active'); // Current page ko highlight karo
+            btn.classList.add('active'); 
         }
         pager.appendChild(btn);
     }
     
-    // --- Next/Last Buttons ---
     if (currentPage < totalPages) {
         pager.appendChild(createPageButton('Next »', currentPage + 1));
     }
 }
-
-
 function createPageButton(text, pageNum) {
     const btn = document.createElement('button');
     btn.className = 'page-btn';
     btn.textContent = text;
-    btn.setAttribute('data-page', pageNum); // Page number store karo
+    btn.setAttribute('data-page', pageNum); 
     btn.onclick = function() { 
-        openAdAndChangePage(pageNum); // Ad ke saath page change karo
+        openAdAndChangePage(pageNum); 
     };
     return btn;
 }
 
-// openAdAndChangePage function (ab ad ko page change ke saath load karega)
 function openAdAndChangePage(page){
   currentPage = page; 
   renderLatest(page); 
-  // Scroll up to latest section
   const latestSection = document.getElementById('latestSection');
   if(latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' }); 
 
-  // Ad script is loaded after the action
+  // Agar user next/prev button dabaye toh ad load karo
   const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
 }
 
-// --------- NEW SEARCH FUNCTIONALITY (filterVideos - No change needed here) ---------
+// --- Search Functionality (No change needed) ---
 window.filterVideos = function(query) {
     query = (query || '').trim().toLowerCase();
     
@@ -304,7 +279,7 @@ window.filterVideos = function(query) {
     }
 }
 
-// --------- Show Video (No change needed here) ---------
+// --- Show Video (No change needed) ---
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
 function openWatchById(id){ const it = items.find(x=>x.id===id); if(it) openWatchWithAd(it); }
 
@@ -339,10 +314,10 @@ function showItem(it){
 
   document.getElementById('nowTitle').textContent = it.title || '';
   renderRandom();
-  injectSchema(it); // Dynamic schema
+  injectSchema(it); 
 }
 
-// --------- ✅ UPDATED: Open Watch with Double Ad Logic ---------
+// --- ✅ FINAL: Open Watch with Double Ad Logic (MAX Clicks) ---
 function openWatchWithAd(it){
   if(!it) return;
   const target = it.watch || '#';
@@ -350,35 +325,25 @@ function openWatchWithAd(it){
   const AD_POP_URL = `//${watchAdCode}`;
   
   // --- Ad 1: First Pop-under (Immediate) ---
-  let s1 = document.createElement('script');
-  s1.src = AD_POP_URL;
-  s1.async = true;
-  document.body.appendChild(s1);
+  const s1 = document.createElement('script'); s1.src = AD_POP_URL; document.body.appendChild(s1);
 
   // --- Ad 2: Second Pop-under (Delayed for aggressive monetization) ---
   setTimeout(() => {
-      let s2 = document.createElement('script');
-      s2.src = AD_POP_URL; 
-      s2.async = true;
-      document.body.appendChild(s2);
+      const s2 = document.createElement('script'); s2.src = AD_POP_URL; document.body.appendChild(s2);
   }, 1000); // 1 second delay
 
   // --- Open Target Link (After 2 seconds to ensure ad loads) ---
   setTimeout(() => {
     try {
         if(target.includes("t.me/") || target.includes("telegram.me/")){
-            // Telegram links redirect the current tab immediately for reliability
             window.location.href = target;
         } else {
-            // For other links, try to open in a new window after ads loaded
             let newWindow = window.open(target,'_blank');
-            // Pop-up blocker fallback: If blocked, redirect current tab
             if(!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {
                 window.location.href = target;
             }
         }
     } catch(e){
-      // Final fallback
       window.location.href = target;
     }
   }, 2000); // 2 second delay
@@ -388,7 +353,7 @@ function openWatchWithAd(it){
 }
 
 
-// --------- Schema Injection (No change needed here) ---------
+// --- Schema Injection (No change needed) ---
 function injectSchema(it){
   const oldSchema = document.getElementById('video-schema');
   if(oldSchema) oldSchema.remove();
@@ -414,7 +379,7 @@ function injectSchema(it){
   document.head.appendChild(script);
 }
 
-// --------- Misc (No change needed here) ---------
+// --- Misc (No change needed) ---
 function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
 function showRandomPick(){ if(items.length===0) return; const pick = items[Math.floor(Math.random()*items.length)]; showItem(pick); renderRandom(); }
 
@@ -424,7 +389,7 @@ window.openWatchById = openWatchById;
 document.getElementById && document.getElementById('shuffleBtn').addEventListener('click', showRandomPick);
 document.getElementById && document.getElementById('watchNowTop').addEventListener('click', ()=> openWatchWithAd(current));
 
-// --------- Load All ---------
+// --- Load All ---
 async function loadAll(){
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
@@ -438,10 +403,9 @@ async function loadAll(){
   renderCategoryDropdown(); 
   showRandomPick();
   
-  // Naya kaam: category section ko shuru mein hide rakho
   const categorySection = document.getElementById('categorySection');
   if(categorySection) categorySection.style.display = 'none';
 }
 
 loadAll();
-  
+      
