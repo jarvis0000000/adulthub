@@ -1,8 +1,12 @@
+# Name: Update Sitemap
+# YML file path: .github/workflows/update-sitemap.yml
+
 name: Update Sitemap
 
 on:
   schedule:
-    - cron: '0 * * * *'
+    # Hourly run (Har ghante sitemap update hoga)
+    - cron: '0 * * * *' 
   workflow_dispatch:
 
 jobs:
@@ -15,13 +19,17 @@ jobs:
         with:
           node-version: 20
       - name: Install dependencies
+        # node-fetch version 2 is required for CommonJS in older Node environments
         run: npm install node-fetch@2
       - name: Generate sitemap
+        # JS file scripts folder mein hona chahiye
         run: node scripts/generate-sitemap.js
       - name: Commit & Push
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add public/sitemap.xml
+          # ✅ Corrected Path: sitemap.xml ko root folder mein commit karo
+          git add sitemap.xml
           git commit -m "Auto-update sitemap [skip ci]" || echo "No changes"
           git push
+          
