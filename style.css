@@ -1,14 +1,17 @@
-/* style.css - For Professional, Responsive Look */
+/*
+* style.css - For Professional, Responsive, Futuristic Look
+* Updated: Sept 2025
+*/
 
 /* --- General Styles --- */
 :root {
-  --primary-color: #ff4b91;
-  --bg-color: #0a0a0a;
-  --card-bg: #1e1e1e; /* Thoda lighter for depth */
-  --header-bg: #111;
+  --primary-color: #ff4b91; /* Neon Pink/Magenta */
+  --bg-color: #0a0a0a; /* Deep Black */
+  --card-bg: #1e1e1e; /* Dark Gray Card */
+  --header-bg: #111; /* Slightly Lighter Black Header */
   --text-color: #fff;
   --muted-color: #bbb;
-  --shadow-color: rgba(255, 75, 145, 0.4); /* Pink shadow for glow */
+  --shadow-color: rgba(255, 75, 145, 0.6); /* Stronger Pink shadow for glow */
 }
 
 body { 
@@ -17,6 +20,7 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
   margin: 0;
   padding: 0;
+  line-height: 1.6;
 }
 
 /* --- Header & Navigation --- */
@@ -26,8 +30,11 @@ header.site {
   align-items: center; 
   padding: 15px 20px; 
   background: var(--header-bg); 
-  border-bottom: 2px solid var(--primary-color); 
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5); /* Header shadow */
+  border-bottom: 3px solid var(--primary-color); /* Thoda mota border */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7); /* Stronger Header shadow */
+  position: sticky; /* Header ko chipka diya */
+  top: 0;
+  z-index: 900; /* Header ka z-index set kiya */
 }
 
 .brand { 
@@ -46,8 +53,10 @@ header.site {
 
 .brand .title { 
   margin: 0; 
-  font-size: 20px; 
-  color: var(--text-color);
+  font-size: 22px; /* Thoda bada kiya */
+  font-weight: 700;
+  color: var(--primary-color); /* Title ko primary color diya */
+  text-shadow: 0 0 5px var(--shadow-color);
   display: block; 
 }
 
@@ -56,102 +65,112 @@ header.site {
   align-items: center; 
   flex-shrink: 0;
   margin-left: 15px;
+  gap: 10px; /* Nav items ke beech space */
 }
 
 /* --- Search Input Style --- */
 #searchInput {
-  padding: 8px 12px;
+  padding: 10px 15px; /* Thoda padding badhaya */
   border: 1px solid var(--primary-color); 
-  border-radius: 20px;
+  border-radius: 25px; /* Aur zyada gol */
   background-color: #222;
   color: var(--text-color);
-  width: 130px; 
-  transition: all 0.3s ease-in-out;
+  width: 150px; /* Thoda bada kiya */
+  transition: all 0.4s ease-in-out;
   font-size: 14px;
 }
 
 #searchInput:focus {
-  width: 180px;
-  box-shadow: 0 0 15px var(--shadow-color); /* Stronger futuristic glow */
+  width: 200px;
+  box-shadow: 0 0 20px var(--shadow-color); /* Stronger futuristic glow */
+  background-color: #333;
   outline: none;
 }
 
 /* --- Main Layout --- */
 .wrap { 
-  max-width: 1100px; 
+  max-width: 1200px; /* Thoda aur bada kiya */
   margin: auto; 
   padding: 20px; 
 }
 
 h2 { 
   margin: 30px 0 15px; 
-  font-size: 22px; 
-  border-left: 4px solid var(--primary-color); 
-  padding-left: 8px; 
-  text-shadow: 0 0 5px rgba(255, 75, 145, 0.2);
+  font-size: 24px; 
+  border-left: 5px solid var(--primary-color); 
+  padding-left: 10px; 
+  text-shadow: 0 0 8px rgba(255, 75, 145, 0.3);
+  color: var(--text-color);
 }
 
 .section { 
-  margin-bottom: 40px; 
+  margin-bottom: 50px; 
 }
 
 hr { 
   border: 0; 
-  height: 1px; 
+  height: 2px; 
   background-color: #333; 
-  margin: 30px 0; 
+  margin: 40px 0; 
 }
 
 /* --- Grid (Card View) --- */
 .grid { 
   display: grid; 
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
-  gap: 15px; 
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* Cards ko thoda bada kiya */
+  gap: 20px; /* Gap badhaya */
 }
 
 .card { 
   background: var(--card-bg); 
-  border-radius: 12px; 
+  border-radius: 15px; /* Aur gol kiya */
   overflow: hidden; 
-  transition: transform .3s, box-shadow .3s;
+  transition: transform .4s ease, box-shadow .4s ease;
   cursor: pointer;
   border: 1px solid #333;
 }
 
 .card:hover { 
-  transform: translateY(-5px); /* Thoda zyada uthega */
-  box-shadow: 0 10px 30px var(--shadow-color); 
+  transform: translateY(-8px); /* Aur zyada uthega */
+  box-shadow: 0 15px 40px var(--shadow-color); /* Stronger shadow */
   border-color: var(--primary-color); 
 }
 
 .thumb { 
   width: 100%; 
-  height: 150px; 
+  height: 180px; /* Thodi height badhai */
   object-fit: cover; 
+  filter: brightness(0.9);
+  transition: filter 0.3s;
+}
+
+.card:hover .thumb {
+    filter: brightness(1);
 }
 
 .card .meta {
-  padding: 10px;
+  padding: 12px;
 }
 
 .card h4 {
   margin: 0;
-  font-size: 14px;
+  font-size: 16px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--primary-color);
 }
 
 /* --- Latest List View --- */
 .latest-list {
   display: grid;
-  gap: 15px;
+  gap: 20px;
 }
 
 .latest-item {
   display: flex;
   background: var(--card-bg);
-  border-radius: 12px;
+  border-radius: 15px;
   overflow: hidden;
   transition: transform .3s, box-shadow .3s;
   align-items: center;
@@ -159,67 +178,69 @@ hr {
 }
 
 .latest-item:hover {
-  box-shadow: 0 4px 18px var(--shadow-color);
+  box-shadow: 0 6px 20px var(--shadow-color);
   border-color: var(--primary-color); 
 }
 
-/* ✅ FINAL THUMBNAIL SIZE FOR CLICKS */
 .latest-thumb {
-  width: 160px; 
-  height: 100px;
+  width: 180px; 
+  height: 120px;
   object-fit: cover;
   flex-shrink: 0;
-  box-shadow: 0 0 5px var(--primary-color);
+  box-shadow: 0 0 8px var(--shadow-color); /* Thumbnail par bhi glow */
   border-radius: 4px;
 }
 
 .latest-info {
-  padding: 10px;
+  padding: 15px;
   flex-grow: 1;
 }
 
 /* --- Player & Controls (Hero Section) --- */
 .player-card {
   background: var(--card-bg);
-  border-radius: 12px;
+  border-radius: 15px;
   overflow: hidden;
-  padding: 10px;
+  padding: 15px;
   text-align: center;
-  border: 2px solid var(--primary-color); 
-  box-shadow: 0 0 20px var(--shadow-color);
+  border: 3px solid var(--primary-color); 
+  box-shadow: 0 0 30px var(--shadow-color);
+  z-index: 500; /* Player ka z-index ad se kam rakha */
+  position: relative;
 }
 
 .player-placeholder {
-  padding: 100px 20px;
+  padding: 120px 20px;
   color: var(--muted-color);
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .player-card iframe, .player-card video {
   width: 100%;
-  min-height: 250px;
+  min-height: 420px; /* Height badhai */
   border: none;
   background: #000;
+  border-radius: 8px;
 }
 
 .hero-actions {
-  margin-top: 15px;
+  margin-top: 20px;
   text-align: center;
 }
 
 .now-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 8px;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 12px;
   color: var(--primary-color); 
-  text-shadow: 0 0 8px rgba(255, 75, 145, 0.3);
+  text-shadow: 0 0 10px rgba(255, 75, 145, 0.5);
 }
 
 .controls {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 15px; /* Gap badhaya */
   flex-wrap: wrap;
 }
 
@@ -228,90 +249,97 @@ hr {
   background: #222; 
   border: 1px solid var(--primary-color); 
   color: var(--text-color); 
-  padding: 8px 14px; 
-  border-radius: 20px; 
+  padding: 10px 18px; /* Padding badhaya */
+  border-radius: 25px; /* Zyada gol */
   cursor: pointer; 
-  transition: background-color 0.2s, box-shadow 0.2s, border-color 0.2s;
-  font-weight: 500;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .btn:hover { 
   background-color: var(--primary-color); 
-  box-shadow: 0 0 12px var(--shadow-color);
-  border-color: var(--primary-color);
+  box-shadow: 0 0 15px var(--shadow-color), 0 0 30px rgba(255, 75, 145, 0.4);
+  border-color: var(--primary-color); 
+  transform: scale(1.05); /* Zoom effect */
 }
 
 .btn.primary, .watch-btn { 
   background: var(--primary-color); 
-  padding: 8px 16px; 
-  border-radius: 6px; 
+  padding: 10px 20px; 
+  border-radius: 8px; 
   border: none;
   font-weight: bold;
 }
 
 .btn.primary:hover, .watch-btn:hover { 
   background-color: #e63e81; 
-  box-shadow: 0 0 15px var(--shadow-color);
+  box-shadow: 0 0 20px var(--shadow-color);
+  transform: scale(1.05);
 }
 
 .pill { 
   background: #222; 
-  padding: 5px 10px; 
-  border-radius: 12px; 
+  padding: 6px 12px; 
+  border-radius: 15px; 
   font-size: 13px;
-  border: 1px solid #333;
+  border: 1px solid #444;
+  color: var(--muted-color);
 }
 
 /* --- Pager (Pagination) --- */
 .pager {
-  margin-top: 15px;
+  margin-top: 20px;
   text-align: center;
   display: flex;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .page-btn {
   background: var(--card-bg);
   color: var(--text-color);
   border: 1px solid #555;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 8px 14px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.2s, box-shadow 0.2s;
+  transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
 }
 
 .page-btn:hover {
   background-color: #222;
   border-color: var(--primary-color);
+  transform: translateY(-2px);
 }
 
 .page-btn.active {
   background: var(--primary-color) !important;
   border-color: var(--primary-color) !important;
   font-weight: bold;
-  box-shadow: 0 0 10px var(--shadow-color);
+  box-shadow: 0 0 15px var(--shadow-color);
+  transform: scale(1.05);
 }
 
 /* --- Footer --- */
 footer.foot { 
   background: var(--header-bg); 
-  padding: 20px; 
+  padding: 25px 20px; 
   text-align: center; 
-  margin-top: 40px; 
-  border-top: 2px solid #222;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5); 
+  margin-top: 50px; 
+  border-top: 3px solid #222;
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.7); 
 }
 
 .banner-wrap {
   text-align: center; 
-  margin: 16px auto;
+  margin: 20px auto;
 }
 
 .footer-info {
-  margin-top: 8px;
+  margin-top: 10px;
   color: #aaa;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .footer-info a {
@@ -342,13 +370,13 @@ footer.foot {
   position: absolute; 
   right: 0; 
   background: var(--card-bg); 
-  min-width: 180px; 
-  box-shadow: 0px 8px 25px 0px rgba(0,0,0,0.8); 
-  z-index: 10; 
-  border-radius: 8px; 
-  max-height: 300px;
+  min-width: 200px; 
+  box-shadow: 0px 8px 30px 0px rgba(0,0,0,0.9); 
+  z-index: 600; /* Dropdown ko player se upar rakha */
+  border-radius: 10px; 
+  max-height: 400px;
   overflow-y: auto;
-  border: 1px solid var(--primary-color);
+  border: 2px solid var(--primary-color);
 }
 
 .dropdown-content a { 
@@ -357,17 +385,22 @@ footer.foot {
   text-decoration: none; 
   display: block; 
   transition: background-color 0.2s; 
+  border-bottom: 1px solid #2e2e2e;
 }
 
 .dropdown-content a:hover { 
   background-color: #2e2e2e; 
+  color: var(--primary-color);
+}
+.dropdown-content a:last-child {
+    border-bottom: none;
 }
 
 .dropdown:hover .dropdown-content { 
   display: block; 
 }
 
-/* --- Sticky Footer Ad Style (for Clicks) --- */
+/* --- Sticky Footer Ad Style (MAX Z-INDEX for Clicks/Overlap Prevention) --- */
 .sticky-ad-footer {
     position: fixed;
     bottom: 0; 
@@ -376,8 +409,8 @@ footer.foot {
     text-align: center;
     background: #000;
     padding: 5px 0;
-    z-index: 1000; 
-    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.8);
+    z-index: 9999; /* ✅ AD KA Z-INDEX SABSE ZYADA RAKHA */
+    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.9);
 }
 
 
@@ -385,34 +418,64 @@ footer.foot {
 @media (max-width: 600px) {
   header.site { 
     padding: 10px 15px; 
+    flex-direction: column; /* Mobile par stack kiya */
+    align-items: flex-start;
   }
   
   .wrap {
     padding: 10px;
   }
   
-  .brand .logo-img {
-    height: 35px; 
+  .brand {
+    margin-bottom: 5px;
+  }
+
+  .brand .title { 
+    font-size: 18px; 
   }
 
   .nav {
     flex-wrap: wrap;
-    justify-content: flex-end;
-    margin-top: 5px;
+    justify-content: space-between;
+    width: 100%;
+    margin: 5px 0 0 0;
+    gap: 5px;
   }
   
   #searchInput {
     width: 100%;
     margin-bottom: 8px;
     order: 1; 
+    font-size: 13px;
+    padding: 8px 12px;
   }
   
-  .btn {
-    padding: 6px 10px;
-    font-size: 14px;
-    margin-left: 0;
+  .nav .btn {
+    flex-grow: 1;
+    margin: 0;
   }
   
+  /* Player Section Fixes */
+  .player-card iframe, .player-card video {
+    min-height: 250px; /* Mobile ke liye chota kiya */
+  }
+
+  .player-placeholder {
+    padding: 50px 15px; 
+    font-size: 16px;
+  }
+  
+  .controls {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .pill, .btn, .watch-btn {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 !important; /* Extra margin hata diya */
+  }
+
   .latest-item {
     flex-direction: column;
     align-items: flex-start;
@@ -420,23 +483,32 @@ footer.foot {
   
   .latest-thumb {
     width: 100%;
-    height: 160px;
+    height: 180px;
+    border-radius: 12px 12px 0 0;
+    box-shadow: none;
   }
   
-  .controls {
-    flex-direction: column;
-    gap: 8px;
+  .latest-info {
+      padding: 10px 15px 15px;
   }
   
-  .pill, .btn, .watch-btn {
-    width: 100%;
-    box-sizing: border-box;
+  .grid {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 10px;
+  }
+  
+  .card .thumb {
+      height: 120px;
+  }
+
+  .seo-content {
+      padding: 15px !important;
   }
 }
 
 .ad-slot.small { 
-  margin-top: 12px;
+  margin-top: 15px;
   color: #999;
-  font-size: 13px;
-  }
+  font-size: 14px;
+    }
   
