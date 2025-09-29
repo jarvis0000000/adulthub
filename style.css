@@ -414,101 +414,166 @@ footer.foot {
 }
 
 
-/* --- Mobile Responsiveness (Screen size < 600px) --- */
-@media (max-width: 600px) {
-  header.site { 
-    padding: 10px 15px; 
-    flex-direction: column; /* Mobile par stack kiya */
-    align-items: flex-start;
-  }
-  
-  .wrap {
-    padding: 10px;
-  }
-  
-  .brand {
-    margin-bottom: 5px;
-  }
+/* --- NEW: Follower Box Styling --- */
 
-  .brand .title { 
-    font-size: 18px; 
-  }
-
-  .nav {
-    flex-wrap: wrap;
-    justify-content: space-between;
-    width: 100%;
-    margin: 5px 0 0 0;
-    gap: 5px;
-  }
-  
-  #searchInput {
-    width: 100%;
-    margin-bottom: 8px;
-    order: 1; 
-    font-size: 13px;
-    padding: 8px 12px;
-  }
-  
-  .nav .btn {
-    flex-grow: 1;
-    margin: 0;
-  }
-  
-  /* Player Section Fixes */
-  .player-card iframe, .player-card video {
-    min-height: 250px; /* Mobile ke liye chota kiya */
-  }
-
-  .player-placeholder {
-    padding: 50px 15px; 
-    font-size: 16px;
-  }
-  
-  .controls {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .pill, .btn, .watch-btn {
-    width: 100%;
-    box-sizing: border-box;
-    margin: 0 !important; /* Extra margin hata diya */
-  }
-
-  .latest-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .latest-thumb {
-    width: 100%;
-    height: 180px;
-    border-radius: 12px 12px 0 0;
-    box-shadow: none;
-  }
-  
-  .latest-info {
-      padding: 10px 15px 15px;
-  }
-  
-  .grid {
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 10px;
-  }
-  
-  .card .thumb {
-      height: 120px;
-  }
-
-  .seo-content {
-      padding: 15px !important;
-  }
+/* Header ko align karne ke liye */
+.site {
+    display: flex;
+    align-items: center; /* Vertically align everything */
+    justify-content: space-between; 
 }
+
+.follower-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 5px 10px;
+    margin-left: auto; /* Nav se pehle space dene ke liye */
+    margin-right: 15px; 
+    border-right: 1px solid #333; /* Separator line */
+}
+
+.follow-btn {
+    padding: 5px 10px !important; 
+    font-size: 13px !important;
+    background-color: #f75555 !important; /* Red color for attention */
+    color: white !important;
+    border: none !important;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.follow-btn:hover {
+    background-color: #d84545 !important;
+}
+
+.follower-count {
+    font-size: 12px;
+    color: var(--primary-color);
+    font-weight: bold;
+    margin-top: 2px;
+    white-space: nowrap; 
+}
+
+/* --- Mobile Responsiveness (Screen size < 600px) --- */
+@media (max-width: 650px) {
+    /* Header layout fix for mobile */
+    header.site {
+        flex-direction: row; 
+        flex-wrap: wrap; 
+        align-items: center;
+        justify-content: space-between;
+    }
+    .brand {
+        order: 1;
+        flex-basis: auto;
+    }
+    .follower-box {
+        order: 2;
+        margin-left: auto; 
+        margin-right: 0;
+        padding: 5px 8px;
+        border-right: none;
+    }
+    .nav {
+        order: 3;
+        width: 100%; 
+        margin: 10px 0 0 0;
+    }
+
+    .wrap {
+      padding: 10px;
+    }
+    
+    .brand {
+      margin-bottom: 0;
+    }
+  
+    .brand .title { 
+      font-size: 18px; 
+    }
+  
+    .nav {
+      flex-wrap: wrap;
+      justify-content: space-between;
+      width: 100%;
+      gap: 5px;
+    }
+    
+    #searchInput {
+      width: 100%;
+      margin-bottom: 8px;
+      order: 1; 
+      font-size: 13px;
+      padding: 8px 12px;
+    }
+    
+    .nav .btn {
+      flex-grow: 1;
+      margin: 0;
+    }
+    
+    /* Player Section Fixes */
+    .player-card iframe, .player-card video {
+      min-height: 250px; /* Mobile ke liye chota kiya */
+    }
+  
+    .player-placeholder {
+      padding: 50px 15px; 
+      font-size: 16px;
+    }
+    
+    .controls {
+      flex-direction: column;
+      gap: 10px;
+    }
+    
+    .pill, .btn, .watch-btn {
+      width: 100%;
+      box-sizing: border-box;
+      margin: 0 !important; 
+    }
+
+    .follow-btn {
+      padding: 4px 6px !important;
+      font-size: 12px !important;
+    }
+  
+    .latest-item {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .latest-thumb {
+      width: 100%;
+      height: 180px;
+      border-radius: 12px 12px 0 0;
+      box-shadow: none;
+    }
+    
+    .latest-info {
+        padding: 10px 15px 15px;
+    }
+    
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    
+    .card .thumb {
+        height: 120px;
+    }
+  
+    .seo-content {
+        padding: 15px !important;
+    }
+  }
 
 .ad-slot.small { 
   margin-top: 15px;
   color: #999;
   font-size: 14px;
-    }
+  }
   
