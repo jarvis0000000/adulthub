@@ -26,21 +26,8 @@
 <link rel="manifest" href="/site.webmanifest" />
 <link rel="stylesheet" href="style.css?v=20240930"> 
 
-<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-<script>
-  window.OneSignalDeferred = window.OneSignalDeferred || [];
-  OneSignalDeferred.push(function(OneSignal) {
-    OneSignal.init({
-      appId: "d074ee87-8522-4f76-b5fe-8fb8804d8597",
-      allowLocalhostAsSecureOrigin: true,
-      serviceWorkerParam: { scope: '/' },
-    });
-  });
-</script>
-
 </head>
 <body>
-
 <div class="sticky-ad-footer">
     <script type="text/javascript">
       atOptions = {
@@ -52,14 +39,6 @@
       };
     </script>
     <script type="text/javascript" src="//www.highperformanceformat.com/627de0095b96c6bf7f4e1f352a5fa6b5/invoke.js"></script>
-</div>
-
-<div id="followModal">
-    <div class="modal-content">
-        <h2>🔒 Exclusive Content Locked</h2>
-        <p>Subscribe to our push notifications for **FREE** access to all videos and the latest updates. You will not be able to browse without following.</p>
-        <button id="subscribeBtn" class="btn">Click to Follow & Unlock</button>
-    </div>
 </div>
 
 <header class="site">
@@ -76,7 +55,7 @@
   </div>
 </header>
 
-<main class="wrap" id="contentWrap">
+<main class="wrap">
   <section class="hero">
     <div class="player-card" id="playerWrap">
       <div class="player-placeholder">🎬 Select a video to preview</div>
