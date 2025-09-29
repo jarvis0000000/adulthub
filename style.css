@@ -414,7 +414,7 @@ footer.foot {
 }
 
 
-/* --- NEW: Follower Box Styling --- */
+/* --- NEW: Follower Box Styling (CLEANED) --- */
 
 /* Header ko align karne ke liye */
 .site {
@@ -424,37 +424,25 @@ footer.foot {
 }
 
 .follower-box {
+    /* ✅ Simple Layout: No flex-direction: column or image related CSS needed */
     display: flex;
-    flex-direction: column;
     align-items: center;
+    justify-content: center;
     padding: 5px 10px;
     margin-left: auto; /* Nav se pehle space dene ke liye */
     margin-right: 15px; 
     border-right: 1px solid #333; /* Separator line */
 }
 
-.follow-btn {
-    padding: 5px 10px !important; 
-    font-size: 13px !important;
-    background-color: #f75555 !important; /* Red color for attention */
-    color: white !important;
-    border: none !important;
-    font-weight: bold;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-}
-
-.follow-btn:hover {
-    background-color: #d84545 !important;
-}
+/* ✅ follow-btn CSS removed as the button is removed from HTML */
 
 .follower-count {
-    font-size: 12px;
+    /* ✅ Simple and clean styling for count text */
+    font-size: 14px; /* Size increased slightly for better visibility */
     color: var(--primary-color);
     font-weight: bold;
-    margin-top: 2px;
     white-space: nowrap; 
+    margin: 0; /* Extra margin removed */
 }
 
 /* --- Mobile Responsiveness (Screen size < 600px) --- */
@@ -535,10 +523,9 @@ footer.foot {
       box-sizing: border-box;
       margin: 0 !important; 
     }
-
-    .follow-btn {
-      padding: 4px 6px !important;
-      font-size: 12px !important;
+    
+    .follower-count {
+      font-size: 13px; /* Mobile par count chota kiya */
     }
   
     .latest-item {
@@ -575,5 +562,5 @@ footer.foot {
   margin-top: 15px;
   color: #999;
   font-size: 14px;
-  }
-  
+             }
+      
