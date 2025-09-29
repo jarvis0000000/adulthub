@@ -23,13 +23,14 @@ body {
   line-height: 1.6;
 }
 
-/* 🚩 NEW: Content Hiding (Compulsory Age Check) */
+/* 🚩 Content Hiding (Compulsory Check ke liye) */
 .content-wrap.hidden {
     filter: blur(5px); /* Blur effect on content */
     pointer-events: none; /* Disable all clicks on content */
     opacity: 0.5;
 }
-/* 🚩 NEW: Modal Styles */
+
+/* 🚩 MODIFIED: Modal Styles (Ab Follow Modal ke liye use hoga) */
 .modal {
     display: none; 
     position: fixed; 
@@ -56,19 +57,23 @@ body {
     border-radius: 15px;
     box-shadow: 0 0 40px var(--shadow-color);
 }
+/* New styles for the follow modal */
 .modal-content h2 {
-    color: #f75555;
+    color: var(--primary-color); /* Unlock title ka color change kiya */
     border-left: none;
     text-align: center;
     padding: 0;
     margin-top: 0;
+    font-size: 24px;
 }
 .modal-content p {
     color: var(--muted-color);
     margin-bottom: 25px;
 }
-#confirmAgeBtn {
+#subscribeBtn {
     width: 100%;
+    padding: 12px;
+    font-size: 18px;
 }
 
 
@@ -92,7 +97,7 @@ header.site {
   flex-shrink: 1;
 }
 
-/* 🚩 LOGO IMAGE REMOVED: .brand .logo-img styling not needed */
+/* 🚩 Logo image ka reference ab CSS mein nahi hai */
 
 .brand .title { 
   margin: 0; 
@@ -605,5 +610,5 @@ footer.foot {
   margin-top: 15px;
   color: #999;
   font-size: 14px;
-    }
+}
   
