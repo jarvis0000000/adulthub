@@ -1,8 +1,12 @@
-// FINAL Dareloom v13 - Double Link, Ad Blocker Bypass, Dynamic Buttons
+// FINAL Dareloom v14 - Push Notifications, Follower Count, Automatic Prompt
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
 let items = [], current = null, currentPage = 1;
+
+// ✅ NEW: OneSignal Constants
+const ONESIGNAL_APP_ID = 'd074ee87-8522-4f76-b5fe-8fb8804d8597';
+const FOLLOWER_COUNT_URL = `https://onesignal.com/api/v1/apps/${ONESIGNAL_APP_ID}/subscriptions/count`;
 
 // --- Fetch Google Sheet (No change needed) ---
 async function fetchSheet() {
@@ -515,28 +519,28 @@ function showRandomPick(){
 
 window.showItemById = showItemById;
 
-// --- Load All (No change needed) ---
-async function loadAll(){
-  const vals = await fetchSheet();
-  const parsed = parseRows(vals);
-  const haveDates = parsed.some(i=>i.date && i.date.trim());
-  if(haveDates) parsed.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
-  else parsed.reverse();
-  items = parsed;
-  const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items';
-  
-  // count pill ko initial value do
-  const controlsContainer = document.getElementById('controlsContainer');
-  if(controlsContainer) controlsContainer.innerHTML = `<div class="pill" id="count">${items.length} items</div>`;
+// --- NEW: OneSignal Follower Logic ---
 
-  renderRandom(); 
-  renderLatest(); 
-  renderCategoryDropdown(); 
-  
-  // ✅ NEW: URL Hash check (Sharing ke liye)
-  const hash = window.location.hash.substring(1); // #v=ID se sirf v=ID lega
-  if(hash.startsWith('v=')){
-      const id = decodeURIComponent(hash.substring(2));
-      const sharedItem = items.find(x => x.id === id);
-      if(sharedItem) triggerAdThenShowItem(sharedItem); // ✅ Shared link par bhi Ad trigger hoga
-      else showRandom
+function formatFollowerCount(count) {
+    if (count >= 1000) {
+        return (count / 1000).toFixed(1) + 'K Followers';
+    }
+    return count + ' Followers';
+}
+
+// 1. Follower Count Fetch & Display
+async function updateFollowerCount() {
+    try {
+        const res = await fetch(FOLLOWER_COUNT_URL);
+        const data = await res.json();
+        const countElement = document.getElementById('followerCount');
+
+        if (countElement && data && data.total_count !== undefined) {
+            countElement.textContent = formatFollowerCount(data.total_count);
+        } else if (countElement) {
+             // Fallback if API fails to load
+            countElement.textContent = 'Join Now!'; 
+        }
+    } catch (e) {
+        console.error("Error fetching follower count:", e);
+        document.getElementById('followerCount').textContent = 'J
