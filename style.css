@@ -23,6 +23,55 @@ body {
   line-height: 1.6;
 }
 
+/* 🚩 NEW: Content Hiding (Compulsory Age Check) */
+.content-wrap.hidden {
+    filter: blur(5px); /* Blur effect on content */
+    pointer-events: none; /* Disable all clicks on content */
+    opacity: 0.5;
+}
+/* 🚩 NEW: Modal Styles */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 10000; /* Highest Z-index */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.8);
+    backdrop-filter: blur(5px);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-content {
+    background-color: var(--card-bg);
+    margin: auto;
+    padding: 30px;
+    border: 3px solid var(--primary-color);
+    width: 80%;
+    max-width: 400px;
+    text-align: center;
+    border-radius: 15px;
+    box-shadow: 0 0 40px var(--shadow-color);
+}
+.modal-content h2 {
+    color: #f75555;
+    border-left: none;
+    text-align: center;
+    padding: 0;
+    margin-top: 0;
+}
+.modal-content p {
+    color: var(--muted-color);
+    margin-bottom: 25px;
+}
+#confirmAgeBtn {
+    width: 100%;
+}
+
+
 /* --- Header & Navigation --- */
 header.site { 
   display: flex; 
@@ -43,13 +92,7 @@ header.site {
   flex-shrink: 1;
 }
 
-.brand .logo-img { 
-  height: 40px; 
-  width: auto; 
-  margin-right: 10px; 
-  border-radius: 8px; 
-  display: block; 
-}
+/* 🚩 LOGO IMAGE REMOVED: .brand .logo-img styling not needed */
 
 .brand .title { 
   margin: 0; 
@@ -414,35 +457,29 @@ footer.foot {
 }
 
 
-/* --- NEW: Follower Box Styling (CLEANED) --- */
-
-/* Header ko align karne ke liye */
+/* --- Follower Box Styling --- */
 .site {
     display: flex;
-    align-items: center; /* Vertically align everything */
+    align-items: center; 
     justify-content: space-between; 
 }
 
 .follower-box {
-    /* ✅ Simple Layout: No flex-direction: column or image related CSS needed */
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 5px 10px;
-    margin-left: auto; /* Nav se pehle space dene ke liye */
+    margin-left: auto; 
     margin-right: 15px; 
-    border-right: 1px solid #333; /* Separator line */
+    border-right: 1px solid #333; 
 }
 
-/* ✅ follow-btn CSS removed as the button is removed from HTML */
-
 .follower-count {
-    /* ✅ Simple and clean styling for count text */
-    font-size: 14px; /* Size increased slightly for better visibility */
+    font-size: 14px; 
     color: var(--primary-color);
     font-weight: bold;
     white-space: nowrap; 
-    margin: 0; /* Extra margin removed */
+    margin: 0; 
 }
 
 /* --- Mobile Responsiveness (Screen size < 600px) --- */
@@ -556,11 +593,17 @@ footer.foot {
     .seo-content {
         padding: 15px !important;
     }
+
+    /* Mobile Modal Fix */
+    .modal-content {
+        width: 90%;
+        padding: 20px;
+    }
   }
 
 .ad-slot.small { 
   margin-top: 15px;
   color: #999;
   font-size: 14px;
-             }
-      
+    }
+  
