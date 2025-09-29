@@ -1,4 +1,4 @@
-// FINAL Dareloom v14 - Push Notifications, Follower Count, Automatic Prompt
+// FINAL Dareloom v17 - Cleaned Prompt Logic, Pure Count & Robust Loading
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
@@ -115,7 +115,7 @@ function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({'&':'&a
 
 // --- New Ad Trigger Functions ---
 
-// ✅ NEW: Simple Ad Injection (for Card/Preview clicks)
+// ✅ Simple Ad Injection (for Card/Preview clicks)
 function triggerAdRedirect() {
   const AD_POP_URL = AD_POP;
   if (!AD_POP_URL || AD_POP_URL === '#') return;
@@ -130,7 +130,7 @@ function triggerAdRedirect() {
   s.onload = () => s.remove();
 }
 
-// ✅ NEW: Ad Trigger + Show Item Handler (for Card clicks)
+// ✅ Ad Trigger + Show Item Handler (for Card clicks)
 function triggerAdThenShowItem(item) {
     if(!item) return;
 
@@ -143,14 +143,14 @@ function triggerAdThenShowItem(item) {
     }, 150); 
 }
 
-// ✅ NEW: ID-based Handler
+// ✅ ID-based Handler
 function triggerAdThenShowItemById(id){ 
     const it = items.find(x=>x.id===id); 
     if(it) triggerAdThenShowItem(it); 
 }
 window.triggerAdThenShowItemById = triggerAdThenShowItemById; // Global access for HTML onclick
 
-// --- Render Functions (Updated renderRandom and renderLatest) ---
+// --- Render Functions (No change) ---
 function renderRandom(){
   const g = document.getElementById('randomGrid'); if(!g) return; g.innerHTML='';
   const pool = items.slice(); const picks = [];
@@ -159,7 +159,7 @@ function renderRandom(){
     const card = document.createElement('div'); card.className='card';
     const t = makeThumbnail(it);
     card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
-    // ✅ CHANGED: Card click ab Ad trigger karke showItem(it) karega
+    // ✅ Card click ab Ad trigger karke showItem(it) karega
     card.addEventListener('click', ()=> triggerAdThenShowItem(it));
     g.appendChild(card);
   });
@@ -177,7 +177,7 @@ function renderLatest(page = currentPage){
   slice.forEach(it => {
     const div = document.createElement('div'); div.className='latest-item';
     const t = makeThumbnail(it);
-    // ✅ CHANGED: Both buttons ab Ad trigger karke showItem(it) karega
+    // ✅ Both buttons ab Ad trigger karke showItem(it) karega
     div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy"><div class="latest-info"><div style="font-weight:700">${escapeHtml(it.title)}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div><div style="margin-top:8px"><button class="btn" onclick="triggerAdThenShowItemById('${escapeHtml(it.id)}')">Preview</button> <button class="watch-btn" onclick="triggerAdThenShowItemById('${escapeHtml(it.id)}')">Watch</button></div></div>`;
     list.appendChild(div);
   });
@@ -185,7 +185,7 @@ function renderLatest(page = currentPage){
   displayPagination(totalPages, currentPage);
 }
 
-// ... (renderCategoryDropdown and related functions unchanged) ...
+// ... (Category rendering functions unchanged) ...
 
 function renderCategoryDropdown(){
     const categories = Array.from(new Set(items.flatMap(item => 
@@ -251,14 +251,14 @@ function renderCategoryGrid(videoList, title){
         card.className='card';
         const t = makeThumbnail(it);
         card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
-        // ✅ CHANGED: Card click ab Ad trigger karke showItem(it) karega
+        // ✅ Card click ab Ad trigger karke showItem(it) karega
         card.addEventListener('click', ()=> triggerAdThenShowItem(it));
         container.appendChild(card);
     });
 }
 
 
-// --- Pagination Logic (No change needed) ---
+// --- Pagination Logic (No change) ---
 function displayPagination(totalPages, currentPage) {
     const pager = document.getElementById('pager');
     pager.innerHTML = ''; 
@@ -320,7 +320,7 @@ function openAdAndChangePage(page){
   const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
 }
 
-// --- Search Functionality (No change needed) ---
+// --- Search Functionality (No change) ---
 window.filterVideos = function(query) {
     query = (query || '').trim().toLowerCase();
     
@@ -337,7 +337,7 @@ window.filterVideos = function(query) {
     }
 }
 
-// --- Share Functionality (No change needed) ---
+// --- Share Functionality (No change) ---
 function shareItem(it) {
     if (!it || !it.title) {
         alert("Pehle koi video select karo!");
@@ -367,8 +367,7 @@ function shareItem(it) {
 }
 
 
-// --- Show Video (Updated Logic) ---
-// showItemById hat gaya hai, ab naya function triggerAdThenShowItemById use hoga
+// --- Show Video (No change) ---
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); } 
 
 
@@ -409,7 +408,7 @@ function showItem(it){
 
   document.getElementById('nowTitle').textContent = it.title || '';
   
-  // --- ✅ NEW: Dynamic Watch Options Button Rendering ---
+  // --- ✅ Dynamic Watch Options Button Rendering ---
   const watchUrls = (it.watch || '').split(',').map(url => url.trim()).filter(url => url.length > 0);
   let buttonHTML = '';
   
@@ -448,7 +447,6 @@ function showItem(it){
 }
 
 // --- ✅ FINAL: Open Watch with Double Ad Logic (URL string lega) ---
-// Ad Blocker Bypass ke liye 100ms delay use kiya gaya hai.
 function openWatchWithAd(targetUrl){
   if(!targetUrl || targetUrl === '#') return;
   const target = targetUrl; 
@@ -482,7 +480,7 @@ function openWatchWithAd(targetUrl){
 }
 
 
-// --- Schema Injection (No change needed) ---
+// --- Schema Injection (No change) ---
 function injectSchema(it){
   const oldSchema = document.getElementById('video-schema');
   if(oldSchema) oldSchema.remove();
@@ -494,11 +492,12 @@ function injectSchema(it){
     "@context": "https://schema.org",
     "@type": "VideoObject",
     "name": it.title,
-    "description": it.description && it.description.trim() ? it.description : it.title,
+    // ✅ SEO Fix: Description mein fall back hamesha website ka name use karega, "Google Sheet" nahi.
+    "description": it.description && it.description.trim() ? it.description : "Watch trending drama, romance and thrillers online in HD.",
     "thumbnailUrl": thumb,
     "uploadDate": it.date || new Date().toISOString().split("T")[0],
     "contentUrl": it.watch,
-    "embedUrl": toEmbedUrl(it.trailer), // Schema ke liye Trailer use kiya
+    "embedUrl": toEmbedUrl(it.trailer), 
     "publisher": {
       "@type": "Organization",
       "name": "Dareloom Hub",
@@ -508,7 +507,7 @@ function injectSchema(it){
   document.head.appendChild(script);
 }
 
-// --- Misc (Cleaned up event listeners) ---
+// --- Misc (No change) ---
 function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
 function showRandomPick(){ 
   if(items.length===0) return; 
@@ -519,16 +518,16 @@ function showRandomPick(){
 
 window.showItemById = showItemById;
 
-// --- NEW: OneSignal Follower Logic ---
+// --- NEW: OneSignal Follower Logic (UPDATED) ---
 
 function formatFollowerCount(count) {
     if (count >= 1000) {
-        return (count / 1000).toFixed(1) + 'K Followers';
+        return (count / 1000).toFixed(1) + 'K';
     }
-    return count + ' Followers';
+    return count;
 }
 
-// 1. Follower Count Fetch & Display
+// 1. Follower Count Fetch & Display (Only Count)
 async function updateFollowerCount() {
     try {
         const res = await fetch(FOLLOWER_COUNT_URL);
@@ -536,11 +535,17 @@ async function updateFollowerCount() {
         const countElement = document.getElementById('followerCount');
 
         if (countElement && data && data.total_count !== undefined) {
-            countElement.textContent = formatFollowerCount(data.total_count);
+            // ✅ Only show "Followers: [Count]"
+            countElement.textContent = 'Followers: ' + formatFollowerCount(data.total_count);
         } else if (countElement) {
-             // Fallback if API fails to load
-            countElement.textContent = 'Join Now!'; 
+            // ✅ Loading/--- hatane ke liye
+            countElement.textContent = 'Followers: 0'; 
         }
     } catch (e) {
         console.error("Error fetching follower count:", e);
-        document.getElementById('followerCount').textContent = 'J
+        // ✅ Agar fetch fail ho toh bhi 'Loading...' nahi dikhega
+        document.getElementById('followerCount').textContent = 'Followers: 0';
+    }
+}
+
+// 2. Custom F
