@@ -24,7 +24,7 @@
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="shortcut icon" href="/favicon.ico" />
 <link rel="manifest" href="/site.webmanifest" />
-<link rel="stylesheet" href="style.css?v=20240927"> 
+<link rel="stylesheet" href="style.css?v=20240930"> 
 
 <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 <script>
@@ -34,7 +34,7 @@
       appId: "d074ee87-8522-4f76-b5fe-8fb8804d8597",
       safari_web_id: "web.onesignal.auto.552dcc8d-cced-4aac-823c-93a119513fed",
       notifyButton: {
-        enable: false, // Custom button use kar rahe hain
+        enable: false, // Custom logic use kar rahe hain
       },
       allowLocalhostAsSecure: true
     });
@@ -42,6 +42,15 @@
 </script>
 </head>
 <body>
+
+<div id="ageModal" class="modal">
+    <div class="modal-content">
+        <h2>⚠️ Age Verification Required</h2>
+        <p>This content may be for adults only. You must be 18 years or older to proceed.</p>
+        <button class="btn primary" id="confirmAgeBtn">Yes, I am 18+</button>
+    </div>
+</div>
+
 <div class="sticky-ad-footer">
     <script type="text/javascript">
       atOptions = {
@@ -55,21 +64,20 @@
     <script type="text/javascript" src="//www.highperformanceformat.com/627de0095b96c6bf7f4e1f352a5fa6b5/invoke.js"></script>
 </div>
 
+<div id="contentWrap" class="content-wrap hidden">
+
 <header class="site">
   <div class="brand">
-    <img class="logo-img" src="/logo.png" alt="Dareloom Hub Logo"> 
-    
     <div style="display: block;">
         <h1 class="title">Dareloom Hub</h1>
         </div>
   </div>
   <div class="follower-box" id="followerBox">
-    <div class="follower-count" id="followerCount">Followers: Loading...</div>
+    <div class="follower-count" id="followerCount">Followers: 0</div>
   </div>
   <div class="nav">
     <input type="text" id="searchInput" placeholder="Search titles..." onkeyup="filterVideos(this.value)">
-    <button class="btn" id="ageBtn">I am 18+</button>
-  </div>
+    </div>
 </header>
 
 <main class="wrap">
@@ -136,6 +144,6 @@
   </div>
 </footer>
 
-<script src="script.js?v=20240927"></script>
+</div> <script src="script.js?v=20240930"></script>
 </body>
 </html>
