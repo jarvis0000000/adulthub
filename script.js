@@ -76,7 +76,7 @@ function makeThumbnail(item){
   return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
 
-// ✅ toEmbedUrl function.
+// ✅ toEmbedUrl function (Streamtape support added)
 function toEmbedUrl(url){
   if(!url) return '';
   url = url.trim();
@@ -111,7 +111,7 @@ function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({'&':'&a
 
 // --- New Ad Trigger Functions ---
 
-// ✅ NEW: Simple Ad Injection (for Card/Preview clicks)
+// ✅ Simple Ad Injection (for Card/Preview clicks)
 function triggerAdRedirect() {
   const AD_POP_URL = AD_POP;
   if (!AD_POP_URL || AD_POP_URL === '#') return;
@@ -126,7 +126,7 @@ function triggerAdRedirect() {
   s.onload = () => s.remove();
 }
 
-// ✅ NEW: Ad Trigger + Show Item Handler (for Card clicks)
+// ✅ Ad Trigger + Show Item Handler (for Card clicks)
 function triggerAdThenShowItem(item) {
     if(!item) return;
 
@@ -139,14 +139,14 @@ function triggerAdThenShowItem(item) {
     }, 150); 
 }
 
-// ✅ NEW: ID-based Handler
+// ✅ ID-based Handler
 function triggerAdThenShowItemById(id){ 
     const it = items.find(x=>x.id===id); 
     if(it) triggerAdThenShowItem(it); 
 }
 window.triggerAdThenShowItemById = triggerAdThenShowItemById; // Global access for HTML onclick
 
-// --- Render Functions (Updated renderRandom and renderLatest) ---
+// --- Render Functions ---
 function renderRandom(){
   const g = document.getElementById('randomGrid'); if(!g) return; g.innerHTML='';
   const pool = items.slice(); const picks = [];
@@ -155,7 +155,6 @@ function renderRandom(){
     const card = document.createElement('div'); card.className='card';
     const t = makeThumbnail(it);
     card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
-    // ✅ CHANGED: Card click ab Ad trigger karke showItem(it) karega
     card.addEventListener('click', ()=> triggerAdThenShowItem(it));
     g.appendChild(card);
   });
@@ -173,15 +172,12 @@ function renderLatest(page = currentPage){
   slice.forEach(it => {
     const div = document.createElement('div'); div.className='latest-item';
     const t = makeThumbnail(it);
-    // ✅ CHANGED: Both buttons ab Ad trigger karke showItem(it) karega
     div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy"><div class="latest-info"><div style="font-weight:700">${escapeHtml(it.title)}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div><div style="margin-top:8px"><button class="btn" onclick="triggerAdThenShowItemById('${escapeHtml(it.id)}')">Preview</button> <button class="watch-btn" onclick="triggerAdThenShowItemById('${escapeHtml(it.id)}')">Watch</button></div></div>`;
     list.appendChild(div);
   });
   
   displayPagination(totalPages, currentPage);
 }
-
-// ... (renderCategoryDropdown and related functions unchanged) ...
 
 function renderCategoryDropdown(){
     const categories = Array.from(new Set(items.flatMap(item => 
@@ -247,7 +243,6 @@ function renderCategoryGrid(videoList, title){
         card.className='card';
         const t = makeThumbnail(it);
         card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
-        // ✅ CHANGED: Card click ab Ad trigger karke showItem(it) karega
         card.addEventListener('click', ()=> triggerAdThenShowItem(it));
         container.appendChild(card);
     });
@@ -364,7 +359,6 @@ function shareItem(it) {
 
 
 // --- Show Video (Updated Logic) ---
-// showItemById hat gaya hai, ab naya function triggerAdThenShowItemById use hoga
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); } 
 
 
@@ -515,7 +509,7 @@ function showRandomPick(){
 
 window.showItemById = showItemById;
 
-// --- Load All (No change needed) ---
+// --- Load All (Now runs immediately) ---
 async function loadAll(){
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
@@ -533,10 +527,22 @@ async function loadAll(){
   renderLatest(); 
   renderCategoryDropdown(); 
   
-  // ✅ NEW: URL Hash check (Sharing ke liye)
+  // ✅ URL Hash check (Sharing ke liye)
   const hash = window.location.hash.substring(1); // #v=ID se sirf v=ID lega
   if(hash.startsWith('v=')){
       const id = decodeURIComponent(hash.substring(2));
       const sharedItem = items.find(x => x.id === id);
-      if(sharedItem) triggerAdThenShowItem(sharedItem); // ✅ Shared link par bhi Ad trigger hoga
-      else showRandom
+      if(sharedItem) triggerAdThenShowItem(sharedItem); // Shared link par bhi Ad trigger hoga
+      else showRandomPick(); 
+  } else {
+      showRandomPick();
+  }
+}
+
+// --- Initialization (Direct call to loadAll) ---
+document.addEventListener('DOMContentLoaded', loadAll);
+// Age button ab sirf ek confirmation alert dega
+document.getElementById('ageBtn').addEventListener('click', () => {
+    alert("Age verified. You can now browse the content.");
+});
+        
