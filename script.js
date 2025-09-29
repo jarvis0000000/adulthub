@@ -109,7 +109,44 @@ function toEmbedUrl(url){
 
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
-// --- Render Functions (Updated renderLatest) ---
+// --- New Ad Trigger Functions ---
+
+// ✅ NEW: Simple Ad Injection (for Card/Preview clicks)
+function triggerAdRedirect() {
+  const AD_POP_URL = AD_POP;
+  if (!AD_POP_URL || AD_POP_URL === '#') return;
+  
+  // Inject the ad script (Pop-under)
+  const s = document.createElement('script'); 
+  s.src = AD_POP_URL; 
+  s.async = true; 
+  document.body.appendChild(s);
+  
+  // Cleanup
+  s.onload = () => s.remove();
+}
+
+// ✅ NEW: Ad Trigger + Show Item Handler (for Card clicks)
+function triggerAdThenShowItem(item) {
+    if(!item) return;
+
+    // 1. Trigger Ad
+    triggerAdRedirect();
+
+    // 2. Show Item after slight delay (taki ad script inject ho sake)
+    setTimeout(() => {
+        showItem(item);
+    }, 150); 
+}
+
+// ✅ NEW: ID-based Handler
+function triggerAdThenShowItemById(id){ 
+    const it = items.find(x=>x.id===id); 
+    if(it) triggerAdThenShowItem(it); 
+}
+window.triggerAdThenShowItemById = triggerAdThenShowItemById; // Global access for HTML onclick
+
+// --- Render Functions (Updated renderRandom and renderLatest) ---
 function renderRandom(){
   const g = document.getElementById('randomGrid'); if(!g) return; g.innerHTML='';
   const pool = items.slice(); const picks = [];
@@ -118,7 +155,8 @@ function renderRandom(){
     const card = document.createElement('div'); card.className='card';
     const t = makeThumbnail(it);
     card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
-    card.addEventListener('click', ()=> showItem(it));
+    // ✅ CHANGED: Card click ab Ad trigger karke showItem(it) karega
+    card.addEventListener('click', ()=> triggerAdThenShowItem(it));
     g.appendChild(card);
   });
 }
@@ -135,8 +173,8 @@ function renderLatest(page = currentPage){
   slice.forEach(it => {
     const div = document.createElement('div'); div.className='latest-item';
     const t = makeThumbnail(it);
-    // ✅ Both buttons now call showItemById, which is correct for dynamic buttons
-    div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy"><div class="latest-info"><div style="font-weight:700">${escapeHtml(it.title)}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div><div style="margin-top:8px"><button class="btn" onclick="showItemById('${escapeHtml(it.id)}')">Preview</button> <button class="watch-btn" onclick="showItemById('${escapeHtml(it.id)}')">Watch</button></div></div>`;
+    // ✅ CHANGED: Both buttons ab Ad trigger karke showItem(it) karega
+    div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy"><div class="latest-info"><div style="font-weight:700">${escapeHtml(it.title)}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div><div style="margin-top:8px"><button class="btn" onclick="triggerAdThenShowItemById('${escapeHtml(it.id)}')">Preview</button> <button class="watch-btn" onclick="triggerAdThenShowItemById('${escapeHtml(it.id)}')">Watch</button></div></div>`;
     list.appendChild(div);
   });
   
@@ -209,7 +247,8 @@ function renderCategoryGrid(videoList, title){
         card.className='card';
         const t = makeThumbnail(it);
         card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
-        card.addEventListener('click', ()=> showItem(it));
+        // ✅ CHANGED: Card click ab Ad trigger karke showItem(it) karega
+        card.addEventListener('click', ()=> triggerAdThenShowItem(it));
         container.appendChild(card);
     });
 }
@@ -325,8 +364,9 @@ function shareItem(it) {
 
 
 // --- Show Video (Updated Logic) ---
-function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
-// openWatchById ab hat gaya hai, kyunki showItemById hi sab handle karta hai.
+// showItemById hat gaya hai, ab naya function triggerAdThenShowItemById use hoga
+function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); } 
+
 
 // ✅ FINAL showItem function: Dynamic buttons aur Watch link options ke saath
 function showItem(it){
@@ -385,6 +425,7 @@ function showItem(it){
           btnClass = 'btn primary'; 
       }
       
+      // openWatchWithAd already has double ad logic
       buttonHTML += `<button class="${btnClass}" onclick="openWatchWithAd('${escapeHtml(url)}')">${btnText}</button>`;
   });
   
@@ -468,14 +509,11 @@ function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
 function showRandomPick(){ 
   if(items.length===0) return; 
   const pick = items[Math.floor(Math.random()*items.length)]; 
-  showItem(pick); 
+  triggerAdThenShowItem(pick); // ✅ RANDOM click ab Ad trigger karke showItem(pick) karega
   renderRandom(); 
 }
 
 window.showItemById = showItemById;
-// window.openWatchById ab remove ho gaya hai
-
-// ✅ Static event listeners removed, as buttons are dynamic.
 
 // --- Load All (No change needed) ---
 async function loadAll(){
@@ -500,14 +538,5 @@ async function loadAll(){
   if(hash.startsWith('v=')){
       const id = decodeURIComponent(hash.substring(2));
       const sharedItem = items.find(x => x.id === id);
-      if(sharedItem) showItem(sharedItem); // Agar ID mili toh wahi video dikhao
-      else showRandomPick(); // Varna random dikhao
-  } else {
-    showRandomPick();
-  }
-  
-  const categorySection = document.getElementById('categorySection');
-  if(categorySection) categorySection.style.display = 'none';
-}
-
-loadAll();
+      if(sharedItem) triggerAdThenShowItem(sharedItem); // ✅ Shared link par bhi Ad trigger hoga
+      else showRandom
