@@ -1,4 +1,4 @@
-// FINAL Dareloom v18 - Mandatory 18+ Check, Compulsory Follow, Live Count
+// FINAL Dareloom v19 - Mandatory Follower Check, Live Count
 
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
@@ -9,11 +9,12 @@ let items = [], current = null, currentPage = 1;
 const ONESIGNAL_APP_ID = 'd074ee87-8522-4f76-b5fe-8fb8804d8597';
 const FOLLOWER_COUNT_URL = `https://onesignal.com/api/v1/apps/${ONESIGNAL_APP_ID}/subscriptions/count`;
 
-// --- DOM Elements (NEW ADDITIONS) ---
+// --- DOM Elements (MODIFIED) ---
 const contentWrap = document.getElementById('contentWrap'); 
-const ageModal = document.getElementById('ageModal'); 
-const confirmAgeBtn = document.getElementById('confirmAgeBtn'); 
 const followerCountDisplay = document.getElementById('followerCount'); 
+// ✅ MODIFIED: New Modal Elements
+const followModal = document.getElementById('followModal'); 
+const subscribeBtn = document.getElementById('subscribeBtn'); 
 
 // --- Fetch Google Sheet (No change needed) ---
 async function fetchSheet() {
@@ -120,9 +121,7 @@ function toEmbedUrl(url){
 
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
-// --- New Ad Trigger Functions ---
-
-// ✅ Simple Ad Injection (for Card/Preview clicks)
+// --- New Ad Trigger Functions (No change) ---
 function triggerAdRedirect() {
   const AD_POP_URL = AD_POP;
   if (!AD_POP_URL || AD_POP_URL === '#') return;
@@ -525,7 +524,7 @@ function showRandomPick(){
 
 window.showItemById = showItemById;
 
-// --- ✅ NEW: OneSignal Age Check & Follower Logic ---
+// --- ✅ NEW: OneSignal Follower Logic ---
 
 function formatFollowerCount(count) {
     if (count >= 1000) {
@@ -535,7 +534,7 @@ function formatFollowerCount(count) {
     return count;
 }
 
-// 1. Follower Count Fetch & Display (Only Count)
+// 1. Follower Count Fetch & Display
 async function updateFollowerCount() {
     try {
         const res = await fetch(FOLLOWER_COUNT_URL);
@@ -547,4 +546,5 @@ async function updateFollowerCount() {
             // Fallback
             followerCountDisplay.textContent = 'Followers: 0'; 
         }
-      }
+    } catch (e) {
+        console.warn("Follower co
