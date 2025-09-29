@@ -1,614 +1,356 @@
-/*
-* style.css - For Professional, Responsive, Futuristic Look
-* Updated: Sept 2025
-*/
-
-/* --- General Styles --- */
 :root {
-  --primary-color: #ff4b91; /* Neon Pink/Magenta */
-  --bg-color: #0a0a0a; /* Deep Black */
-  --card-bg: #1e1e1e; /* Dark Gray Card */
-  --header-bg: #111; /* Slightly Lighter Black Header */
-  --text-color: #fff;
-  --muted-color: #bbb;
-  --shadow-color: rgba(255, 75, 145, 0.6); /* Stronger Pink shadow for glow */
+    --primary: #FF5722; 
+    --primary-dark: #E64A19;
+    --secondary: #00BCD4;
+    --background: #121212;
+    --surface: #1E1E1E;
+    --text: #E0E0E0;
+    --muted: #A0A0A0;
+    --shadow: rgba(0, 0, 0, 0.4);
 }
-
-body { 
-  background: var(--bg-color); 
-  color: var(--text-color); 
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
-  margin: 0;
-  padding: 0;
-  line-height: 1.6;
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
-
-/* 🚩 Content Hiding (Compulsory Check ke liye) */
-.content-wrap.hidden {
-    filter: blur(5px); /* Blur effect on content */
-    pointer-events: none; /* Disable all clicks on content */
-    opacity: 0.5;
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--background);
+    color: var(--text);
+    line-height: 1.6;
 }
-
-/* 🚩 MODIFIED: Modal Styles (Ab Follow Modal ke liye use hoga) */
-.modal {
-    display: none; 
-    position: fixed; 
-    z-index: 10000; /* Highest Z-index */
-    left: 0;
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+}
+header {
+    background-color: var(--surface);
+    box-shadow: 0 2px 4px var(--shadow);
+    padding: 10px 0;
+    position: sticky;
     top: 0;
+    z-index: 100;
+}
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.logo {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: var(--primary);
+    text-decoration: none;
+}
+.nav-links {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+.nav-link {
+    color: var(--text);
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+.btn {
+    padding: 8px 15px;
+    background-color: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: 600;
+}
+.btn:hover {
+    background-color: var(--primary-dark);
+}
+.watch-btn {
+    padding: 8px 15px;
+    background-color: var(--secondary);
+    color: #121212;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: 600;
+}
+.watch-btn:hover {
+    background-color: #008C9E;
+    color: white;
+}
+.pill {
+    display: inline-block;
+    padding: 5px 10px;
+    background-color: var(--muted);
+    color: var(--background);
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 600;
+}
+/* Dropdown for Categories */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: var(--surface);
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.4);
+    z-index: 1;
+    border-radius: 4px;
+    padding: 5px 0;
+}
+.dropdown-content a {
+    color: var(--text);
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+}
+.dropdown-content a:hover {background-color: rgba(255, 255, 255, 0.05);}
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+/* Search Bar */
+.search-container {
+    padding: 10px 0;
+}
+#searchInput {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--muted);
+    border-radius: 4px;
+    background-color: var(--surface);
+    color: var(--text);
+    font-size: 1em;
+}
+
+/* Main Player Section */
+.player-section {
+    padding: 20px 0;
+    background-color: var(--surface);
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px var(--shadow);
+}
+#playerWrap {
+    position: relative;
+    width: 100%;
+    height: 420px; 
+    background-color: #000;
+    margin-bottom: 20px;
+}
+#playerWrap iframe, #playerWrap video {
     width: 100%;
     height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.8);
-    backdrop-filter: blur(5px);
-    justify-content: center;
+    border: none;
+    border-radius: 8px 8px 0 0;
+}
+#playerWrap video {
+    object-fit: contain;
+}
+.player-info {
+    padding: 15px;
+}
+#nowTitle {
+    font-size: 1.8em;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--primary);
+}
+#controlsContainer {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
     align-items: center;
 }
-
-.modal-content {
-    background-color: var(--card-bg);
-    margin: auto;
-    padding: 30px;
-    border: 3px solid var(--primary-color);
-    width: 80%;
-    max-width: 400px;
-    text-align: center;
-    border-radius: 15px;
-    box-shadow: 0 0 40px var(--shadow-color);
+/* Random Grid Section */
+.grid-section {
+    padding: 20px 0;
 }
-/* New styles for the follow modal */
-.modal-content h2 {
-    color: var(--primary-color); /* Unlock title ka color change kiya */
-    border-left: none;
-    text-align: center;
-    padding: 0;
-    margin-top: 0;
-    font-size: 24px;
+.section-title {
+    font-size: 1.5em;
+    color: var(--secondary);
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--surface);
+    padding-bottom: 5px;
 }
-.modal-content p {
-    color: var(--muted-color);
-    margin-bottom: 25px;
+.random-grid, .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
 }
-#subscribeBtn {
+.card {
+    background-color: var(--surface);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 2px 4px var(--shadow);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px var(--shadow);
+}
+.thumb {
     width: 100%;
-    padding: 12px;
-    font-size: 18px;
+    height: 120px; 
+    object-fit: cover;
+    display: block;
 }
-
-
-/* --- Header & Navigation --- */
-header.site { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  padding: 15px 20px; 
-  background: var(--header-bg); 
-  border-bottom: 3px solid var(--primary-color); /* Thoda mota border */
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7); /* Stronger Header shadow */
-  position: sticky; /* Header ko chipka diya */
-  top: 0;
-  z-index: 900; /* Header ka z-index set kiya */
+.meta {
+    padding: 10px;
 }
-
-.brand { 
-  display: flex; 
-  align-items: center; 
-  flex-shrink: 1;
+.meta h4 {
+    font-size: 1em;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text);
 }
-
-/* 🚩 Logo image ka reference ab CSS mein nahi hai */
-
-.brand .title { 
-  margin: 0; 
-  font-size: 22px; /* Thoda bada kiya */
-  font-weight: 700;
-  color: var(--primary-color); /* Title ko primary color diya */
-  text-shadow: 0 0 5px var(--shadow-color);
-  display: block; 
-}
-
-.nav { 
-  display: flex; 
-  align-items: center; 
-  flex-shrink: 0;
-  margin-left: 15px;
-  gap: 10px; /* Nav items ke beech space */
-}
-
-/* --- Search Input Style --- */
-#searchInput {
-  padding: 10px 15px; /* Thoda padding badhaya */
-  border: 1px solid var(--primary-color); 
-  border-radius: 25px; /* Aur zyada gol */
-  background-color: #222;
-  color: var(--text-color);
-  width: 150px; /* Thoda bada kiya */
-  transition: all 0.4s ease-in-out;
-  font-size: 14px;
-}
-
-#searchInput:focus {
-  width: 200px;
-  box-shadow: 0 0 20px var(--shadow-color); /* Stronger futuristic glow */
-  background-color: #333;
-  outline: none;
-}
-
-/* --- Main Layout --- */
-.wrap { 
-  max-width: 1200px; /* Thoda aur bada kiya */
-  margin: auto; 
-  padding: 20px; 
-}
-
-h2 { 
-  margin: 30px 0 15px; 
-  font-size: 24px; 
-  border-left: 5px solid var(--primary-color); 
-  padding-left: 10px; 
-  text-shadow: 0 0 8px rgba(255, 75, 145, 0.3);
-  color: var(--text-color);
-}
-
-.section { 
-  margin-bottom: 50px; 
-}
-
-hr { 
-  border: 0; 
-  height: 2px; 
-  background-color: #333; 
-  margin: 40px 0; 
-}
-
-/* --- Grid (Card View) --- */
-.grid { 
-  display: grid; 
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* Cards ko thoda bada kiya */
-  gap: 20px; /* Gap badhaya */
-}
-
-.card { 
-  background: var(--card-bg); 
-  border-radius: 15px; /* Aur gol kiya */
-  overflow: hidden; 
-  transition: transform .4s ease, box-shadow .4s ease;
-  cursor: pointer;
-  border: 1px solid #333;
-}
-
-.card:hover { 
-  transform: translateY(-8px); /* Aur zyada uthega */
-  box-shadow: 0 15px 40px var(--shadow-color); /* Stronger shadow */
-  border-color: var(--primary-color); 
-}
-
-.thumb { 
-  width: 100%; 
-  height: 180px; /* Thodi height badhai */
-  object-fit: cover; 
-  filter: brightness(0.9);
-  transition: filter 0.3s;
-}
-
-.card:hover .thumb {
-    filter: brightness(1);
-}
-
-.card .meta {
-  padding: 12px;
-}
-
-.card h4 {
-  margin: 0;
-  font-size: 16px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--primary-color);
-}
-
-/* --- Latest List View --- */
-.latest-list {
-  display: grid;
-  gap: 20px;
-}
-
+/* Latest List Section */
 .latest-item {
-  display: flex;
-  background: var(--card-bg);
-  border-radius: 15px;
-  overflow: hidden;
-  transition: transform .3s, box-shadow .3s;
-  align-items: center;
-  border: 1px solid #333;
+    display: flex;
+    background-color: var(--surface);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px var(--shadow);
+    overflow: hidden;
 }
-
-.latest-item:hover {
-  box-shadow: 0 6px 20px var(--shadow-color);
-  border-color: var(--primary-color); 
-}
-
 .latest-thumb {
-  width: 180px; 
-  height: 120px;
-  object-fit: cover;
-  flex-shrink: 0;
-  box-shadow: 0 0 8px var(--shadow-color); /* Thumbnail par bhi glow */
-  border-radius: 4px;
+    width: 150px;
+    height: 100px;
+    object-fit: cover;
+    flex-shrink: 0;
 }
-
 .latest-info {
-  padding: 15px;
-  flex-grow: 1;
+    padding: 10px 15px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
-
-/* --- Player & Controls (Hero Section) --- */
-.player-card {
-  background: var(--card-bg);
-  border-radius: 15px;
-  overflow: hidden;
-  padding: 15px;
-  text-align: center;
-  border: 3px solid var(--primary-color); 
-  box-shadow: 0 0 30px var(--shadow-color);
-  z-index: 500; /* Player ka z-index ad se kam rakha */
-  position: relative;
+.latest-info button {
+    margin-right: 10px;
 }
-
-.player-placeholder {
-  padding: 120px 20px;
-  color: var(--muted-color);
-  font-size: 20px;
+/* Pagination */
+#pager {
+    text-align: center;
+    padding: 20px 0;
 }
-
-.player-card iframe, .player-card video {
-  width: 100%;
-  min-height: 420px; /* Height badhai */
-  border: none;
-  background: #000;
-  border-radius: 8px;
-}
-
-.hero-actions {
-  margin-top: 20px;
-  text-align: center;
-}
-
-.now-title {
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 12px;
-  color: var(--primary-color); 
-  text-shadow: 0 0 10px rgba(255, 75, 145, 0.5);
-}
-
-.controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px; /* Gap badhaya */
-  flex-wrap: wrap;
-}
-
-/* --- Buttons & Pills --- */
-.btn { 
-  background: #222; 
-  border: 1px solid var(--primary-color); 
-  color: var(--text-color); 
-  padding: 10px 18px; /* Padding badhaya */
-  border-radius: 25px; /* Zyada gol */
-  cursor: pointer; 
-  transition: all 0.3s ease;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.btn:hover { 
-  background-color: var(--primary-color); 
-  box-shadow: 0 0 15px var(--shadow-color), 0 0 30px rgba(255, 75, 145, 0.4);
-  border-color: var(--primary-color); 
-  transform: scale(1.05); /* Zoom effect */
-}
-
-.btn.primary, .watch-btn { 
-  background: var(--primary-color); 
-  padding: 10px 20px; 
-  border-radius: 8px; 
-  border: none;
-  font-weight: bold;
-}
-
-.btn.primary:hover, .watch-btn:hover { 
-  background-color: #e63e81; 
-  box-shadow: 0 0 20px var(--shadow-color);
-  transform: scale(1.05);
-}
-
-.pill { 
-  background: #222; 
-  padding: 6px 12px; 
-  border-radius: 15px; 
-  font-size: 13px;
-  border: 1px solid #444;
-  color: var(--muted-color);
-}
-
-/* --- Pager (Pagination) --- */
-.pager {
-  margin-top: 20px;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
-
 .page-btn {
-  background: var(--card-bg);
-  color: var(--text-color);
-  border: 1px solid #555;
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    background-color: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--muted);
+    padding: 8px 12px;
+    margin: 0 4px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s, color 0.3s;
 }
-
-.page-btn:hover {
-  background-color: #222;
-  border-color: var(--primary-color);
-  transform: translateY(-2px);
+.page-btn:hover:not(.active) {
+    background-color: rgba(255, 255, 255, 0.1);
 }
-
 .page-btn.active {
-  background: var(--primary-color) !important;
-  border-color: var(--primary-color) !important;
-  font-weight: bold;
-  box-shadow: 0 0 15px var(--shadow-color);
-  transform: scale(1.05);
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
 }
 
-/* --- Footer --- */
-footer.foot { 
-  background: var(--header-bg); 
-  padding: 25px 20px; 
-  text-align: center; 
-  margin-top: 50px; 
-  border-top: 3px solid #222;
-  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.7); 
+/* Footer */
+footer {
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 30px;
+    border-top: 1px solid var(--surface);
+    color: var(--muted);
+    font-size: 0.9em;
 }
 
-.banner-wrap {
-  text-align: center; 
-  margin: 20px auto;
-}
-
-.footer-info {
-  margin-top: 10px;
-  color: #aaa;
-  font-size: 14px;
-}
-
-.footer-info a {
-  color: var(--primary-color);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.footer-info a:hover {
-    color: #e63e81;
-}
-
-/* --- Category Dropdown --- */
-.header { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  flex-wrap: wrap;
-}
-
-.dropdown { 
-  position: relative; 
-  display: inline-block; 
-}
-
-.dropdown-content { 
-  display: none; 
-  position: absolute; 
-  right: 0; 
-  background: var(--card-bg); 
-  min-width: 200px; 
-  box-shadow: 0px 8px 30px 0px rgba(0,0,0,0.9); 
-  z-index: 600; /* Dropdown ko player se upar rakha */
-  border-radius: 10px; 
-  max-height: 400px;
-  overflow-y: auto;
-  border: 2px solid var(--primary-color);
-}
-
-.dropdown-content a { 
-  color: var(--text-color); 
-  padding: 12px 16px; 
-  text-decoration: none; 
-  display: block; 
-  transition: background-color 0.2s; 
-  border-bottom: 1px solid #2e2e2e;
-}
-
-.dropdown-content a:hover { 
-  background-color: #2e2e2e; 
-  color: var(--primary-color);
-}
-.dropdown-content a:last-child {
-    border-bottom: none;
-}
-
-.dropdown:hover .dropdown-content { 
-  display: block; 
-}
-
-/* --- Sticky Footer Ad Style (MAX Z-INDEX for Clicks/Overlap Prevention) --- */
-.sticky-ad-footer {
+/* Follow Modal/Gate */
+#followModal {
     position: fixed;
-    bottom: 0; 
+    top: 0;
     left: 0;
     width: 100%;
-    text-align: center;
-    background: #000;
-    padding: 5px 0;
-    z-index: 9999; /* ✅ AD KA Z-INDEX SABSE ZYADA RAKHA */
-    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.9);
-}
-
-
-/* --- Follower Box Styling --- */
-.site {
-    display: flex;
-    align-items: center; 
-    justify-content: space-between; 
-}
-
-.follower-box {
-    display: flex;
-    align-items: center;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+    display: none; 
     justify-content: center;
-    padding: 5px 10px;
-    margin-left: auto; 
-    margin-right: 15px; 
-    border-right: 1px solid #333; 
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+}
+.modal-content {
+    background-color: var(--surface);
+    padding: 30px;
+    border-radius: 10px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+.modal-content h2 {
+    color: var(--primary);
+    margin-bottom: 15px;
+}
+.modal-content p {
+    margin-bottom: 25px;
+    color: var(--text);
+}
+#subscribeBtn {
+    font-size: 1.1em;
+    padding: 12px 30px;
+    width: 100%;
 }
 
-.follower-count {
-    font-size: 14px; 
-    color: var(--primary-color);
-    font-weight: bold;
-    white-space: nowrap; 
-    margin: 0; 
-}
+/* Content Wrap - Blur is now removed */
+/* #contentWrap.hidden { */
+    /* filter: blur(8px); */
+    /* pointer-events: none; */
+    /* user-select: none; */
+/* } */
 
-/* --- Mobile Responsiveness (Screen size < 600px) --- */
-@media (max-width: 650px) {
-    /* Header layout fix for mobile */
-    header.site {
-        flex-direction: row; 
-        flex-wrap: wrap; 
-        align-items: center;
-        justify-content: space-between;
-    }
-    .brand {
-        order: 1;
-        flex-basis: auto;
-    }
-    .follower-box {
-        order: 2;
-        margin-left: auto; 
-        margin-right: 0;
-        padding: 5px 8px;
-        border-right: none;
-    }
-    .nav {
-        order: 3;
-        width: 100%; 
-        margin: 10px 0 0 0;
-    }
 
-    .wrap {
-      padding: 10px;
-    }
-    
-    .brand {
-      margin-bottom: 0;
-    }
-  
-    .brand .title { 
-      font-size: 18px; 
-    }
-  
-    .nav {
-      flex-wrap: wrap;
-      justify-content: space-between;
-      width: 100%;
-      gap: 5px;
-    }
-    
-    #searchInput {
-      width: 100%;
-      margin-bottom: 8px;
-      order: 1; 
-      font-size: 13px;
-      padding: 8px 12px;
-    }
-    
-    .nav .btn {
-      flex-grow: 1;
-      margin: 0;
-    }
-    
-    /* Player Section Fixes */
-    .player-card iframe, .player-card video {
-      min-height: 250px; /* Mobile ke liye chota kiya */
-    }
-  
-    .player-placeholder {
-      padding: 50px 15px; 
-      font-size: 16px;
-    }
-    
-    .controls {
-      flex-direction: column;
-      gap: 10px;
-    }
-    
-    .pill, .btn, .watch-btn {
-      width: 100%;
-      box-sizing: border-box;
-      margin: 0 !important; 
-    }
-    
-    .follower-count {
-      font-size: 13px; /* Mobile par count chota kiya */
-    }
-  
-    .latest-item {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    
-    .latest-thumb {
-      width: 100%;
-      height: 180px;
-      border-radius: 12px 12px 0 0;
-      box-shadow: none;
-    }
-    
-    .latest-info {
-        padding: 10px 15px 15px;
-    }
-    
-    .grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+/* Responsive Design */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
         gap: 10px;
     }
-    
-    .card .thumb {
-        height: 120px;
+    .nav-links {
+        justify-content: center;
     }
-  
-    .seo-content {
-        padding: 15px !important;
+    #playerWrap {
+        height: 250px; 
     }
-
-    /* Mobile Modal Fix */
-    .modal-content {
-        width: 90%;
-        padding: 20px;
+    .latest-item {
+        flex-direction: column;
+    }
+    .latest-thumb {
+        width: 100%;
+        height: 150px;
+    }
+}
+@media (max-width: 480px) {
+    .random-grid, .category-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .thumb {
+        height: 150px;
+    }
+    .card {
+        margin: 0;
     }
   }
-
-.ad-slot.small { 
-  margin-top: 15px;
-  color: #999;
-  font-size: 14px;
-}
   
