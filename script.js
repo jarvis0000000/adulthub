@@ -1,19 +1,8 @@
-// FINAL Dareloom v20 - Mandatory Follower Check, Live Count (Fixing Content Load Bug)
-
+// FINAL Dareloom v13 - Double Link, Ad Blocker Bypass, Dynamic Buttons
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
 let items = [], current = null, currentPage = 1;
-
-// ✅ NEW: OneSignal Constants
-const ONESIGNAL_APP_ID = 'd074ee87-8522-4f76-b5fe-8fb8804d8597';
-const FOLLOWER_COUNT_URL = `https://onesignal.com/api/v1/apps/${ONESIGNAL_APP_ID}/subscriptions/count`;
-
-// --- DOM Elements ---
-const contentWrap = document.getElementById('contentWrap'); 
-const followerCountDisplay = document.getElementById('followerCount'); 
-const followModal = document.getElementById('followModal'); 
-const subscribeBtn = document.getElementById('subscribeBtn'); 
 
 // --- Fetch Google Sheet (No change needed) ---
 async function fetchSheet() {
@@ -87,6 +76,7 @@ function makeThumbnail(item){
   return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
 
+// ✅ toEmbedUrl function.
 function toEmbedUrl(url){
   if(!url) return '';
   url = url.trim();
@@ -98,7 +88,7 @@ function toEmbedUrl(url){
     if(m) return 'https://drive.google.com/file/d/' + m[0] + '/preview';
   }
   
-  // Streamtape EMBED LOGIC for PREVIEW
+  // ✅ Streamtape EMBED LOGIC for PREVIEW
   if(url.includes("streamtape.com")) {
     let id;
     if(url.includes("/v/")) {
@@ -108,45 +98,55 @@ function toEmbedUrl(url){
     if(url.includes("/e/")) return url;
   }
   
+  // Telegram ya koi dusri non-embeddable link ko ignore karo 
   if(url.includes("t.me/") || url.includes("telegram.me/")) return ''; 
   
   if(url.match(/\.mp4($|\?)/i)) return url;
   
+  // Agar Embed nahi ho sakta, toh empty string return karo
   return ''; 
 }
 
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
-// --- Ad Trigger Functions (No change) ---
+// --- New Ad Trigger Functions ---
+
+// ✅ NEW: Simple Ad Injection (for Card/Preview clicks)
 function triggerAdRedirect() {
   const AD_POP_URL = AD_POP;
   if (!AD_POP_URL || AD_POP_URL === '#') return;
   
+  // Inject the ad script (Pop-under)
   const s = document.createElement('script'); 
   s.src = AD_POP_URL; 
   s.async = true; 
   document.body.appendChild(s);
   
+  // Cleanup
   s.onload = () => s.remove();
 }
 
+// ✅ NEW: Ad Trigger + Show Item Handler (for Card clicks)
 function triggerAdThenShowItem(item) {
     if(!item) return;
 
+    // 1. Trigger Ad
     triggerAdRedirect();
 
+    // 2. Show Item after slight delay (taki ad script inject ho sake)
     setTimeout(() => {
         showItem(item);
     }, 150); 
 }
 
+// ✅ NEW: ID-based Handler
 function triggerAdThenShowItemById(id){ 
     const it = items.find(x=>x.id===id); 
     if(it) triggerAdThenShowItem(it); 
 }
-window.triggerAdThenShowItemById = triggerAdThenShowItemById; 
+window.triggerAdThenShowItemById = triggerAdThenShowItemById; // Global access for HTML onclick
 
-// --- Render Functions (No change) ---
+// --- Render Functions (Updated renderRandom and renderLatest) ---
 function renderRandom(){
   const g = document.getElementById('randomGrid'); if(!g) return; g.innerHTML='';
   const pool = items.slice(); const picks = [];
@@ -155,6 +155,7 @@ function renderRandom(){
     const card = document.createElement('div'); card.className='card';
     const t = makeThumbnail(it);
     card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
+    // ✅ CHANGED: Card click ab Ad trigger karke showItem(it) karega
     card.addEventListener('click', ()=> triggerAdThenShowItem(it));
     g.appendChild(card);
   });
@@ -172,12 +173,15 @@ function renderLatest(page = currentPage){
   slice.forEach(it => {
     const div = document.createElement('div'); div.className='latest-item';
     const t = makeThumbnail(it);
+    // ✅ CHANGED: Both buttons ab Ad trigger karke showItem(it) karega
     div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy"><div class="latest-info"><div style="font-weight:700">${escapeHtml(it.title)}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div><div style="margin-top:8px"><button class="btn" onclick="triggerAdThenShowItemById('${escapeHtml(it.id)}')">Preview</button> <button class="watch-btn" onclick="triggerAdThenShowItemById('${escapeHtml(it.id)}')">Watch</button></div></div>`;
     list.appendChild(div);
   });
   
   displayPagination(totalPages, currentPage);
 }
+
+// ... (renderCategoryDropdown and related functions unchanged) ...
 
 function renderCategoryDropdown(){
     const categories = Array.from(new Set(items.flatMap(item => 
@@ -243,13 +247,14 @@ function renderCategoryGrid(videoList, title){
         card.className='card';
         const t = makeThumbnail(it);
         card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
+        // ✅ CHANGED: Card click ab Ad trigger karke showItem(it) karega
         card.addEventListener('click', ()=> triggerAdThenShowItem(it));
         container.appendChild(card);
     });
 }
 
 
-// --- Pagination Logic (No change) ---
+// --- Pagination Logic (No change needed) ---
 function displayPagination(totalPages, currentPage) {
     const pager = document.getElementById('pager');
     pager.innerHTML = ''; 
@@ -307,10 +312,11 @@ function openAdAndChangePage(page){
   const latestSection = document.getElementById('latestSection');
   if(latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' }); 
 
+  // Agar user next/prev button dabaye toh ad load karo
   const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
 }
 
-// --- Search Functionality (No change) ---
+// --- Search Functionality (No change needed) ---
 window.filterVideos = function(query) {
     query = (query || '').trim().toLowerCase();
     
@@ -327,16 +333,18 @@ window.filterVideos = function(query) {
     }
 }
 
-// --- Share Functionality (No change) ---
+// --- Share Functionality (No change needed) ---
 function shareItem(it) {
     if (!it || !it.title) {
         alert("Pehle koi video select karo!");
         return;
     }
     
+    // Video ka unique URL banao (Jismein ID ho)
     const shareUrl = window.location.origin + window.location.pathname + '#v=' + encodeURIComponent(it.id);
     const shareText = `🔥 MUST WATCH: ${it.title}\n${it.description && it.description.trim() ? it.description + '\n' : ''}\n🔗 Watch here FREE: ${shareUrl}`;
 
+    // Mobile Native Share Check
     if (navigator.share) {
         navigator.share({
             title: it.title,
@@ -344,6 +352,7 @@ function shareItem(it) {
             url: shareUrl,
         }).catch((error) => console.log('Sharing failed', error));
     } else {
+        // Desktop ya jahan native share nahi chalta, wahan URL copy karo
         navigator.clipboard.writeText(shareText).then(() => {
             alert("Share link copy ho gaya hai! Ab WhatsApp/Telegram par paste kar do.");
         }).catch(err => {
@@ -354,17 +363,19 @@ function shareItem(it) {
 }
 
 
-// --- Show Video (No change) ---
+// --- Show Video (Updated Logic) ---
+// showItemById hat gaya hai, ab naya function triggerAdThenShowItemById use hoga
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); } 
 
 
-// FINAL showItem function: Dynamic buttons aur Watch link options ke saath
+// ✅ FINAL showItem function: Dynamic buttons aur Watch link options ke saath
 function showItem(it){
   current = it;
+  // Trailer link use ho rahi hai (embed ke liye)
   const embed = toEmbedUrl(it.trailer); 
   
   const p = document.getElementById('playerWrap');
-  const controlsContainer = document.getElementById('controlsContainer'); 
+  const controlsContainer = document.getElementById('controlsContainer'); // New ID
   if(!p || !controlsContainer) return;
 
   // --- Player Setup ---
@@ -384,6 +395,7 @@ function showItem(it){
       p.appendChild(iframe);
     }
   } else {
+    // Agar Trailer link embed nahi ho sakti, toh sirf ek placeholder dikhao
     const msg = document.createElement('div');
     msg.style.textAlign='center';
     msg.style.padding='100px 20px';
@@ -393,7 +405,7 @@ function showItem(it){
 
   document.getElementById('nowTitle').textContent = it.title || '';
   
-  // --- Dynamic Watch Options Button Rendering ---
+  // --- ✅ NEW: Dynamic Watch Options Button Rendering ---
   const watchUrls = (it.watch || '').split(',').map(url => url.trim()).filter(url => url.length > 0);
   let buttonHTML = '';
   
@@ -413,39 +425,50 @@ function showItem(it){
           btnClass = 'btn primary'; 
       }
       
+      // openWatchWithAd already has double ad logic
       buttonHTML += `<button class="${btnClass}" onclick="openWatchWithAd('${escapeHtml(url)}')">${btnText}</button>`;
   });
   
   // 3. Share Button
   buttonHTML += `<button class="btn" style="background-color: #28a745;" onclick="shareItem(current)">🔗 Share</button>`;
 
+  // controlsContainer को update करो
   controlsContainer.innerHTML = buttonHTML;
+  // --- End of Dynamic Button Rendering ---
 
   renderRandom();
   injectSchema(it); 
   
+  // Player ko scroll karo
   window.scrollTo({ top: 0, behavior: 'smooth' }); 
 }
 
+// --- ✅ FINAL: Open Watch with Double Ad Logic (URL string lega) ---
+// Ad Blocker Bypass ke liye 100ms delay use kiya gaya hai.
 function openWatchWithAd(targetUrl){
   if(!targetUrl || targetUrl === '#') return;
   const target = targetUrl; 
   const watchAdCode = 'pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js';
   const AD_POP_URL = `//${watchAdCode}`;
   
+  // --- Ad 1: First Pop-under (Immediate) ---
   const s1 = document.createElement('script'); s1.src = AD_POP_URL; document.body.appendChild(s1);
 
+  // --- Open Target Link (100ms delay - Ad Blocker se bachne ka try) ---
   setTimeout(() => {
     try {
         let newWindow = window.open(target,'_blank');
         
+        // Agar browser ne block kiya (newWindow null/closed), toh alert dega
         if(!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {
             alert("Please allow pop-ups to open the link in a new tab!");
         }
     } catch(e){
+      // Fail silently
     }
   }, 100); 
 
+  // --- Ad 2: Second Pop-under (Delayed for aggressive monetization) ---
   setTimeout(() => {
       const s2 = document.createElement('script'); s2.src = AD_POP_URL; document.body.appendChild(s2);
   }, 1500); 
@@ -455,7 +478,7 @@ function openWatchWithAd(targetUrl){
 }
 
 
-// --- Schema Injection (No change) ---
+// --- Schema Injection (No change needed) ---
 function injectSchema(it){
   const oldSchema = document.getElementById('video-schema');
   if(oldSchema) oldSchema.remove();
@@ -467,11 +490,11 @@ function injectSchema(it){
     "@context": "https://schema.org",
     "@type": "VideoObject",
     "name": it.title,
-    "description": it.description && it.description.trim() ? it.description : "Watch trending drama, romance and thrillers online in HD.",
+    "description": it.description && it.description.trim() ? it.description : it.title,
     "thumbnailUrl": thumb,
     "uploadDate": it.date || new Date().toISOString().split("T")[0],
     "contentUrl": it.watch,
-    "embedUrl": toEmbedUrl(it.trailer), 
+    "embedUrl": toEmbedUrl(it.trailer), // Schema ke liye Trailer use kiya
     "publisher": {
       "@type": "Organization",
       "name": "Dareloom Hub",
@@ -481,31 +504,39 @@ function injectSchema(it){
   document.head.appendChild(script);
 }
 
+// --- Misc (Cleaned up event listeners) ---
 function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
 function showRandomPick(){ 
   if(items.length===0) return; 
   const pick = items[Math.floor(Math.random()*items.length)]; 
-  triggerAdThenShowItem(pick); 
+  triggerAdThenShowItem(pick); // ✅ RANDOM click ab Ad trigger karke showItem(pick) karega
   renderRandom(); 
 }
 
 window.showItemById = showItemById;
 
-// --- OneSignal Follower Logic ---
+// --- Load All (No change needed) ---
+async function loadAll(){
+  const vals = await fetchSheet();
+  const parsed = parseRows(vals);
+  const haveDates = parsed.some(i=>i.date && i.date.trim());
+  if(haveDates) parsed.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
+  else parsed.reverse();
+  items = parsed;
+  const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items';
+  
+  // count pill ko initial value do
+  const controlsContainer = document.getElementById('controlsContainer');
+  if(controlsContainer) controlsContainer.innerHTML = `<div class="pill" id="count">${items.length} items</div>`;
 
-function formatFollowerCount(count) {
-    if (count >= 1000) {
-        return (count / 1000).toFixed(1) + 'K';
-    }
-    return count;
-}
-
-// 1. Follower Count Fetch & Display
-async function updateFollowerCount() {
-    try {
-        const res = await fetch(FOLLOWER_COUNT_URL);
-        const data = await res.json();
-
-        if (followerCountDisplay && data && data.total_count !== undefined) {
-            followerCountDisplay.textContent = 'Followers: ' + formatFollowerCount
-          
+  renderRandom(); 
+  renderLatest(); 
+  renderCategoryDropdown(); 
+  
+  // ✅ NEW: URL Hash check (Sharing ke liye)
+  const hash = window.location.hash.substring(1); // #v=ID se sirf v=ID lega
+  if(hash.startsWith('v=')){
+      const id = decodeURIComponent(hash.substring(2));
+      const sharedItem = items.find(x => x.id === id);
+      if(sharedItem) triggerAdThenShowItem(sharedItem); // ✅ Shared link par bhi Ad trigger hoga
+      else showRandom
