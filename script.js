@@ -1,4 +1,5 @@
-// FINAL Dareloom v17 - Cleaned Prompt Logic, Pure Count & Robust Loading
+// FINAL Dareloom v18 - Mandatory 18+ Check, Compulsory Follow, Live Count
+
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
@@ -7,6 +8,12 @@ let items = [], current = null, currentPage = 1;
 // ✅ NEW: OneSignal Constants
 const ONESIGNAL_APP_ID = 'd074ee87-8522-4f76-b5fe-8fb8804d8597';
 const FOLLOWER_COUNT_URL = `https://onesignal.com/api/v1/apps/${ONESIGNAL_APP_ID}/subscriptions/count`;
+
+// --- DOM Elements (NEW ADDITIONS) ---
+const contentWrap = document.getElementById('contentWrap'); 
+const ageModal = document.getElementById('ageModal'); 
+const confirmAgeBtn = document.getElementById('confirmAgeBtn'); 
+const followerCountDisplay = document.getElementById('followerCount'); 
 
 // --- Fetch Google Sheet (No change needed) ---
 async function fetchSheet() {
@@ -518,10 +525,11 @@ function showRandomPick(){
 
 window.showItemById = showItemById;
 
-// --- NEW: OneSignal Follower Logic (UPDATED) ---
+// --- ✅ NEW: OneSignal Age Check & Follower Logic ---
 
 function formatFollowerCount(count) {
     if (count >= 1000) {
+        // K for thousands (e.g., 1500 -> 1.5K)
         return (count / 1000).toFixed(1) + 'K';
     }
     return count;
@@ -532,20 +540,11 @@ async function updateFollowerCount() {
     try {
         const res = await fetch(FOLLOWER_COUNT_URL);
         const data = await res.json();
-        const countElement = document.getElementById('followerCount');
 
-        if (countElement && data && data.total_count !== undefined) {
-            // ✅ Only show "Followers: [Count]"
-            countElement.textContent = 'Followers: ' + formatFollowerCount(data.total_count);
-        } else if (countElement) {
-            // ✅ Loading/--- hatane ke liye
-            countElement.textContent = 'Followers: 0'; 
+        if (followerCountDisplay && data && data.total_count !== undefined) {
+            followerCountDisplay.textContent = 'Followers: ' + formatFollowerCount(data.total_count);
+        } else if (followerCountDisplay) {
+            // Fallback
+            followerCountDisplay.textContent = 'Followers: 0'; 
         }
-    } catch (e) {
-        console.error("Error fetching follower count:", e);
-        // ✅ Agar fetch fail ho toh bhi 'Loading...' nahi dikhega
-        document.getElementById('followerCount').textContent = 'Followers: 0';
-    }
-}
-
-// 2. Custom F
+      }
