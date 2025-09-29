@@ -16,16 +16,30 @@
 <meta property="og:image" content="https://dareloom.fun/preview-thumbnail.jpg"> 
 
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
 <link rel="icon" type="image/png" sizes="192x192" href="/web-app-manifest-192x192.png" />
 <link rel="icon" type="image/png" sizes="512x512" href="/web-app-manifest-512x512.png" />
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <link rel="shortcut icon" href="/favicon.ico" />
 <link rel="manifest" href="/site.webmanifest" />
 <link rel="stylesheet" href="style.css?v=20240927"> 
 
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: "d074ee87-8522-4f76-b5fe-8fb8804d8597",
+      safari_web_id: "web.onesignal.auto.552dcc8d-cced-4aac-823c-93a119513fed",
+      notifyButton: {
+        enable: false, // Custom button use kar rahe hain
+      },
+      allowLocalhostAsSecure: true
+    });
+  });
+</script>
 </head>
 <body>
 <div class="sticky-ad-footer">
@@ -48,6 +62,10 @@
     <div style="display: block;">
         <h1 class="title">Dareloom Hub</h1>
         </div>
+  </div>
+  <div class="follower-box" id="followerBox">
+    <button class="btn follow-btn" id="followBtn">🔔 Follow Now</button>
+    <div class="follower-count" id="followerCount">Loading...</div>
   </div>
   <div class="nav">
     <input type="text" id="searchInput" placeholder="Search titles..." onkeyup="filterVideos(this.value)">
