@@ -535,7 +535,7 @@ function showRandomPick(){
 
 window.showItemById = showItemById;
 
-// --- Load All (Corrected and completed) ---
+// --- Load All (Now runs immediately) ---
 async function loadAll(){
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
@@ -543,13 +543,71 @@ async function loadAll(){
   if(haveDates) parsed.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
   else parsed.reverse();
   items = parsed;
+  const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items';
   
-  const cnt = document.getElementById('count'); 
-  if(cnt) cnt.textContent = items.length + ' items';
-  
+    // count pill ko initial value do
+  const controlsContainer = document.getElementById('controlsContainer');
+  if(controlsContainer) controlsContainer.innerHTML = `<div class="pill" id="count">${items.length} items</div><button class="btn" onclick="showRandomPick()">🎲 Shuffle</button>`;
+
   // ✅ INITIAL RENDERING CALLS - Content ko load karne ke liye zaroori
   renderRandom();
   renderLatest();
   renderCategoryDropdown(); 
 
-  // Pa
+  // Page load hone par pehla item dikhao
+  if (items.length > 0) {
+      // Ad trigger ki zaroorat nahi hai, sirf preview dikhana hai
+      showItem(items[0]); 
+  }
+  
+  // Handle deep link (URL Hash)
+  const hash = window.location.hash;
+  if(hash.startsWith('#v=')){
+    const id = decodeURIComponent(hash.substring(3));
+    showItemById(id);
+  }
+} // <-- loadAll function ka closing brace
+
+// --- ✅ OneSignal Lock and Initialization Logic ---
+
+function handleOneSignalLock() {
+    const modal = document.getElementById('followModal');
+    const followBtn = document.getElementById('followBtn');
+    
+    // 1. Follow Button Click Handler
+    followBtn.onclick = function() {
+        // OneSignal Prompt show karo
+        OneSignalDeferred.push(function(OneSignal) {
+            OneSignal.showSlidedownPrompt();
+            
+            // Prompt dikhane ke baad modal remove karke content load kar do
+            setTimeout(() => {
+                modal.style.display = 'none';
+                document.body.style.overflow = ''; // Scrolling restore karo
+                loadAll(); // Content load karo
+            }, 500); 
+        });
+    };
+    
+    // 2. Initial Check
+    OneSignalDeferred.push(function(OneSignal) {
+        OneSignal.isPushNotificationsEnabled(function(isEnabled) {
+            if (!isEnabled) {
+                // User subscribed nahi hai, website lock karo
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden'; // Scrolling block karo
+            } else {
+                // User subscribed hai, direct content load karo
+                loadAll(); 
+            }
+        });
+    });
+}
+
+// 3. Age Button Handler (just confirmation, main lock OneSignal se hota hai)
+document.getElementById('ageBtn').onclick = function() {
+    alert('Age confirmed. Content is strictly 18+. To view content, please click "Continue" on the lock screen.');
+};
+
+// 4. ✅ FINAL INITIALIZATION CALL - Poori website ko shuru karo
+handleOneSignalLock();
