@@ -19,17 +19,48 @@ jobs:
         with:
           node-version: 20
       - name: Install dependencies
-        # node-fetch version 2 is required for CommonJS in older Node environments
         run: npm install node-fetch@2
+        
+      # 1. ✅ UPDATED: Google Sheet Key ko Secret se pass karna
       - name: Generate sitemap
-        # JS file scripts folder mein hona chahiye
+        env:
+          # Secret se key uthakar, use 'SHEET_KEY' environment variable bana do
+          SHEET_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }}
         run: node scripts/generate-sitemap.js
-      - name: Commit & Push
+        
+      # 2. Commit & Push the generated sitemap.xml
+      - name: Commit & Push Sitemap
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          # ✅ Corrected Path: sitemap.xml ko root folder mein commit karo
           git add sitemap.xml
-          git commit -m "Auto-update sitemap [skip ci]" || echo "No changes"
+          git commit -m "Auto-update sitemap [skip ci]" || echo "No new sitemap changes to commit"
           git push
+
+      # 3. ✅ NEW STEP: Trigger Cloudflare Pages Re-deploy
+      # Is step se naya sitemap live hosting par upload hoga (Sitemap could not be read fix)
+      - name: Trigger Cloudflare Pages Deployment
+        env:
+          # Cloudflare token secret se uthana
+          CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # 🚨 YAHAN APNA CLOUDFLARE ACCOUNT ID DALEIN
+          CF_ACCOUNT_ID: 'APNA_CLOUDFLARE_ACCOUNT_ID_YAHAN_DALO' 
+          # 🚨 YAHAN APNE PAGES PROJECT KA NAAM DALEIN (Aamtaur par repository ka naam)
+          CF_PAGES_PROJECT: 'dareloom-hub' 
+        run: |
+          if [ "${CLOUDFLARE_TOKEN}" == "" ]; then
+            echo "Error: CLOUDFLARE_API_TOKEN secret is not set."
+            exit 1
+          fi
+          
+          echo "Triggering Cloudflare deployment for project: ${CF_PAGES_PROJECT}"
+          
+          # Deployment API call
+          curl -X POST "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PAGES_PROJECT}/deployments" \
+          -H "Authorization: Bearer ${CLOUDFLARE_TOKEN}" \
+          -H "Content-Type: application/json" \
+          --fail \
+          --silent \
+          --show-error \
+          --data '{"branch": "main"}'
           
