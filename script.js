@@ -1,5 +1,5 @@
-// FINAL Dareloom v14 - Double Link, Ad Blocker Bypass, Dynamic Buttons, OneSignal Lock
-// Sheet API is updated with the working key: AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw
+// FINAL Dareloom v14 - Double Link, Ad Blocker Bypass, Dynamic Buttons
+// OneSignal Lock Removed. Content loads directly.
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
@@ -129,11 +129,6 @@ function triggerAdRedirect() {
 
 // ✅ Ad Trigger + Show Item Handler (for Card clicks)
 function triggerAdThenShowItem(item) {
-    // Agar modal lock active ho, toh content na dikhao
-    if(document.getElementById('followModal').style.display === 'flex') {
-        return; // Click ko ignore karo
-    }
-    
     if(!item) return;
 
     // 1. Trigger Ad
@@ -308,11 +303,6 @@ function createPageButton(text, pageNum) {
 }
 
 function openAdAndChangePage(page){
-  // Agar modal lock active ho, toh page change na karo
-  if(document.getElementById('followModal').style.display === 'flex') {
-      return; 
-  }
-  
   currentPage = page; 
   renderLatest(page); 
   const latestSection = document.getElementById('latestSection');
@@ -324,12 +314,6 @@ function openAdAndChangePage(page){
 
 // --- Search Functionality (No change needed) ---
 window.filterVideos = function(query) {
-    // Agar modal lock active ho, toh search na karo
-    if(document.getElementById('followModal').style.display === 'flex') {
-        document.getElementById('searchInput').value = '';
-        return; 
-    }
-    
     query = (query || '').trim().toLowerCase();
     
     if (query.length > 0) {
@@ -457,11 +441,6 @@ function showItem(it){
 // --- ✅ FINAL: Open Watch with Double Ad Logic (URL string lega) ---
 // Ad Blocker Bypass ke liye 100ms delay use kiya gaya hai.
 function openWatchWithAd(targetUrl){
-  // Agar modal lock active ho, toh link open na karo
-  if(document.getElementById('followModal').style.display === 'flex') {
-      return; 
-  }
-  
   if(!targetUrl || targetUrl === '#') return;
   const target = targetUrl; 
   const watchAdCode = 'pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js';
@@ -523,11 +502,6 @@ function injectSchema(it){
 // --- Misc (Cleaned up event listeners) ---
 function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
 function showRandomPick(){ 
-  // Agar modal lock active ho, toh random pick na karo
-  if(document.getElementById('followModal').style.display === 'flex') {
-      return; 
-  }
-  
   if(items.length===0) return; 
   const pick = items[Math.floor(Math.random()*items.length)]; 
   triggerAdThenShowItem(pick); // ✅ RANDOM click ab Ad trigger karke showItem(pick) karega
@@ -546,7 +520,7 @@ async function loadAll(){
   items = parsed;
   const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items';
   
-    // count pill ko initial value do
+  // count pill ko initial value do
   const controlsContainer = document.getElementById('controlsContainer');
   if(controlsContainer) controlsContainer.innerHTML = `<div class="pill" id="count">${items.length} items</div><button class="btn" onclick="showRandomPick()">🎲 Shuffle</button>`;
 
@@ -569,46 +543,6 @@ async function loadAll(){
   }
 } // <-- loadAll function ka closing brace
 
-// --- ✅ OneSignal Lock and Initialization Logic ---
-
-function handleOneSignalLock() {
-    const modal = document.getElementById('followModal');
-    const followBtn = document.getElementById('followBtn');
-    
-    // 1. Follow Button Click Handler
-    followBtn.onclick = function() {
-        // OneSignal Prompt show karo
-        OneSignalDeferred.push(function(OneSignal) {
-            OneSignal.showSlidedownPrompt();
-            
-            // Prompt dikhane ke baad modal remove karke content load kar do
-            setTimeout(() => {
-                modal.style.display = 'none';
-                document.body.style.overflow = ''; // Scrolling restore karo
-                loadAll(); // Content load karo
-            }, 500); 
-        });
-    };
-    
-    // 2. Initial Check
-    OneSignalDeferred.push(function(OneSignal) {
-        OneSignal.isPushNotificationsEnabled(function(isEnabled) {
-            if (!isEnabled) {
-                // User subscribed nahi hai, website lock karo
-                modal.style.display = 'flex';
-                document.body.style.overflow = 'hidden'; // Scrolling block karo
-            } else {
-                // User subscribed hai, direct content load karo
-                loadAll(); 
-            }
-        });
-    });
-}
-
-// 3. Age Button Handler (just confirmation, main lock OneSignal se hota hai)
-document.getElementById('ageBtn').onclick = function() {
-    alert('Age confirmed. Content is strictly 18+. To view content, please click "Continue" on the lock screen.');
-};
-
 // 4. ✅ FINAL INITIALIZATION CALL - Poori website ko shuru karo
-handleOneSignalLock();
+loadAll();
+  
