@@ -4,10 +4,20 @@ const fetch = require("node-fetch");
 // !!! KRIPYA YAHAN APNA WEBSITE KA BASE URL DALEIN (E.g., https://dareloom.fun) !!!
 // Dhyaan dein: Yeh URL HTTPS ke saath hona chahiye
 const BASE_URL = "https://dareloom.fun"; 
-// !!! UPWALA URL CHANGE KARNA NA BHOOLEIN !!!
 
-// ✅ NOTE: AAPKI JAVASCRIPT FILE WALI WORKING API KEY YAHAN USE HOGI
-const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw"; 
+// ✅ CHANGES START HERE: Key ab Environment Variable se aayegi
+const API_KEY = process.env.SHEET_KEY; 
+
+// Agar key na ho toh script fail ho jaani chahiye
+if (!API_KEY) {
+    console.error("Error: SHEET_KEY environment variable is not set. Cannot run sitemap generation.");
+    // Fail safe: empty sitemap bana do
+    fs.writeFileSync("./sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>', 'utf8');
+    return;
+}
+
+const SHEET_API = `https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=${API_KEY}`;
+// ✅ CHANGES END HERE
 
 const SITEMAP_PATH = "./sitemap.xml"; 
 
@@ -106,4 +116,3 @@ async function generateSitemap(){
 }
 
 generateSitemap();
-          
