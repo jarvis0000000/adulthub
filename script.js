@@ -1,5 +1,5 @@
 // FINAL Dareloom v14 - Double Link, Ad Blocker Bypass, Dynamic Buttons, OneSignal Lock
-// ✅ API KEY UPDATED to the working key
+// Sheet API is updated with the working key: AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
