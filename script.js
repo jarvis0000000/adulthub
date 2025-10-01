@@ -1,4 +1,4 @@
-// FINAL Dareloom v13 - Double Link, Ad Blocker Bypass, Dynamic Buttons
+// FINAL Dareloom v14 - Double Link, Ad Blocker Bypass, Dynamic Buttons, OneSignal Lock
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyA2OVy5Y8UGDrhCWLQeEMcBk8DtjXuFowc";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
@@ -128,6 +128,11 @@ function triggerAdRedirect() {
 
 // ✅ Ad Trigger + Show Item Handler (for Card clicks)
 function triggerAdThenShowItem(item) {
+    // Agar modal lock active ho, toh content na dikhao
+    if(document.getElementById('followModal').style.display === 'flex') {
+        return; // Click ko ignore karo
+    }
+    
     if(!item) return;
 
     // 1. Trigger Ad
@@ -146,7 +151,7 @@ function triggerAdThenShowItemById(id){
 }
 window.triggerAdThenShowItemById = triggerAdThenShowItemById; // Global access for HTML onclick
 
-// --- Render Functions ---
+// --- Render Functions (No change in rendering logic) ---
 function renderRandom(){
   const g = document.getElementById('randomGrid'); if(!g) return; g.innerHTML='';
   const pool = items.slice(); const picks = [];
@@ -302,6 +307,11 @@ function createPageButton(text, pageNum) {
 }
 
 function openAdAndChangePage(page){
+  // Agar modal lock active ho, toh page change na karo
+  if(document.getElementById('followModal').style.display === 'flex') {
+      return; 
+  }
+  
   currentPage = page; 
   renderLatest(page); 
   const latestSection = document.getElementById('latestSection');
@@ -313,6 +323,12 @@ function openAdAndChangePage(page){
 
 // --- Search Functionality (No change needed) ---
 window.filterVideos = function(query) {
+    // Agar modal lock active ho, toh search na karo
+    if(document.getElementById('followModal').style.display === 'flex') {
+        document.getElementById('searchInput').value = '';
+        return; 
+    }
+    
     query = (query || '').trim().toLowerCase();
     
     if (query.length > 0) {
@@ -358,7 +374,7 @@ function shareItem(it) {
 }
 
 
-// --- Show Video (Updated Logic) ---
+// --- Show Video (No change in video rendering logic) ---
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); } 
 
 
@@ -440,6 +456,11 @@ function showItem(it){
 // --- ✅ FINAL: Open Watch with Double Ad Logic (URL string lega) ---
 // Ad Blocker Bypass ke liye 100ms delay use kiya gaya hai.
 function openWatchWithAd(targetUrl){
+  // Agar modal lock active ho, toh link open na karo
+  if(document.getElementById('followModal').style.display === 'flex') {
+      return; 
+  }
+  
   if(!targetUrl || targetUrl === '#') return;
   const target = targetUrl; 
   const watchAdCode = 'pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js';
@@ -501,6 +522,11 @@ function injectSchema(it){
 // --- Misc (Cleaned up event listeners) ---
 function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
 function showRandomPick(){ 
+  // Agar modal lock active ho, toh random pick na karo
+  if(document.getElementById('followModal').style.display === 'flex') {
+      return; 
+  }
+  
   if(items.length===0) return; 
   const pick = items[Math.floor(Math.random()*items.length)]; 
   triggerAdThenShowItem(pick); // ✅ RANDOM click ab Ad trigger karke showItem(pick) karega
@@ -521,28 +547,4 @@ async function loadAll(){
   
   // count pill ko initial value do
   const controlsContainer = document.getElementById('controlsContainer');
-  if(controlsContainer) controlsContainer.innerHTML = `<div class="pill" id="count">${items.length} items</div>`;
-
-  renderRandom(); 
-  renderLatest(); 
-  renderCategoryDropdown(); 
-  
-  // ✅ URL Hash check (Sharing ke liye)
-  const hash = window.location.hash.substring(1); // #v=ID se sirf v=ID lega
-  if(hash.startsWith('v=')){
-      const id = decodeURIComponent(hash.substring(2));
-      const sharedItem = items.find(x => x.id === id);
-      if(sharedItem) triggerAdThenShowItem(sharedItem); // Shared link par bhi Ad trigger hoga
-      else showRandomPick(); 
-  } else {
-      showRandomPick();
-  }
-}
-
-// --- Initialization (Direct call to loadAll) ---
-document.addEventListener('DOMContentLoaded', loadAll);
-// Age button ab sirf ek confirmation alert dega
-document.getElementById('ageBtn').addEventListener('click', () => {
-    alert("Age verified. You can now browse the content.");
-});
-        
+  if(controlsContainer) controlsContainer.i
