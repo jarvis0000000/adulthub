@@ -6,7 +6,6 @@
     "node-fetch": "^2.6.7"
   },
   "scripts": {
-    // ✅ "scripts/" HATA DIYA GAYA HAI
-    "sitemap": "node generate-sitemap.js" 
+    "sitemap": "node generate-sitemap.js"
   }
 }
