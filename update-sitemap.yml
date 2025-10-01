@@ -21,10 +21,9 @@ jobs:
       - name: Install dependencies
         run: npm install node-fetch@2
         
-      # 1. ✅ UPDATED: Google Sheet Key ko Secret se pass karna
+      # 1. Google Sheet Key ko Secret se pass karna
       - name: Generate sitemap
         env:
-          # Secret se key uthakar, use 'SHEET_KEY' environment variable bana do
           SHEET_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }}
         run: node scripts/generate-sitemap.js
         
@@ -37,16 +36,14 @@ jobs:
           git commit -m "Auto-update sitemap [skip ci]" || echo "No new sitemap changes to commit"
           git push
 
-      # 3. ✅ NEW STEP: Trigger Cloudflare Pages Re-deploy
-      # Is step se naya sitemap live hosting par upload hoga (Sitemap could not be read fix)
+      # 3. ✅ FINAL VALUES: Trigger Cloudflare Pages Re-deploy
       - name: Trigger Cloudflare Pages Deployment
         env:
-          # Cloudflare token secret se uthana
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          # 🚨 YAHAN APNA CLOUDFLARE ACCOUNT ID DALEIN
-          CF_ACCOUNT_ID: 'APNA_CLOUDFLARE_ACCOUNT_ID_YAHAN_DALO' 
-          # 🚨 YAHAN APNE PAGES PROJECT KA NAAM DALEIN (Aamtaur par repository ka naam)
-          CF_PAGES_PROJECT: 'dareloom-hub' 
+          # ✅ ACCOUNT ID UPDATED
+          CF_ACCOUNT_ID: '1de9700c63c35247d84a4caaf3700f6b' 
+          # ✅ PROJECT NAME UPDATED
+          CF_PAGES_PROJECT: 'Adulthub' 
         run: |
           if [ "${CLOUDFLARE_TOKEN}" == "" ]; then
             echo "Error: CLOUDFLARE_API_TOKEN secret is not set."
