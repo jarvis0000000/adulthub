@@ -1,6 +1,6 @@
 /*
 * style.css - For Professional, Responsive, Futuristic Look
-* Updated: Sept 2025
+* Updated: Oct 2025 - Including OneSignal Modal Lock Styles
 */
 
 /* --- General Styles --- */
@@ -11,7 +11,8 @@
   --header-bg: #111; /* Slightly Lighter Black Header */
   --text-color: #fff;
   --muted-color: #bbb;
-  --shadow-color: rgba(255, 75, 145, 0.6); /* Stronger Pink shadow for glow */
+  --shadow-color: rgba(255, 75, 145, 0.7); /* Stronger Pink shadow for glow */
+  --secondary-color: #28a745; /* Share Button Green */
 }
 
 body { 
@@ -30,11 +31,11 @@ header.site {
   align-items: center; 
   padding: 15px 20px; 
   background: var(--header-bg); 
-  border-bottom: 3px solid var(--primary-color); /* Thoda mota border */
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.7); /* Stronger Header shadow */
-  position: sticky; /* Header ko chipka diya */
+  border-bottom: 3px solid var(--primary-color); 
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.9); /* Header shadow aur strong kiya */
+  position: sticky; 
   top: 0;
-  z-index: 900; /* Header ka z-index set kiya */
+  z-index: 900; 
 }
 
 .brand { 
@@ -53,10 +54,10 @@ header.site {
 
 .brand .title { 
   margin: 0; 
-  font-size: 22px; /* Thoda bada kiya */
-  font-weight: 700;
-  color: var(--primary-color); /* Title ko primary color diya */
-  text-shadow: 0 0 5px var(--shadow-color);
+  font-size: 24px; /* Title aur bold kiya */
+  font-weight: 800;
+  color: var(--primary-color); 
+  text-shadow: 0 0 8px var(--shadow-color); /* Stronger glow */
   display: block; 
 }
 
@@ -65,41 +66,41 @@ header.site {
   align-items: center; 
   flex-shrink: 0;
   margin-left: 15px;
-  gap: 10px; /* Nav items ke beech space */
+  gap: 10px; 
 }
 
 /* --- Search Input Style --- */
 #searchInput {
-  padding: 10px 15px; /* Thoda padding badhaya */
-  border: 1px solid var(--primary-color); 
-  border-radius: 25px; /* Aur zyada gol */
+  padding: 10px 15px; 
+  border: 2px solid var(--primary-color); /* Border aur mota kiya */
+  border-radius: 25px; 
   background-color: #222;
   color: var(--text-color);
-  width: 150px; /* Thoda bada kiya */
+  width: 150px; 
   transition: all 0.4s ease-in-out;
   font-size: 14px;
 }
 
 #searchInput:focus {
   width: 200px;
-  box-shadow: 0 0 20px var(--shadow-color); /* Stronger futuristic glow */
+  box-shadow: 0 0 25px var(--shadow-color); 
   background-color: #333;
   outline: none;
 }
 
 /* --- Main Layout --- */
 .wrap { 
-  max-width: 1200px; /* Thoda aur bada kiya */
+  max-width: 1200px; 
   margin: auto; 
   padding: 20px; 
 }
 
 h2 { 
   margin: 30px 0 15px; 
-  font-size: 24px; 
-  border-left: 5px solid var(--primary-color); 
-  padding-left: 10px; 
-  text-shadow: 0 0 8px rgba(255, 75, 145, 0.3);
+  font-size: 26px; /* Heading size badhaya */
+  border-left: 6px solid var(--primary-color); /* Border aur mota kiya */
+  padding-left: 12px; 
+  text-shadow: 0 0 10px rgba(255, 75, 145, 0.4);
   color: var(--text-color);
 }
 
@@ -117,13 +118,13 @@ hr {
 /* --- Grid (Card View) --- */
 .grid { 
   display: grid; 
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* Cards ko thoda bada kiya */
-  gap: 20px; /* Gap badhaya */
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+  gap: 20px; 
 }
 
 .card { 
   background: var(--card-bg); 
-  border-radius: 15px; /* Aur gol kiya */
+  border-radius: 15px; 
   overflow: hidden; 
   transition: transform .4s ease, box-shadow .4s ease;
   cursor: pointer;
@@ -131,21 +132,21 @@ hr {
 }
 
 .card:hover { 
-  transform: translateY(-8px); /* Aur zyada uthega */
-  box-shadow: 0 15px 40px var(--shadow-color); /* Stronger shadow */
+  transform: translateY(-10px); /* Lift aur zyada kiya */
+  box-shadow: 0 20px 50px var(--shadow-color); /* Strongest glow on hover */
   border-color: var(--primary-color); 
 }
 
 .thumb { 
   width: 100%; 
-  height: 180px; /* Thodi height badhai */
+  height: 180px; 
   object-fit: cover; 
-  filter: brightness(0.9);
+  filter: brightness(0.85); /* Thoda dark rakha */
   transition: filter 0.3s;
 }
 
 .card:hover .thumb {
-    filter: brightness(1);
+    filter: brightness(1); /* Hover par full brightness */
 }
 
 .card .meta {
@@ -154,7 +155,7 @@ hr {
 
 .card h4 {
   margin: 0;
-  font-size: 16px;
+  font-size: 17px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -178,8 +179,9 @@ hr {
 }
 
 .latest-item:hover {
-  box-shadow: 0 6px 20px var(--shadow-color);
+  box-shadow: 0 8px 25px var(--shadow-color);
   border-color: var(--primary-color); 
+  transform: translateY(-3px);
 }
 
 .latest-thumb {
@@ -187,7 +189,7 @@ hr {
   height: 120px;
   object-fit: cover;
   flex-shrink: 0;
-  box-shadow: 0 0 8px var(--shadow-color); /* Thumbnail par bhi glow */
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
   border-radius: 4px;
 }
 
@@ -203,9 +205,9 @@ hr {
   overflow: hidden;
   padding: 15px;
   text-align: center;
-  border: 3px solid var(--primary-color); 
-  box-shadow: 0 0 30px var(--shadow-color);
-  z-index: 500; /* Player ka z-index ad se kam rakha */
+  border: 4px solid var(--primary-color); /* Border aur mota kiya */
+  box-shadow: 0 0 40px var(--shadow-color); /* Main Player pe strongest glow */
+  z-index: 500; 
   position: relative;
 }
 
@@ -217,7 +219,7 @@ hr {
 
 .player-card iframe, .player-card video {
   width: 100%;
-  min-height: 420px; /* Height badhai */
+  min-height: 420px; 
   border: none;
   background: #000;
   border-radius: 8px;
@@ -229,40 +231,40 @@ hr {
 }
 
 .now-title {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
   margin-bottom: 12px;
   color: var(--primary-color); 
-  text-shadow: 0 0 10px rgba(255, 75, 145, 0.5);
+  text-shadow: 0 0 15px rgba(255, 75, 145, 0.7); /* Title glow badhaya */
 }
 
 .controls {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 15px; /* Gap badhaya */
+  gap: 15px; 
   flex-wrap: wrap;
 }
 
 /* --- Buttons & Pills --- */
 .btn { 
   background: #222; 
-  border: 1px solid var(--primary-color); 
+  border: 2px solid var(--primary-color); /* Border aur mota kiya */
   color: var(--text-color); 
-  padding: 10px 18px; /* Padding badhaya */
-  border-radius: 25px; /* Zyada gol */
+  padding: 10px 18px; 
+  border-radius: 25px; 
   cursor: pointer; 
   transition: all 0.3s ease;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px; /* Letter spacing added */
 }
 
 .btn:hover { 
   background-color: var(--primary-color); 
-  box-shadow: 0 0 15px var(--shadow-color), 0 0 30px rgba(255, 75, 145, 0.4);
+  box-shadow: 0 0 20px var(--shadow-color); 
   border-color: var(--primary-color); 
-  transform: scale(1.05); /* Zoom effect */
+  transform: scale(1.05); 
 }
 
 .btn.primary, .watch-btn { 
@@ -271,21 +273,35 @@ hr {
   border-radius: 8px; 
   border: none;
   font-weight: bold;
+  letter-spacing: 1px;
 }
 
 .btn.primary:hover, .watch-btn:hover { 
   background-color: #e63e81; 
-  box-shadow: 0 0 20px var(--shadow-color);
+  box-shadow: 0 0 25px var(--shadow-color);
   transform: scale(1.05);
 }
+
+/* Share Button specific style (Green) */
+.controls button[style*="#28a745"] { 
+    background-color: var(--secondary-color) !important;
+    border: none;
+    box-shadow: 0 0 10px rgba(40, 167, 69, 0.4);
+}
+.controls button[style*="#28a745"]:hover { 
+    background-color: #218838 !important;
+    box-shadow: 0 0 15px rgba(40, 167, 69, 0.8);
+}
+
 
 .pill { 
   background: #222; 
   padding: 6px 12px; 
   border-radius: 15px; 
   font-size: 13px;
-  border: 1px solid #444;
-  color: var(--muted-color);
+  border: 1px solid var(--primary-color); /* Pill par bhi border */
+  color: var(--primary-color);
+  font-weight: 600;
 }
 
 /* --- Pager (Pagination) --- */
@@ -317,7 +333,7 @@ hr {
   background: var(--primary-color) !important;
   border-color: var(--primary-color) !important;
   font-weight: bold;
-  box-shadow: 0 0 15px var(--shadow-color);
+  box-shadow: 0 0 18px var(--shadow-color);
   transform: scale(1.05);
 }
 
@@ -372,7 +388,7 @@ footer.foot {
   background: var(--card-bg); 
   min-width: 200px; 
   box-shadow: 0px 8px 30px 0px rgba(0,0,0,0.9); 
-  z-index: 600; /* Dropdown ko player se upar rakha */
+  z-index: 600; 
   border-radius: 10px; 
   max-height: 400px;
   overflow-y: auto;
@@ -409,7 +425,7 @@ footer.foot {
     text-align: center;
     background: #000;
     padding: 5px 0;
-    z-index: 9999; /* ✅ AD KA Z-INDEX SABSE ZYADA RAKHA */
+    z-index: 9999; 
     box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.9);
 }
 
@@ -418,7 +434,7 @@ footer.foot {
 @media (max-width: 600px) {
   header.site { 
     padding: 10px 15px; 
-    flex-direction: column; /* Mobile par stack kiya */
+    flex-direction: column; 
     align-items: flex-start;
   }
   
@@ -457,7 +473,7 @@ footer.foot {
   
   /* Player Section Fixes */
   .player-card iframe, .player-card video {
-    min-height: 250px; /* Mobile ke liye chota kiya */
+    min-height: 250px; 
   }
 
   .player-placeholder {
@@ -473,7 +489,7 @@ footer.foot {
   .pill, .btn, .watch-btn {
     width: 100%;
     box-sizing: border-box;
-    margin: 0 !important; /* Extra margin hata diya */
+    margin: 0 !important; 
   }
 
   .latest-item {
@@ -511,3 +527,88 @@ footer.foot {
   color: #999;
   font-size: 14px;
     }
+
+
+/* ====================================================================
+// ✅ ONE SIGNAL MODAL STYLING (Website Lock)
+// ==================================================================== */
+
+#followModal {
+  position:fixed;
+  top:0;
+  left:0;
+  width:100vw;
+  height:100vh;
+  background:rgba(0,0,0,0.95); /* Sabse zyada dark */
+  z-index:10000; /* Sabse upar */
+  display: flex; 
+  justify-content:center;
+  align-items:center;
+  backdrop-filter: blur(8px); /* Blur effect aur zyada strong kiya */
+  /* Default: Hidden by JS */
+  display:none; 
+}
+#followModal > div {
+  background:var(--card-bg);
+  padding:40px;
+  border-radius:20px; /* Aur zyada gol */
+  text-align:center;
+  box-shadow:0px 20px 50px rgba(0,0,0,0.8);
+  max-width: 90%;
+  border: 5px solid var(--primary-color); /* Thick neon border */
+  animation: pulse 1.5s infinite alternate; /* Pulsing effect */
+}
+
+@keyframes pulse {
+    from {
+        box-shadow: 0 0 10px var(--primary-color), 0 0 25px var(--shadow-color);
+    }
+    to {
+        box-shadow: 0 0 25px var(--primary-color), 0 0 50px var(--shadow-color);
+    }
+}
+
+#followModal h2 {
+  color:var(--primary-color);
+  margin-top:0;
+  font-size: 30px; /* Text size badhaya */
+  text-shadow: 0 0 12px var(--shadow-color);
+  text-transform: uppercase;
+}
+#followModal p {
+  color: var(--text-color);
+  font-size: 18px;
+  margin-bottom: 25px;
+}
+#followBtn {
+  background:var(--primary-color);
+  color:white;
+  font-size:20px; /* Button size badhaya */
+  border:none;
+  border-radius:10px;
+  padding:18px 35px;
+  margin:14px auto 0 auto;
+  cursor:pointer;
+  transition: all 0.3s ease;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+#followBtn:hover {
+  background: #e63e81; 
+  box-shadow: 0 0 30px var(--shadow-color);
+  transform: scale(1.03);
+}
+
+@media (max-width: 600px) {
+    #followModal > div {
+        padding: 25px;
+    }
+    #followModal h2 {
+        font-size: 24px;
+    }
+    #followBtn {
+        font-size: 16px;
+        padding: 12px 25px;
+    }
+}
