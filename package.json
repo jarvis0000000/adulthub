@@ -6,6 +6,7 @@
     "node-fetch": "^2.6.7"
   },
   "scripts": {
-    "sitemap": "node scripts/generate-sitemap.js"
+    "sitemap": "node generate-sitemap.js"
+    // ✅ Change: Path se 'scripts/' hata diya
   }
 }
