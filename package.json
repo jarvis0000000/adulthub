@@ -1,0 +1,12 @@
+{
+  "name": "adulthub-sitemap-generator",
+  "version": "1.0.0",
+  "description": "Generates sitemap for dareloom.fun using Google Sheets data.",
+  "dependencies": {
+    "node-fetch": "^2.6.7"
+  },
+  "scripts": {
+    "sitemap": "node generate-sitemap.js"
+    // ✅ Change: Path se 'scripts/' hata diya
+  }
+}
