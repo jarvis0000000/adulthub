@@ -535,7 +535,7 @@ function showRandomPick(){
 
 window.showItemById = showItemById;
 
-// --- Load All (Now runs immediately) ---
+// --- Load All (Corrected and completed) ---
 async function loadAll(){
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
@@ -543,8 +543,13 @@ async function loadAll(){
   if(haveDates) parsed.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
   else parsed.reverse();
   items = parsed;
-  const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items';
   
-  // count pill ko initial value do
-  const controlsContainer = document.getElementById('controlsContainer');
-  if(controlsContainer) controlsContainer.i
+  const cnt = document.getElementById('count'); 
+  if(cnt) cnt.textContent = items.length + ' items';
+  
+  // ✅ INITIAL RENDERING CALLS - Content ko load karne ke liye zaroori
+  renderRandom();
+  renderLatest();
+  renderCategoryDropdown(); 
+
+  // Pa
