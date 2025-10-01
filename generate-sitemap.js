@@ -8,7 +8,6 @@ const BASE_URL = "https://dareloom.fun";
 
 // ✅ NOTE: AAPKI JAVASCRIPT FILE WALI WORKING API KEY YAHAN USE HOGI
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw"; 
-// (Maine aapki working key use ki hai, agar sheets.googleapis.com wali key alag hai toh badal dein)
 
 const SITEMAP_PATH = "./sitemap.xml"; 
 
@@ -107,3 +106,4 @@ async function generateSitemap(){
 }
 
 generateSitemap();
+          
