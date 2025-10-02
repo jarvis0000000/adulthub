@@ -1,18 +1,18 @@
 /*
-* style.css - For Professional, Responsive, Futuristic Look
-* Updated: Oct 2025 - Including OneSignal Modal Lock Styles & AdBlocker Modal
+* style.css - Professional, Responsive, Futuristic Look
+* Updated: Oct 2025 - Includes Followers Modal, AdBlocker Modal, Sticky Ads, Responsive Grid
 */
 
 /* --- General Styles --- */
 :root {
-  --primary-color: #ff4b91; /* Neon Pink/Magenta */
-  --bg-color: #000000; /* Pure Black for maximum contrast */
-  --card-bg: #181818; /* Darker, slightly richer card background */
-  --header-bg: #0d0d0d; /* Near Black Header */
+  --primary-color: #ff4b91;
+  --bg-color: #000000;
+  --card-bg: #181818;
+  --header-bg: #0d0d0d;
   --text-color: #fff;
-  --muted-color: #999; /* Thoda muted kiya */
-  --shadow-color: rgba(255, 75, 145, 0.9); /* Strongest Pink shadow for glow */
-  --secondary-color: #28a745; /* Share Button Green */
+  --muted-color: #999;
+  --shadow-color: rgba(255, 75, 145, 0.9);
+  --secondary-color: #28a745;
 }
 
 body { 
@@ -32,7 +32,7 @@ header.site {
   padding: 15px 20px; 
   background: var(--header-bg); 
   border-bottom: 3px solid var(--primary-color); 
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.9); /* Header shadow aur strong kiya */
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.9);
   position: sticky; 
   top: 0;
   z-index: 900; 
@@ -49,16 +49,16 @@ header.site {
   width: auto; 
   margin-right: 10px; 
   border-radius: 8px; 
-  box-shadow: 0 0 10px rgba(255, 75, 145, 0.6); /* Logo par subtle glow */
+  box-shadow: 0 0 10px rgba(255, 75, 145, 0.6);
   display: block; 
 }
 
 .brand .title { 
   margin: 0; 
-  font-size: 26px; /* Title size badhaya */
+  font-size: 26px; 
   font-weight: 900;
   color: var(--primary-color); 
-  text-shadow: 0 0 10px var(--shadow-color); /* Stronger glow */
+  text-shadow: 0 0 10px var(--shadow-color);
   display: block; 
 }
 
@@ -75,7 +75,7 @@ header.site {
   padding: 10px 15px; 
   border: 2px solid var(--primary-color); 
   border-radius: 25px; 
-  background-color: #111; /* Thoda dark background */
+  background-color: #111; 
   color: var(--text-color);
   width: 150px; 
   transition: all 0.4s ease-in-out;
@@ -83,7 +83,7 @@ header.site {
 }
 
 #searchInput:focus {
-  width: 220px; /* Focus par aur zyada stretch */
+  width: 220px; 
   box-shadow: 0 0 25px var(--shadow-color); 
   background-color: #222;
   outline: none;
@@ -98,9 +98,9 @@ header.site {
 
 h2 { 
   margin: 30px 0 15px; 
-  font-size: 28px; /* Heading size aur badhaya */
+  font-size: 28px; 
   border-left: 6px solid var(--primary-color); 
-  padding-left: 15px; /* Padding badhaya */
+  padding-left: 15px;
   text-shadow: 0 0 12px rgba(255, 75, 145, 0.5);
   color: var(--text-color);
   font-weight: 700;
@@ -117,7 +117,7 @@ hr {
   margin: 40px 0; 
 }
 
-/* --- Grid (Card View) --- */
+/* --- Grid & Card --- */
 .grid { 
   display: grid; 
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
@@ -134,8 +134,8 @@ hr {
 }
 
 .card:hover { 
-  transform: translateY(-12px); /* Lift aur zyada kiya */
-  box-shadow: 0 20px 60px var(--shadow-color); /* Strongest glow on hover */
+  transform: translateY(-12px); 
+  box-shadow: 0 20px 60px var(--shadow-color);
   border-color: var(--primary-color); 
 }
 
@@ -143,17 +143,13 @@ hr {
   width: 100%; 
   height: 180px; 
   object-fit: cover; 
-  filter: brightness(0.8); /* Thoda aur dark rakha */
+  filter: brightness(0.8); 
   transition: filter 0.3s;
 }
 
-.card:hover .thumb {
-    filter: brightness(1); 
-}
+.card:hover .thumb { filter: brightness(1); }
 
-.card .meta {
-  padding: 12px;
-}
+.card .meta { padding: 12px; }
 
 .card h4 {
   margin: 0;
@@ -165,11 +161,8 @@ hr {
   font-weight: 600;
 }
 
-/* --- Latest List View --- */
-.latest-list {
-  display: grid;
-  gap: 20px;
-}
+/* --- Latest List --- */
+.latest-list { display: grid; gap: 20px; }
 
 .latest-item {
   display: flex;
@@ -184,7 +177,7 @@ hr {
 .latest-item:hover {
   box-shadow: 0 8px 30px var(--shadow-color);
   border-color: var(--primary-color); 
-  transform: translateY(-5px); /* Lift aur zyada kiya */
+  transform: translateY(-5px);
 }
 
 .latest-thumb {
@@ -196,25 +189,19 @@ hr {
   border-radius: 4px;
 }
 
-.latest-info {
-  padding: 15px;
-  flex-grow: 1;
-}
+.latest-info { padding: 15px; flex-grow: 1; }
 
-/* --- Player & Controls (Hero Section) --- */
-.hero {
-    /* For smaller screens, hero section ko single column rakha */
-    display: block; 
-}
+/* --- Player & Controls --- */
+.hero { display: block; }
 
 .player-card {
   background: var(--card-bg);
-  border-radius: 20px; /* Aur zyada gol */
+  border-radius: 20px;
   overflow: hidden;
   padding: 15px;
   text-align: center;
-  border: 5px solid var(--primary-color); /* Border aur mota kiya */
-  box-shadow: 0 0 50px var(--shadow-color); /* Main Player pe strongest glow */
+  border: 5px solid var(--primary-color);
+  box-shadow: 0 0 50px var(--shadow-color);
   z-index: 500; 
   position: relative;
 }
@@ -233,17 +220,14 @@ hr {
   border-radius: 12px;
 }
 
-.hero-actions {
-  margin-top: 20px;
-  text-align: center;
-}
+.hero-actions { margin-top: 20px; text-align: center; }
 
 .now-title {
   font-size: 24px;
   font-weight: 700;
   margin-bottom: 15px;
   color: var(--primary-color); 
-  text-shadow: 0 0 18px rgba(255, 75, 145, 0.9); /* Title glow badhaya */
+  text-shadow: 0 0 18px rgba(255, 75, 145, 0.9);
   letter-spacing: 1px;
 }
 
@@ -273,12 +257,12 @@ hr {
   background-color: var(--primary-color); 
   box-shadow: 0 0 25px var(--shadow-color); 
   border-color: var(--primary-color); 
-  transform: scale(1.07); /* Hover effect aur strong kiya */
+  transform: scale(1.07); 
 }
 
 .btn.primary, .watch-btn { 
   background: var(--primary-color); 
-  padding: 12px 25px; /* Padding badhaya */
+  padding: 12px 25px;
   border-radius: 8px; 
   border: none;
   font-weight: bold;
@@ -291,21 +275,9 @@ hr {
   transform: scale(1.07);
 }
 
-/* Share Button specific style (Green) */
-.controls button[style*="#28a745"] { 
-    background-color: var(--secondary-color) !important;
-    border: none;
-    box-shadow: 0 0 10px rgba(40, 167, 69, 0.6);
-}
-.controls button[style*="#28a745"]:hover { 
-    background-color: #218838 !important;
-    box-shadow: 0 0 20px rgba(40, 167, 69, 0.9);
-}
-
-
 .pill { 
-  background: #111; /* Thoda dark pill */
-  padding: 8px 14px; /* Padding badhaya */
+  background: #111;
+  padding: 8px 14px;
   border-radius: 20px; 
   font-size: 14px;
   border: 1px solid var(--primary-color); 
@@ -313,14 +285,8 @@ hr {
   font-weight: 700;
 }
 
-/* --- Pager (Pagination) --- */
-.pager {
-  margin-top: 25px;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-}
+/* --- Pager --- */
+.pager { margin-top: 25px; text-align: center; display: flex; justify-content: center; gap: 10px; }
 
 .page-btn {
   background: var(--card-bg);
@@ -343,7 +309,7 @@ hr {
   border-color: var(--primary-color) !important;
   font-weight: bold;
   box-shadow: 0 0 20px var(--shadow-color);
-  transform: scale(1.08); /* Active button aur chamkega */
+  transform: scale(1.08);
 }
 
 /* --- Footer --- */
@@ -356,306 +322,98 @@ footer.foot {
   box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.7); 
 }
 
-.banner-wrap {
-  text-align: center; 
-  margin: 20px auto;
-}
+.banner-wrap { text-align: center; margin: 20px auto; }
 
-.footer-info {
-  margin-top: 10px;
-  color: #aaa;
-  font-size: 14px;
-}
+.footer-info { margin-top: 10px; color: #aaa; font-size: 14px; }
 
-.footer-info a {
-  color: var(--primary-color);
-  text-decoration: none;
-  transition: color 0.2s;
-}
-
-.footer-info a:hover {
-    color: #e63e81;
-}
+.footer-info a { color: var(--primary-color); text-decoration: none; transition: color 0.2s; }
+.footer-info a:hover { color: #e63e81; }
 
 /* --- Category Dropdown --- */
-.header { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  flex-wrap: wrap;
-}
+.header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
 
-.dropdown { 
-  position: relative; 
-  display: inline-block; 
-}
+.dropdown { position: relative; display: inline-block; }
+.dropdown-content { display: none; position: absolute; right: 0; background: var(--card-bg); min-width: 250px; box-shadow: 0px 8px 30px rgba(0,0,0,0.9); z-index: 600; border-radius: 10px; max-height: 400px; overflow-y: auto; border: 2px solid var(--primary-color); }
+.dropdown-content a { color: var(--text-color); padding: 12px 18px; text-decoration: none; display: block; transition: background-color 0.2s; border-bottom: 1px solid #2e2e2e; }
+.dropdown-content a:hover { background-color: #2e2e2e; color: var(--primary-color); }
+.dropdown-content a:last-child { border-bottom: none; }
+.dropdown:hover .dropdown-content { display: block; }
 
-.dropdown-content { 
-  display: none; 
-  position: absolute; 
-  right: 0; 
-  background: var(--card-bg); 
-  min-width: 250px; /* Width badhaya */
-  box-shadow: 0px 8px 30px 0px rgba(0,0,0,0.9); 
-  z-index: 600; 
-  border-radius: 10px; 
-  max-height: 400px;
-  overflow-y: auto;
-  border: 2px solid var(--primary-color);
-}
-
-.dropdown-content a { 
-  color: var(--text-color); 
-  padding: 12px 18px; 
-  text-decoration: none; 
-  display: block; 
-  transition: background-color 0.2s; 
-  border-bottom: 1px solid #2e2e2e;
-}
-
-.dropdown-content a:hover { 
-  background-color: #2e2e2e; 
-  color: var(--primary-color);
-}
-.dropdown-content a:last-child {
-    border-bottom: none;
-}
-
-.dropdown:hover .dropdown-content { 
-  display: block; 
-}
-
-/* --- Sticky Footer Ad Style --- */
+/* --- Sticky Footer Ad --- */
 .sticky-ad-footer {
-    position: fixed;
-    bottom: 0; 
-    left: 0;
-    width: 100%;
-    text-align: center;
-    background: #000;
-    padding: 5px 0;
-    z-index: 9999; 
-    box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.9);
+  position: fixed;
+  bottom: 0; 
+  left: 0;
+  width: 100%;
+  text-align: center;
+  background: #000;
+  padding: 5px 0;
+  z-index: 9999; 
+  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.9);
 }
 
-
-/* --- Mobile Responsiveness (Screen size < 600px) --- */
+/* --- Mobile Responsive --- */
 @media (max-width: 600px) {
-  header.site { 
-    padding: 10px 15px; 
-    flex-direction: column; 
-    align-items: flex-start;
-  }
-  
-  .wrap {
-    padding: 10px;
-  }
-  
-  .brand {
-    margin-bottom: 5px;
-  }
-
-  .brand .title { 
-    font-size: 20px; /* Mobile title size thoda badhaya */
-  }
-
-  .nav {
-    flex-wrap: wrap;
-    justify-content: space-between;
-    width: 100%;
-    margin: 5px 0 0 0;
-    gap: 8px;
-  }
-  
-  #searchInput {
-    width: 100%;
-    margin-bottom: 8px;
-    order: 1; 
-    font-size: 13px;
-    padding: 10px 12px;
-  }
-  
-  .nav .btn {
-    flex-grow: 1;
-    margin: 0;
-    padding: 10px 10px;
-    font-size: 13px;
-  }
-  
-  /* Player Section Fixes */
-  .player-card iframe, .player-card video {
-    min-height: 220px; /* Aur thoda chota kiya */
-  }
-
-  .player-placeholder {
-    padding: 50px 15px; 
-    font-size: 16px;
-  }
-  
-  .controls {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .pill, .btn, .watch-btn {
-    width: 100%;
-    box-sizing: border-box;
-    margin: 0 !important; 
-  }
-
-  .latest-item {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .latest-thumb {
-    width: 100%;
-    height: 180px;
-    border-radius: 12px 12px 0 0;
-    box-shadow: none;
-  }
-  
-  .latest-info {
-      padding: 10px 15px 15px;
-  }
-  
-  .grid {
-      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-      gap: 10px;
-  }
-  
-  .card .thumb {
-      height: 120px;
-  }
-  
-  .now-title {
-      font-size: 20px;
-  }
-
-  .seo-content {
-      padding: 15px !important;
-  }
+  header.site { padding: 10px 15px; flex-direction: column; align-items: flex-start; }
+  .wrap { padding: 10px; }
+  .brand { margin-bottom: 5px; }
+  .brand .title { font-size: 20px; }
+  .nav { flex-wrap: wrap; justify-content: space-between; width: 100%; margin: 5px 0 0 0; gap: 8px; }
+  #searchInput { width: 100%; margin-bottom: 8px; order: 1; font-size: 13px; padding: 10px 12px; }
+  .nav .btn { flex-grow: 1; margin: 0; padding: 10px 10px; font-size: 13px; }
+  .player-card iframe, .player-card video { min-height: 220px; }
+  .player-placeholder { padding: 50px 15px; font-size: 16px; }
+  .controls { flex-direction: column; gap: 10px; }
+  .pill, .btn, .watch-btn { width: 100%; box-sizing: border-box; margin: 0 !important; }
+  .latest-item { flex-direction: column; align-items: flex-start; }
+  .latest-thumb { width: 100%; height: 180px; border-radius: 12px 12px 0 0; box-shadow: none; }
+  .latest-info { padding: 10px 15px 15px; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .card .thumb { height: 120px; }
+  .now-title { font-size: 20px; }
+  .seo-content { padding: 15px !important; }
 }
 
-.ad-slot.small { 
-  margin-top: 15px;
-  color: #999;
-  font-size: 14px;
-}
-
-
-/* ====================================================================
-// ✅ NEW: AD BLOCKER MODAL STYLING
-// ==================================================================== */
-
-.ad-blocker-modal {
-    display: none; 
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.98); /* Aur zyada dark */
-    z-index: 99999; /* Max Z-index */
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-.ad-blocker-box {
-    background-color: var(--card-bg);
-    color: white;
-    padding: 30px;
-    max-width: 450px;
-    text-align: center;
-    border-radius: 15px;
-    box-shadow: 0 0 30px rgba(255, 0, 0, 0.5), 0 0 50px rgba(255, 0, 0, 0.3); /* Red glow */
-    border: 3px solid #ff4d4d; /* Red border */
-}
-
-.ad-blocker-box h2 {
-    color: #ff4d4d; /* Bright Red */
-    font-size: 26px;
-    margin-top: 0;
-    margin-bottom: 15px;
-    text-shadow: 0 0 10px rgba(255, 77, 77, 0.7);
-    border-left: none; /* H2 style ko override kiya */
-    padding-left: 0;
-}
-
-.ad-blocker-box p {
-    font-size: 16px;
-    line-height: 1.7;
-    margin-bottom: 25px;
-    color: #ccc;
-}
-.ad-blocker-box .btn.primary {
-    background: #ff4d4d; /* Red button */
-    box-shadow: 0 0 15px rgba(255, 77, 77, 0.8);
-    transition: all 0.3s;
-}
-.ad-blocker-box .btn.primary:hover {
-    background: #e04545;
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(255, 77, 77, 1);
-}
-
-/* ====================================================================
-// ✅ ONE SIGNAL MODAL STYLING (Website Lock)
-// ==================================================================== */
-
+/* --- Followers Modal --- */
 #followModal {
-  position:fixed;
-  top:0;
-  left:0;
-  width:100vw;
-  height:100vh;
-  background:rgba(0,0,0,0.95); /* Sabse zyada dark */
-  z-index:10000; /* Sabse upar */
-  display: flex; 
+  position: fixed;
+  top:0; left:0; width:100vw; height:100vh;
+  background: rgba(0,0,0,0.95);
+  z-index:10000;
+  display: none;
   justify-content:center;
   align-items:center;
-  backdrop-filter: blur(8px); 
-  /* Default: Hidden by JS */
-  display:none; 
+  backdrop-filter: blur(8px);
 }
+
 #followModal > div {
-  background:var(--card-bg);
-  padding:40px;
-  border-radius:20px; 
+  background: var(--card-bg);
+  padding: 40px;
+  border-radius: 20px; 
   text-align:center;
   box-shadow:0px 20px 50px rgba(0,0,0,0.8);
   max-width: 90%;
-  border: 5px solid var(--primary-color); 
+  border: 5px solid var(--primary-color);
   animation: pulse 1.5s infinite alternate; 
 }
 
 @keyframes pulse {
-    from {
-        box-shadow: 0 0 10px var(--primary-color), 0 0 25px var(--shadow-color);
-    }
-    to {
-        box-shadow: 0 0 25px var(--primary-color), 0 0 50px var(--shadow-color);
-    }
+    from { box-shadow: 0 0 10px var(--primary-color), 0 0 25px var(--shadow-color); }
+    to { box-shadow: 0 0 25px var(--primary-color), 0 0 50px var(--shadow-color); }
 }
 
 #followModal h2 {
-  color:var(--primary-color);
-  margin-top:0;
-  font-size: 32px; /* Text size aur badhaya */
+  color: var(--primary-color);
+  margin-top: 0;
+  font-size: 32px;
   text-shadow: 0 0 15px var(--shadow-color);
   text-transform: uppercase;
 }
-#followModal p {
-  color: var(--text-color);
-  font-size: 18px;
-  margin-bottom: 30px;
-}
+#followModal p { color: var(--text-color); font-size: 18px; margin-bottom: 30px; }
 #followBtn {
-  background:var(--primary-color);
+  background: var(--primary-color);
   color:white;
-  font-size:22px; /* Button size badhaya */
+  font-size:22px;
   border:none;
   border-radius:10px;
   padding:18px 35px;
@@ -666,25 +424,4 @@ footer.foot {
   text-transform: uppercase;
   letter-spacing: 1px;
 }
-#followBtn:hover {
-  background: #e63e81; 
-  box-shadow: 0 0 35px var(--shadow-color);
-  transform: scale(1.05);
-}
-
-@media (max-width: 600px) {
-    #followModal > div {
-        padding: 25px;
-    }
-    #followModal h2 {
-        font-size: 24px;
-    }
-    #followModal p {
-        font-size: 16px;
-    }
-    #followBtn {
-        font-size: 16px;
-        padding: 12px 25px;
-    }
-    }
-  
+#followBtn:hover { background: #e63e81; box-shadow: 0 0 35px var(--shadow-color); transform: scale(1.05); }
