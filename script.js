@@ -1,5 +1,5 @@
 // FINAL Dareloom v15 - Ad Blocker Lock, Robust Streamtape Embed
-// OneSignal Lock Removed. Content loads directly.
+// OneSignal/Firebase Lock Removed. Content loads directly.
 
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
@@ -145,7 +145,7 @@ function triggerAdThenShowItem(item) {
     triggerAdRedirect();
     setTimeout(() => { showItem(item); }, 150); 
 }
-function triggerAdThenShowItemById(id){ 
+function triggerAdThenShowItemById(id) { 
     const it = items.find(x=>x.id===id); 
     if(it) triggerAdThenShowItem(it); 
 }
@@ -308,7 +308,50 @@ function showItem(it){
       iframe.setAttribute('allowfullscreen', 'true'); iframe.setAttribute('webkitallowfullscreen', 'true'); iframe.setAttribute('mozallowfullscreen', 'true'); iframe.setAttribute('scrolling', 'no');
       iframe.style.width='100%'; iframe.style.height='420px'; iframe.style.border = 'none'; p.appendChild(iframe);
     }
-   } else { const msg = document.createElement('div'); msg.style.textAlign='center'; msg.style.padding='100px 20px'; msg.innerHTML = `<div style="font-size:18px;color:var(--muted)">Trailer not available for embed.</div>`; p.appendChild(msg); }
+  } else { const msg = document.createElement('div'); msg.style.textAlign='center'; msg.style.padding='100px 20px'; msg.innerHTML = `<div style="font-size:18px;color:var(--muted)">Trailer not available for embed.</div>`; p.appendChild(msg); }
   document.getElementById('nowTitle').textContent = it.title || '';
-  const watch
+  const watch = document.createElement('button'); // Line complete ki gayi
 
+} // showItem function close
+
+// 🔔 AGE BUTTON LISTENER & MAIN LOAD SEQUENCE (Cleaned)
+function handleDeepLink(){
+    const hash = window.location.hash.substring(1);
+    const match = hash.match(/^v=(.*)/);
+    if(match){
+        const id = decodeURIComponent(match[1]);
+        triggerAdThenShowItemById(id);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Check Age Gate (Assuming you have a modal with ID 'ageGateModal' in your actual setup)
+    const isVerified = localStorage.getItem('age_verified') === 'true';
+    const ageGateModal = document.getElementById('ageGateModal');
+    
+    // 2. Initial Data Load Logic
+    items = parseRows(await fetchSheet());
+    items.sort((a,b) => new Date(b.date||'1970-01-01') - new Date(a.date||'1970-01-01'));
+    document.getElementById('count').textContent = items.length + ' items';
+    renderRandom();
+    renderLatest();
+    renderCategoryDropdown();
+    checkAdBlocker();
+    handleDeepLink();
+
+    // 3. AGE BUTTON LISTENER (Cleaned)
+    const ageBtn = document.getElementById('ageBtn');
+    if (ageBtn) {
+        ageBtn.addEventListener('click', function() {
+            // Existing Logic (Age Check/Cookie Set)
+            localStorage.setItem('age_verified', 'true');
+            if(ageGateModal) ageGateModal.style.display = 'none';
+        });
+    }
+    
+    // 4. Initial Modal Display (Agar Age Gate Modal exist karta hai)
+    if(!isVerified && ageGateModal) {
+        ageGateModal.style.display = 'flex'; // Show age gate if not verified
+    }
+});
+    
