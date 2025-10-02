@@ -1,4 +1,4 @@
-// FINAL Dareloom v14 - Double Link, Ad Blocker Bypass, Dynamic Buttons
+// FINAL Dareloom v15 - Ad Blocker Lock, Robust Streamtape Embed
 // OneSignal Lock Removed. Content loads directly.
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
@@ -64,7 +64,7 @@ function parseRows(values){
   return out;
 }
 
-// --- Utilities (No change needed) ---
+// --- Utilities ---
 function extractYouTubeID(url){
   if(!url) return null;
   const m = url.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
@@ -110,6 +110,37 @@ function toEmbedUrl(url){
 
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
 
+
+// ✅ Schema Injection (Corrected and Complete)
+function injectSchema(it) {
+  const oldSchema = document.getElementById('video-schema');
+  if (oldSchema) oldSchema.remove();
+
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.id = 'video-schema';
+  const thumb = makeThumbnail(it);
+
+  script.text = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    "name": it.title,
+    "description": it.description && it.description.trim() ?
+      it.description : it.title,
+    "thumbnailUrl": thumb,
+    "uploadDate": it.date || new Date().toISOString().split('T')[0],
+    "publisher": {
+      "@type": "Organization",
+      "name": "Dareloom Hub",
+      "url": "https://dareloom.fun"
+    },
+    "contentUrl": it.watch,
+    "embedUrl": toEmbedUrl(it.trailer), // Schema ke liye Trailer use kiya
+  });
+
+  document.head.appendChild(script);
+}
+
 // --- New Ad Trigger Functions ---
 
 // ✅ Simple Ad Injection (for Card/Preview clicks)
@@ -146,6 +177,65 @@ function triggerAdThenShowItemById(id){
     if(it) triggerAdThenShowItem(it); 
 }
 window.triggerAdThenShowItemById = triggerAdThenShowItemById; // Global access for HTML onclick
+
+// --- NEW AD BLOCKER DETECTION ---
+
+function showAdBlockerModal() {
+    const mainWrap = document.getElementById('mainWrap');
+    const modal = document.getElementById('adBlockerModal');
+    
+    // Main content ko chhipao
+    if (mainWrap) {
+        mainWrap.style.display = 'none';
+    }
+    // Modal ko dikhao aur background ko scroll hone se roko
+    if (modal) {
+        modal.style.display = 'flex'; 
+    }
+    document.body.style.overflow = 'hidden';
+}
+
+function checkAdBlocker() {
+    // 1. Ek dummy ad element banao jise ad blocker targets karte hain
+    const testAd = document.createElement('div');
+    // Ad Blocker list mein aane wale class names use kiye
+    testAd.className = 'pub_300x250 pub_ad pub_ad_300x250'; 
+    testAd.style.width = '1px';
+    testAd.style.height = '1px';
+    testAd.style.position = 'absolute';
+    testAd.style.left = '-10000px'; 
+
+    document.body.appendChild(testAd);
+
+    // 2. Ad-blocker ko detect karne ke liye thoda samay do
+    setTimeout(() => {
+        // 3. Check karo ki kya element block ho gaya hai ya chhip gaya hai
+        const isBlocked = testAd.offsetHeight === 0 || 
+                         testAd.clientHeight === 0 || 
+                         getComputedStyle(testAd).display === 'none' ||
+                         getComputedStyle(testAd).visibility === 'hidden';
+
+        // 4. Cleanup
+        testAd.remove();
+
+        // 5. Agar block hua, toh modal dikhao
+        if (isBlocked) {
+            console.warn("Ad Blocker Detected! Restricting content.");
+            showAdBlockerModal();
+        } else {
+             // Agar ad-blocker nahi hai, aur galti se content chhipa hua hai, toh dikha do
+            const mainWrap = document.getElementById('mainWrap');
+            const modal = document.getElementById('adBlockerModal');
+            if (mainWrap && mainWrap.style.display === 'none') {
+                mainWrap.style.display = 'block';
+                if(modal) modal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+        }
+    }, 100); 
+}
+
+// --- END OF NEW AD BLOCKER DETECTION ---
 
 // --- Render Functions (No change in rendering logic) ---
 function renderRandom(){
@@ -363,14 +453,14 @@ function shareItem(it) {
 function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); } 
 
 
-// ✅ FINAL showItem function: Dynamic buttons aur Watch link options ke saath
+// ✅ FINAL showItem function: Dynamic buttons aur Watch link options ke saath (STREAMTAPE FIX APPLIED)
 function showItem(it){
   current = it;
   // Trailer link use ho rahi hai (embed ke liye)
   const embed = toEmbedUrl(it.trailer); 
   
   const p = document.getElementById('playerWrap');
-  const controlsContainer = document.getElementById('controlsContainer'); // New ID
+  const controlsContainer = document.getElementById('controlsContainer'); 
   if(!p || !controlsContainer) return;
 
   // --- Player Setup ---
@@ -384,9 +474,15 @@ function showItem(it){
     } else {
       const iframe = document.createElement('iframe');
       iframe.src = embed;
-      iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
-      iframe.allowFullscreen = true;
-      iframe.style.width='100%'; iframe.style.height='420px';
+      // ✅ Yahan maine iframe parameters ko mazboot kiya hai (STREAMTAPE FIX)
+      iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
+      iframe.setAttribute('allowfullscreen', 'true');
+      iframe.setAttribute('webkitallowfullscreen', 'true');
+      iframe.setAttribute('mozallowfullscreen', 'true');
+      iframe.setAttribute('scrolling', 'no');
+      iframe.style.width='100%'; 
+      iframe.style.height='420px'; 
+      iframe.style.border = 'none'; // Added border: none for clean look
       p.appendChild(iframe);
     }
   } else {
@@ -449,7 +545,7 @@ function openWatchWithAd(targetUrl){
   // --- Ad 1: First Pop-under (Immediate) ---
   const s1 = document.createElement('script'); s1.src = AD_POP_URL; document.body.appendChild(s1);
 
-  // --- Open Target Link (100ms delay - Ad Blocker se bachne ka try) ---
+    // --- Open Target Link (100ms delay - Ad Blocker se bachne ka try) ---
   setTimeout(() => {
     try {
         let newWindow = window.open(target,'_blank');
@@ -473,76 +569,61 @@ function openWatchWithAd(targetUrl){
 }
 
 
-// --- Schema Injection (No change needed) ---
-function injectSchema(it){
-  const oldSchema = document.getElementById('video-schema');
-  if(oldSchema) oldSchema.remove();
-  const script = document.createElement('script');
-  script.type = 'application/ld+json';
-  script.id = 'video-schema';
-  const thumb = makeThumbnail(it);
-  script.text = JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "VideoObject",
-    "name": it.title,
-    "description": it.description && it.description.trim() ? it.description : it.title,
-    "thumbnailUrl": thumb,
-    "uploadDate": it.date || new Date().toISOString().split("T")[0],
-    "contentUrl": it.watch,
-    "embedUrl": toEmbedUrl(it.trailer), // Schema ke liye Trailer use kiya
-    "publisher": {
-      "@type": "Organization",
-      "name": "Dareloom Hub",
-      "url": "https://dareloom.fun"
-    }
-  });
-  document.head.appendChild(script);
-}
-
-// --- Misc (Cleaned up event listeners) ---
-function openTrailerNewTab(url){ if(url) window.open(url,'_blank'); }
-function showRandomPick(){ 
-  if(items.length===0) return; 
-  const pick = items[Math.floor(Math.random()*items.length)]; 
-  triggerAdThenShowItem(pick); // ✅ RANDOM click ab Ad trigger karke showItem(pick) karega
-  renderRandom(); 
-}
-
-window.showItemById = showItemById;
-
 // --- Load All (Now runs immediately) ---
-async function loadAll(){
+async function loadAll() {
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
-  const haveDates = parsed.some(i=>i.date && i.date.trim());
-  if(haveDates) parsed.sort((a,b)=> new Date(b.date||0) - new Date(a.date||0));
-  else parsed.reverse();
-  items = parsed;
-  const cnt = document.getElementById('count'); if(cnt) cnt.textContent = items.length + ' items';
   
-  // count pill ko initial value do
+  // Check if any item has a valid date for sorting
+  const haveDates = parsed.some(it => it.date && it.date.trim()); 
+  
+  if (haveDates) {
+    // Sort by date (newest first)
+    parsed.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  } else {
+    // Otherwise, just reverse the order (e.g., if loaded from bottom-up)
+    parsed.reverse();
+  }
+  
+  items = parsed;
+  
+  // Update item count pill
+  const cnt = document.getElementById('count');
+  if (cnt) cnt.textContent = `${items.length} items`;
+  
+  // count pill ko initial value do (Ensure controlsContainer exists)
   const controlsContainer = document.getElementById('controlsContainer');
-  if(controlsContainer) controlsContainer.innerHTML = `<div class="pill" id="count">${items.length} items</div><button class="btn" onclick="showRandomPick()">🎲 Shuffle</button>`;
-
-  // ✅ INITIAL RENDERING CALLS - Content ko load karne ke liye zaroori
+  if (controlsContainer) {
+    controlsContainer.innerHTML = `
+      <div class="pill" id="count">${items.length} items</div>
+      <button class="btn" onclick="showRandomPick()">🎲 Shuffle</button>
+    `;
+  }
+  
+  // INITIAL RENDERING CALLS Content ko load karne ke liye zaroori
   renderRandom();
   renderLatest();
-  renderCategoryDropdown(); 
+  renderCategoryDropdown();
 
-  // Page load hone par pehla item dikhao
+  // Page load hone par pehla item dikhana hai
   if (items.length > 0) {
-      // Ad trigger ki zaroorat nahi hai, sirf preview dikhana hai
-      showItem(items[0]); 
+    // Ad trigger ki zaroorat nahi hai, sirf preview dikhana hai
+    showItem(items[0]); 
   }
-  
-  // Handle deep link (URL Hash)
+
+  // Handle deep link (URL, Hash)
   const hash = window.location.hash;
-  if(hash.startsWith('#v=')){
-    const id = decodeURIComponent(hash.substring(3));
+  if (hash.startsWith("#v=")) {
+    // Correctly get ID and show item
+    const id = decodeURIComponent(hash.substring(3)); // Starts at index 3 for "#v="
     showItemById(id);
   }
-} // <-- loadAll function ka closing brace
 
-// 4. ✅ FINAL INITIALIZATION CALL - Poori website ko shuru karo
+  // NEW: Ad Blocker check ko loadAll ke aakhir mein chalao
+  checkAdBlocker();
+}
+
+// 4. FINAL INITIALIZATION CALL - Poori website ko shuru karo
 loadAll();
-  
+                      
+     
