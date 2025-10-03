@@ -1,6 +1,6 @@
 /*
 * style.css - Professional, Responsive, Futuristic Look
-* Updated: Oct 2025 - Includes Followers Modal, AdBlocker Modal, Sticky Ads, Responsive Grid
+* Updated: Oct 2025 - Includes Tags/Category Styling, Age Gate Modal, AdBlocker Modal, Sticky Ads, Responsive Grid
 */
 
 /* --- General Styles --- */
@@ -12,6 +12,7 @@
   --text-color: #fff;
   --muted-color: #999;
   --shadow-color: rgba(255, 75, 145, 0.9);
+  --accent-color: #e63e81; /* Primary color ka darker shade */
   --secondary-color: #28a745;
 }
 
@@ -191,6 +192,36 @@ hr {
 
 .latest-info { padding: 15px; flex-grow: 1; }
 
+/* --- Tags/Category Styling (NEW) --- */
+.tag-container {
+    margin-top: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.tag-btn {
+    background-color: var(--card-bg);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    padding: 3px 8px;
+    font-size: 11px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    line-height: 1;
+    text-transform: capitalize;
+}
+
+.tag-btn:hover {
+    background-color: var(--primary-color);
+    color: var(--card-bg); /* Text color change on hover */
+    box-shadow: 0 0 10px rgba(255, 75, 145, 0.4);
+}
+/* ---------------------------------- */
+
+
 /* --- Player & Controls --- */
 .hero { display: block; }
 
@@ -270,7 +301,7 @@ hr {
 }
 
 .btn.primary:hover, .watch-btn:hover { 
-  background-color: #e63e81; 
+  background-color: var(--accent-color); 
   box-shadow: 0 0 30px var(--shadow-color);
   transform: scale(1.07);
 }
@@ -327,7 +358,7 @@ footer.foot {
 .footer-info { margin-top: 10px; color: #aaa; font-size: 14px; }
 
 .footer-info a { color: var(--primary-color); text-decoration: none; transition: color 0.2s; }
-.footer-info a:hover { color: #e63e81; }
+.footer-info a:hover { color: var(--accent-color); }
 
 /* --- Category Dropdown --- */
 .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
@@ -352,6 +383,93 @@ footer.foot {
   box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.9);
 }
 
+/* ---------------------------------------------------- */
+/* --- MODALS (AdBlocker & Age Gate) --- */
+/* ---------------------------------------------------- */
+.full-screen-modal {
+  position: fixed;
+  top: 0; left: 0; 
+  width: 100vw; 
+  height: 100vh;
+  background: rgba(0,0,0,0.95);
+  z-index: 10000;
+  display: none; /* Default hidden */
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(8px);
+}
+
+.modal-content {
+  background: var(--card-bg);
+  padding: 40px;
+  border-radius: 20px; 
+  text-align: center;
+  box-shadow: 0px 20px 50px rgba(0,0,0,0.8);
+  max-width: 90%;
+  width: 400px; 
+  border: 5px solid var(--primary-color);
+  animation: pulse 1.5s infinite alternate; 
+}
+
+/* Animation for the modal border */
+@keyframes pulse {
+    from { box-shadow: 0 0 10px var(--primary-color), 0 0 25px var(--shadow-color); }
+    to { box-shadow: 0 0 25px var(--primary-color), 0 0 50px var(--shadow-color); }
+}
+
+.modal-content h2 {
+  color: var(--primary-color);
+  margin-top: 0;
+  font-size: 32px;
+  text-shadow: 0 0 15px var(--shadow-color);
+  text-transform: uppercase;
+}
+
+.modal-content p { 
+    color: var(--text-color); 
+    font-size: 16px; 
+    margin-bottom: 30px; 
+}
+
+/* Specific styling for AdBlocker Modal */
+#adBlockerModal .modal-content h2 {
+    color: #ff0000; /* Red for warning */
+    text-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
+    border: none; /* Remove border-left inherited from h2 */
+    padding-left: 0;
+}
+#adBlockerModal .modal-content {
+    border-color: #ff0000;
+    animation-name: pulse-red;
+}
+@keyframes pulse-red {
+    from { box-shadow: 0 0 10px #ff0000, 0 0 25px rgba(255, 0, 0, 0.5); }
+    to { box-shadow: 0 0 25px #ff0000, 0 0 50px rgba(255, 0, 0, 0.7); }
+}
+
+/* Specific styling for Age Gate Modal */
+#ageGateModal .modal-content button {
+    background: var(--primary-color);
+    color: white;
+    font-size: 20px;
+    border: none;
+    border-radius: 10px;
+    padding: 15px 30px;
+    margin-top: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+#ageGateModal .modal-content button:hover { 
+    background: var(--accent-color); 
+    box-shadow: 0 0 35px var(--shadow-color); 
+    transform: scale(1.05); 
+}
+/* ---------------------------------------------------- */
+
+
 /* --- Mobile Responsive --- */
 @media (max-width: 600px) {
   header.site { padding: 10px 15px; flex-direction: column; align-items: flex-start; }
@@ -372,10 +490,16 @@ footer.foot {
   .card .thumb { height: 120px; }
   .now-title { font-size: 20px; }
   .seo-content { padding: 15px !important; }
+  
+  /* Modal responsive fix */
+  .modal-content { padding: 25px; }
+  .modal-content h2 { font-size: 26px; }
+  .modal-content p { font-size: 15px; margin-bottom: 20px; }
 }
 
-/* --- Followers Modal --- */
+/* --- Followers Modal (Updated to use generic modal classes) --- */
 #followModal {
+  /* Renamed classes for consistency */
   position: fixed;
   top:0; left:0; width:100vw; height:100vh;
   background: rgba(0,0,0,0.95);
@@ -386,30 +510,9 @@ footer.foot {
   backdrop-filter: blur(8px);
 }
 
-#followModal > div {
-  background: var(--card-bg);
-  padding: 40px;
-  border-radius: 20px; 
-  text-align:center;
-  box-shadow:0px 20px 50px rgba(0,0,0,0.8);
-  max-width: 90%;
-  border: 5px solid var(--primary-color);
-  animation: pulse 1.5s infinite alternate; 
-}
+/* Note: Follow Modal's internal structure uses generic classes like h2, p, button,
+   so it will inherit the new modal styling. */
 
-@keyframes pulse {
-    from { box-shadow: 0 0 10px var(--primary-color), 0 0 25px var(--shadow-color); }
-    to { box-shadow: 0 0 25px var(--primary-color), 0 0 50px var(--shadow-color); }
-}
-
-#followModal h2 {
-  color: var(--primary-color);
-  margin-top: 0;
-  font-size: 32px;
-  text-shadow: 0 0 15px var(--shadow-color);
-  text-transform: uppercase;
-}
-#followModal p { color: var(--text-color); font-size: 18px; margin-bottom: 30px; }
 #followBtn {
   background: var(--primary-color);
   color:white;
@@ -424,4 +527,5 @@ footer.foot {
   text-transform: uppercase;
   letter-spacing: 1px;
 }
-#followBtn:hover { background: #e63e81; box-shadow: 0 0 35px var(--shadow-color); transform: scale(1.05); }
+#followBtn:hover { background: var(--accent-color); box-shadow: 0 0 35px var(--shadow-color); transform: scale(1.05); }
+  
