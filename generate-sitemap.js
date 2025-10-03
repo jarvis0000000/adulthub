@@ -1,4 +1,4 @@
-const fs = require("fs");
+Const fs = require("fs");
 const fetch = require("node-fetch");
 const path = require("path");
 
@@ -129,14 +129,14 @@ async function generateSitemap(){
         xml += `  </url>\n`;
     });
 
-    // 🚨 CORRECTION: XML structure close karna zaroori hai
+    // XML structure close karna zaroori hai
     xml += `</urlset>`; 
 
     fs.writeFileSync(SITEMAP_PATH, xml, 'utf8');
     console.log(`✅ SEO-Friendly Sitemap generated with ${items.length} video URLs at: ${SITEMAP_PATH}`);
   }catch(e){
     console.error("❌ Error generating sitemap:", e);
-    // 🚨 CORRECTION: Fail hone par, public directory mein hi empty sitemap save karein
+    // Fail hone par, public directory mein hi valid empty sitemap save karein
     if (!fs.existsSync(PUBLIC_DIR)) {
         fs.mkdirSync(PUBLIC_DIR, { recursive: true });
     }
@@ -148,3 +148,4 @@ async function generateSitemap(){
 }
 
 generateSitemap();
+     
