@@ -25,7 +25,7 @@ const SHEET_API = `https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy
 const PUBLIC_DIR = path.join(__dirname, "public"); 
 const SITEMAP_PATH = path.join(PUBLIC_DIR, "sitemap.xml"); // public folder me save hoga
 
-// --- Helpers ---
+// --- Helpers (Code remains the same) ---
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
 
 function slugify(text){
@@ -82,7 +82,7 @@ function parseRows(values){
   return out;
 }
 
-// --- Sitemap Generator ---
+// --- Sitemap Generator (Corrected) ---
 async function generateSitemap(){
   try{
     // 1. Fetch Data
@@ -125,5 +125,26 @@ async function generateSitemap(){
         xml += `    <loc>${item.url}</loc>\n`;
         xml += `    <lastmod>${lastMod}</lastmod>\n`;
         xml += `    <changefreq>weekly</changefreq>\n`;
-        xml += `    <priority>0.8</priority>\n
-        
+        xml += `    <priority>0.8</priority>\n`; 
+        xml += `  </url>\n`;
+    });
+
+    // 🚨 CORRECTION: XML structure close karna zaroori hai
+    xml += `</urlset>`; 
+
+    fs.writeFileSync(SITEMAP_PATH, xml, 'utf8');
+    console.log(`✅ SEO-Friendly Sitemap generated with ${items.length} video URLs at: ${SITEMAP_PATH}`);
+  }catch(e){
+    console.error("❌ Error generating sitemap:", e);
+    // 🚨 CORRECTION: Fail hone par, public directory mein hi empty sitemap save karein
+    if (!fs.existsSync(PUBLIC_DIR)) {
+        fs.mkdirSync(PUBLIC_DIR, { recursive: true });
+    }
+    fs.writeFileSync(SITEMAP_PATH,
+        '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>',
+        'utf8'
+    );
+  }
+}
+
+generateSitemap();
