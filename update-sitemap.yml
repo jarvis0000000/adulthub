@@ -24,7 +24,15 @@ jobs:
           SHEET_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }}
         run: |
           set -e
+          mkdir -p public
           node scripts/generate-sitemap.js
+
+      - name: Add headers
+        run: |
+          echo "/sitemap.xml" > public/_headers
+          echo "  Content-Type: application/xml; charset=utf-8" >> public/_headers
+          echo "/robots.txt" >> public/_headers
+          echo "  Content-Type: text/plain; charset=utf-8" >> public/_headers
 
       - name: Commit & Push Sitemap
         run: |
