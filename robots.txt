@@ -1,4 +1,3 @@
 User-agent: *
-Disallow: /private/
-
+Allow: /
 Sitemap: https://dareloom.fun/sitemap.xml
