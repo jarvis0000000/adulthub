@@ -10,7 +10,6 @@ const BASE_URL = "https://dareloom.fun";
 const API_KEY = process.env.SHEET_KEY;
 if (!API_KEY) {
   console.error("❌ Error: SHEET_KEY environment variable is not set.");
-  // Deployment fail karne ke liye
   process.exit(1);
 }
 
@@ -72,18 +71,15 @@ function parseRows(values) {
 async function generateSitemap() {
   try {
     const res = await fetch(SHEET_API);
-    // HTTP status check
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
 
     const j = await res.json();
     const items = parseRows(j.values);
 
-    // 1. Create public directory if needed
     if (!fs.existsSync(PUBLIC_DIR)) {
       fs.mkdirSync(PUBLIC_DIR, { recursive: true });
     }
 
-    // 2. Latest Mod Date
     let latestMod = new Date().toISOString().split("T")[0];
     const validDates = items
       .map((i) => new Date(i.date))
@@ -122,27 +118,28 @@ async function generateSitemap() {
 
     xml += `</urlset>\n`;
 
-    // 4. BOM FIX for sitemap.xml
-    fs.writeFileSync(SITEMAP_PATH, xml.trim(), { encoding: "utf8" });
+    // 4. ✅ FINAL FIX: Using Buffer to guarantee BOM-free file writing
+    const sitemapBuffer = Buffer.from(xml.trim(), 'utf8');
+    fs.writeFileSync(SITEMAP_PATH, sitemapBuffer); 
     console.log(`✅ Sitemap created at ${SITEMAP_PATH}`);
 
-    // 5. BOM FIX for _headers
+    // 5. ✅ FINAL FIX: Using Buffer for _headers
     const headersContent = `/sitemap.xml\n  Content-Type: application/xml; charset=utf-8\n/robots.txt\n  Content-Type: text/plain; charset=utf-8\n`;
-    fs.writeFileSync(HEADERS_PATH, headersContent, { encoding: "utf8" });
+    const headersBuffer = Buffer.from(headersContent, 'utf8');
+    fs.writeFileSync(HEADERS_PATH, headersBuffer); 
     console.log(`✅ _headers file created at ${HEADERS_PATH}`);
     
   } catch (e) {
     console.error("❌ Sitemap generation failed:", e.message);
     
-    // Fail-safe (BOM Fix applied here too)
+    // Fail-safe (Buffer fix applied here too)
     if (!fs.existsSync(PUBLIC_DIR)) {
         fs.mkdirSync(PUBLIC_DIR, { recursive: true });
     }
-    fs.writeFileSync(SITEMAP_PATH,
-        '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>',
-        { encoding: "utf8" } 
-    );
-    // Deployment fail kar dein taaki error log mein dikhe
+    const failSafeContent = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>';
+    const failSafeBuffer = Buffer.from(failSafeContent, 'utf8');
+    fs.writeFileSync(SITEMAP_PATH, failSafeBuffer);
+    
     process.exit(1);
   }
 }
