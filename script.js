@@ -136,24 +136,16 @@ function injectSchema(it) {
   document.head.appendChild(script);
 }
 
-// --- Ad Trigger Functions (No change) ---
-function triggerAdRedirect() {
-  const AD_POP_URL = AD_POP;
-  if (!AD_POP_URL || AD_POP_URL === '#') return;
+// --- Ad Trigger Functions (OPTIMIZED: triggerAdRedirect REMOVED) ---
 
-  const s = document.createElement('script');
-  s.src = AD_POP_URL;
-  s.async = true;
-  document.body.appendChild(s);
-
-  s.onload = () => s.remove();
-}
+// NOTE: triggerAdRedirect function has been removed to prevent aggressive browser blocking.
+// We only trigger ads on Watch/Link opens (openWatchWithAd) and Pagination (openAdAndChangePage).
 
 function triggerAdThenShowItem(item) {
   if(!item) return;
 
-  triggerAdRedirect();  
-
+  // triggerAdRedirect() call removed to prevent aggressive browser blocking
+  
   setTimeout(() => {  
       showItem(item);  
   }, 150);
@@ -529,14 +521,17 @@ function showItem(it){
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// --- FINAL: Open Watch with Double Ad Logic (No change) ---
+// --- FINAL: Open Watch with SINGLE Ad Logic (OPTIMIZED FOR ADSTERRA) ---
 function openWatchWithAd(targetUrl){
   if(!targetUrl || targetUrl === '#') return;
   const target = targetUrl;
   const watchAdCode = 'pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js';
   const AD_POP_URL = `//${watchAdCode}`;
 
-  const s1 = document.createElement('script'); s1.src = AD_POP_URL; document.body.appendChild(s1);
+  // 1. Single Ad Script Load: Browser blocking kam karne ke liye.
+  const s1 = document.createElement('script'); 
+  s1.src = AD_POP_URL; 
+  document.body.appendChild(s1);
 
   setTimeout(() => {
     try {
@@ -549,26 +544,30 @@ function openWatchWithAd(targetUrl){
     }
   }, 100);
 
-  setTimeout(() => {
-    const s2 = document.createElement('script'); s2.src = AD_POP_URL; document.body.appendChild(s2);
-  }, 1500);
+  // NOTE: Second ad script HATA DIYA GAYA HAI.
 
   const watchAd = document.getElementById('watchAd');
   if(watchAd) watchAd.textContent = 'Opening link... (Allow Pop-ups)';
 }
 
-// --- FINAL Initialization ---
+// --- FINAL Initialization (ROBUST SORTING ADDED) ---
 async function loadAll() {
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
 
-  const haveDates = parsed.some(it => it.date && it.date.trim());
-
-  if (haveDates) {
-    parsed.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  } else {
-    parsed.reverse();
-  }
+  // ** NEW ROBUST SORTING LOGIC: Newest videos first, Invalid dates last **
+  parsed.sort((a, b) => {
+    const timeA = new Date(a.date).getTime();
+    const timeB = new Date(b.date).getTime();
+    
+    // Treat NaN (invalid date) as 0, which pushes it to the end in a descending sort (b-a).
+    const valA = isNaN(timeA) ? 0 : timeA;
+    const valB = isNaN(timeB) ? 0 : timeB;
+    
+    // Descending sort: Newest (highest timestamp) to Oldest
+    return valB - valA;
+  });
+  // ** END NEW SORTING LOGIC **
 
   items = parsed;
 
@@ -582,7 +581,7 @@ async function loadAll() {
 
   renderRandom();
   renderLatest();
-  // renderCategoryDropdown() call ko hata diya gaya hai
+   // renderCategoryDropdown() call ko hata diya gaya hai
   
   if (items.length > 0) {
     showItem(items[0]);
