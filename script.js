@@ -1,5 +1,5 @@
-// FINAL DARELOOM HUB SCRIPT v19 - FIXED COLUMN INDEXES
-// Columns: A=0, C=2, G=6, R=17, T=19, U=20
+// FINAL DARELOOM HUB SCRIPT v20 - REMOVED TOP CATEGORIES DROPDOWN
+// Tags/Categories sirf video ke niche se hi load honge.
 
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
@@ -19,14 +19,13 @@ async function fetchSheet() {
   }
 }
 
-// --- Parse Rows (NOW FIXED INDEXES) ---
+// --- Parse Rows (FIXED INDEXES) ---
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
 
 function parseRows(values){
   if(!values || values.length < 2) return [];
   
-  // Headers row ko ignore kiya gaya hai, direct index use ho raha hai
-  // Column to Index Mapping: A=0, B=1, C=2, ..., G=6, ..., R=17, S=18, T=19, U=20
+  // Column to Index Mapping: A=0, C=2, G=6, R=17, S=18, T=19, U=20
   const TI = 0;   // Title (A)
   const TR = 2;   // Trailer (C)
   const WA = 6;   // Watch (G)
@@ -34,7 +33,6 @@ function parseRows(values){
   const DT = 19;  // Date (T)
   const CA = 20;  // Category (U)
   
-  // Description index ko dhoondhne ke liye abhi bhi logic rakhte hain
   const headers = (values[0]||[]).map(h=> (h||'').toString());
   const DE = headers.findIndex(h => norm(h) === 'description' || norm(h) === 'desc');
   
@@ -42,7 +40,6 @@ function parseRows(values){
   const out = [];
   
   for(let r of rows){
-    // Data ko direct index se uthaya ja raha hai
     const title = r[TI]||'';
     const trailer = r[TR]||'';
     const watch = r[WA]||'';
@@ -51,7 +48,6 @@ function parseRows(values){
     const category = r[CA]||'';
     const description = DE !== -1 ? (r[DE]||'') : ''; 
 
-    // Sirf woh items include karo jinmein Trailer ya Watch link ho
     if((trailer && trailer.trim()) || (watch && watch.trim())){  
       out.push({   
         id: (title||'') + '|' + (watch||''),   
@@ -92,7 +88,6 @@ function toEmbedUrl(url){
     if(m) return 'https://drive.google.com/file/d/' + m[0] + '/preview';
   }
 
-  // Streamtape EMBED LOGIC for PREVIEW
   if(url.includes("streamtape.com")) {
     let id;
     if(url.includes("/v/")) {
@@ -256,14 +251,17 @@ function renderLatest(page = currentPage){
     const div = document.createElement('div'); div.className='latest-item';
     const t = makeThumbnail(it);
     
+    // --- Generate Tags (Hashtags) HTML ---
     let tagsHtml = '';
     if (it.category && it.category.trim()) {
         const categories = it.category.split(',').map(c => c.trim()).filter(c => c.length > 0);
         tagsHtml = categories.map(tag => {
             const cleanTag = escapeHtml(tag);
+            // Tags par click karne par naye Category View mein videos load honge
             return `<button class="tag-btn" onclick="showCategoryView('${cleanTag.charAt(0).toUpperCase() + cleanTag.slice(1)}', items.filter(i => (i.category || '').toLowerCase().includes('${cleanTag.toLowerCase()}')))">#${cleanTag}</button>`;
         }).join('');
     }
+    // -------------------------------------
     
     div.innerHTML = `
         <img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy">
@@ -283,39 +281,7 @@ function renderLatest(page = currentPage){
   displayPagination(totalPages, currentPage);
 }
 
-function renderCategoryDropdown(){
-  const categories = Array.from(new Set(items.flatMap(item =>
-    (item.category ? item.category.toLowerCase().split(',').map(c => c.trim()) : []))));
-
-  categories.sort();  
-    
-  const dropdown = document.getElementById('categoryDropdown');  
-  dropdown.innerHTML = '';  
-    
-  const allBtn = document.createElement('a');  
-  allBtn.href = '#';  
-  allBtn.textContent = 'All Videos';  
-  allBtn.addEventListener('click', () => {   
-      showCategoryView('All Videos');  
-      document.getElementById('searchInput').value = '';   
-  });  
-  dropdown.appendChild(allBtn);  
-
-  categories.forEach(cat => {  
-      const a = document.createElement('a');  
-      a.href = '#';  
-      a.textContent = cat.charAt(0).toUpperCase() + cat.slice(1);  
-      a.addEventListener('click', () => {  
-          const filtered = items.filter(item => {  
-              const videoCategories = item.category ? item.category.toLowerCase().split(',').map(c => c.trim()) : [];  
-              return videoCategories.includes(cat);  
-          });  
-          showCategoryView(cat.charAt(0).toUpperCase() + cat.slice(1), filtered);  
-          document.getElementById('searchInput').value = '';   
-      });  
-      dropdown.appendChild(a);  
-  });
-}
+// NOTE: renderCategoryDropdown function has been REMOVED as requested.
 
 function showCategoryView(title, filteredVideos = items){
   const randomSection = document.getElementById('randomSection');
@@ -616,8 +582,8 @@ async function loadAll() {
 
   renderRandom();
   renderLatest();
-  renderCategoryDropdown();
-
+  // renderCategoryDropdown() call ko hata diya gaya hai
+  
   if (items.length > 0) {
     showItem(items[0]);
   }
