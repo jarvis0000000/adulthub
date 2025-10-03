@@ -1,4 +1,4 @@
-Const fs = require("fs");
+const fs = require("fs");
 const fetch = require("node-fetch");
 const path = require("path");
 
@@ -9,23 +9,19 @@ const BASE_URL = "https://dareloom.fun";
 const API_KEY = process.env.SHEET_KEY;
 if (!API_KEY) {
     console.error("❌ Error: SHEET_KEY environment variable is not set.");
-    // Fail safe: Create an empty sitemap in the current directory if API key is missing
-    const emptySitemapPath = path.join(__dirname, "sitemap.xml");
-    fs.writeFileSync(emptySitemapPath,
-        '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>',
-        'utf8'
-    );
-    process.exit(1);
+    // Fail safe: Agar API key nahi hai, toh action ko fail kar do (empty sitemap banane se behtar)
+    process.exit(1); 
 }
 
 // Google Sheet API
 const SHEET_API = `https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=${API_KEY}`;
 
-// Path to public directory (will be created if it doesn't exist)
+// --- Robust Path Setup ---
+// Hum file ko seedhe 'public' folder ke andar save karenge.
 const PUBLIC_DIR = path.join(__dirname, "public"); 
-const SITEMAP_PATH = path.join(PUBLIC_DIR, "sitemap.xml"); // public folder me save hoga
+const SITEMAP_PATH = path.join(PUBLIC_DIR, "sitemap.xml"); 
 
-// --- Helpers (Code remains the same) ---
+// --- Helpers (No changes needed) ---
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
 
 function slugify(text){
@@ -33,8 +29,8 @@ function slugify(text){
     .toString()
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, '-')   // non-alphanumeric ko "-" me convert
-    .replace(/^-+|-+$/g, '');      // extra dashes hataye
+    .replace(/[^a-z0-9]+/g, '-')   
+    .replace(/^-+|-+$/g, '');      
 }
 
 function parseRows(values){
@@ -46,7 +42,6 @@ function parseRows(values){
   const wa = 6;   
   const dt = 19;  
   
-  // Fallback to searching if fixed index fails (less reliable, but safe)
   const findHeaderIndex = (candidates) => {
     for(let i=0;i<headers.length;i++){
       const h = norm(headers[i]);
@@ -63,14 +58,12 @@ function parseRows(values){
   const out = [];
 
   for(let r of rows){
-    // Use fixed index, fallback to header search
     const title = (r[ti]||'') || (ti_fallback !== -1 ? (r[ti_fallback]||'') : '');
     const watch = (r[wa]||'') || (wa_fallback !== -1 ? (r[wa_fallback]||'') : '');
     const date = (r[dt]||'') || (dt_fallback !== -1 ? (r[dt_fallback]||'') : '');
     
     if(title.trim() && watch.trim()){
         const slug = slugify(title) || "video";
-        // Create short unique ID, removing non-alphanumeric characters
         const uniqueId = Buffer.from(watch).toString("base64").slice(0,8).replace(/[^a-zA-Z0-9]/g, ''); 
         
         out.push({
@@ -82,15 +75,19 @@ function parseRows(values){
   return out;
 }
 
-// --- Sitemap Generator (Corrected) ---
+// --- Sitemap Generator (Final) ---
 async function generateSitemap(){
+  let items = []; // Items ko try block ke bahar define karein for error logging
   try{
     // 1. Fetch Data
     const res = await fetch(SHEET_API);
+    if (!res.ok) { // Check for HTTP errors like 400 or 403
+        throw new Error(`HTTP error! Status: ${res.status}`);
+    }
     const j = await res.json();
-    const items = parseRows(j.values);
+    items = parseRows(j.values);
     
-    // 2. Create public directory if it doesn't exist (Robust path handling)
+    // 2. Create public directory if it doesn't exist 
     if (!fs.existsSync(PUBLIC_DIR)) {
         fs.mkdirSync(PUBLIC_DIR, { recursive: true });
         console.log(`📂 Created directory: ${PUBLIC_DIR}`);
@@ -104,7 +101,7 @@ async function generateSitemap(){
         latestMod = validDates[0].toISOString().split("T")[0];
     }
 
-    // 4. Build XML
+    // 4. Build XML (No change in XML structure)
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
     xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
@@ -129,23 +126,26 @@ async function generateSitemap(){
         xml += `  </url>\n`;
     });
 
-    // XML structure close karna zaroori hai
     xml += `</urlset>`; 
 
     fs.writeFileSync(SITEMAP_PATH, xml, 'utf8');
     console.log(`✅ SEO-Friendly Sitemap generated with ${items.length} video URLs at: ${SITEMAP_PATH}`);
   }catch(e){
-    console.error("❌ Error generating sitemap:", e);
-    // Fail hone par, public directory mein hi valid empty sitemap save karein
+    console.error(`❌ Fatal Error during sitemap generation (Fetched ${items.length} items):`, e.message);
+    
+    // Fail-safe ke liye agar directory nahi hai toh banao
     if (!fs.existsSync(PUBLIC_DIR)) {
         fs.mkdirSync(PUBLIC_DIR, { recursive: true });
     }
+    // Aur phir ek valid empty sitemap save karo
     fs.writeFileSync(SITEMAP_PATH,
         '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>',
         'utf8'
     );
+    // Execution ko fail karo taaki log mein dikhe ki kuch galat hua hai
+    process.exit(1); 
   }
 }
 
 generateSitemap();
-     
+            
