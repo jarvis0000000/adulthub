@@ -1,12 +1,8 @@
-# Name: Update Sitemap
-# YML file path: .github/workflows/update-sitemap.yml
-
 name: Update Sitemap
 
 on:
   schedule:
-    # Hourly run (Har ghante sitemap update hoga)
-    - cron: '0 * * * *' 
+    - cron: '0 * * * *' # every hour
   workflow_dispatch:
 
 jobs:
@@ -14,55 +10,45 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Node
         uses: actions/setup-node@v3
         with:
           node-version: 20
+
       - name: Install dependencies
-        # node-fetch v2 is required because sitemap.js uses 'require' instead of 'import'
         run: npm install node-fetch@2
-        
-      # 1. Google Sheet Key ko Secret se pass karna
+
       - name: Generate sitemap
         env:
           SHEET_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }}
-        # Note: Assuming sitemap script is at 'scripts/generate-sitemap.js'
-        run: node scripts/generate-sitemap.js
-        
-      # 2. Commit & Push the generated sitemap.xml
+        run: |
+          set -e
+          node scripts/generate-sitemap.js
+
       - name: Commit & Push Sitemap
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          
-          # 🚨 FINAL CORRECTION 1: File ko force add karein taaki koi tracking issue na ho
-          git add -f public/sitemap.xml
-          
+          git add -f public/sitemap.xml public/_headers
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          # Agar file mein changes hain toh commit hoga, warna skip
-          git commit -m "Auto-update sitemap: ${TIMESTAMP}" || echo "No new sitemap changes to commit"
+          git commit -m "Auto-update sitemap: ${TIMESTAMP}" || echo "No changes"
           git push
 
-      # 3. Trigger Cloudflare Pages Re-deploy
       - name: Trigger Cloudflare Pages Deployment
         env:
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ACCOUNT_ID: '1de9700c63c35247d84a4caaf3700f6b' 
-          CF_PAGES_PROJECT: 'Adulthub' 
+          CF_ACCOUNT_ID: '1de9700c63c35247d84a4caaf3700f6b'
+          CF_PAGES_PROJECT: 'Adulthub'
         run: |
-          if [ "${CLOUDFLARE_TOKEN}" == "" ]; then
-            echo "Error: CLOUDFLARE_API_TOKEN secret is not set."
-            exit 1
-          fi
-          
-          echo "Triggering Cloudflare deployment for project: ${CF_PAGES_PROJECT}"
-          
-          # Deployment API call
           curl -X POST "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PAGES_PROJECT}/deployments" \
           -H "Authorization: Bearer ${CLOUDFLARE_TOKEN}" \
           -H "Content-Type: application/json" \
-          --fail \
-          --silent \
-          --show-error \
           --data '{"branch": "main"}'
-          
+
+      - name: Purge Cloudflare Cache
+        run: |
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${{ secrets.CLOUDFLARE_ZONE_ID }}/purge_cache" \
+          -H "Authorization: Bearer ${{ secrets.CLOUDFLARE_API_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          --data '{"files":["https://dareloom.fun/sitemap.xml"]}'
