@@ -132,6 +132,19 @@
     </div>
 </div>
 
+<script>
+  (function() {
+    // pathname check karne ke liye ki yeh /video/ path se start ho raha hai ya nahi.
+    const path = window.location.pathname;
+    
+    if (path.startsWith('/video/')) {
+        // Agar yeh path /video/ par hai, toh ise home page par redirect kar do.
+        // Yeh maana ja raha hai ki Cloudflare Pages /video/* ko index.html par serve kar raha hoga (using _redirects file).
+        // Phir yeh client-side script URL ko / par set kar dega.
+        window.location.replace('/');
+    }
+  })();
+</script>
 <script src="script.js?v=20251003"></script>
 
 </body>
