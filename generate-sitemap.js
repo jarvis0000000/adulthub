@@ -10,20 +10,19 @@ const BASE_URL = "https://dareloom.fun";
 const API_KEY = process.env.SHEET_KEY;
 if (!API_KEY) {
   console.error("❌ Error: SHEET_KEY environment variable is not set.");
+  // Deployment fail karne ke liye
   process.exit(1);
 }
 
 // Google Sheet API endpoint (replace spreadsheetId & range as per your sheet)
 const SHEET_API = `https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=${API_KEY}`;
 
-// Output folder (Cloudflare Pages default is "public" in repo root)
-// Assuming this script is inside a 'scripts' folder
+// Output folder (Path fix: scripts se repo root ke public folder tak)
 const PUBLIC_DIR = path.join(__dirname, "..", "public");
 const SITEMAP_PATH = path.join(PUBLIC_DIR, "sitemap.xml");
 const HEADERS_PATH = path.join(PUBLIC_DIR, "_headers");
 
-
-// --- Helpers (Code remains the same) ---
+// --- Helpers ---
 function slugify(text) {
   return text
     .toString()
@@ -68,19 +67,18 @@ function parseRows(values) {
   }
   return out;
 }
-// --- Helpers End ---
-
 
 // Generate sitemap
 async function generateSitemap() {
   try {
     const res = await fetch(SHEET_API);
+    // HTTP status check
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
 
     const j = await res.json();
     const items = parseRows(j.values);
 
-    // 1. Create public directory
+    // 1. Create public directory if needed
     if (!fs.existsSync(PUBLIC_DIR)) {
       fs.mkdirSync(PUBLIC_DIR, { recursive: true });
     }
@@ -99,8 +97,6 @@ async function generateSitemap() {
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
     xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
-    // ... (Video Pages Loop) ...
-    
     // Homepage
     xml += `  <url>\n`;
     xml += `    <loc>${BASE_URL}/</loc>\n`;
@@ -126,11 +122,11 @@ async function generateSitemap() {
 
     xml += `</urlset>\n`;
 
-    // 4. BOM Fix applied here
+    // 4. BOM FIX for sitemap.xml
     fs.writeFileSync(SITEMAP_PATH, xml.trim(), { encoding: "utf8" });
     console.log(`✅ Sitemap created at ${SITEMAP_PATH}`);
 
-    // 5. Create _headers for correct content-type (BOM Fix applied here)
+    // 5. BOM FIX for _headers
     const headersContent = `/sitemap.xml\n  Content-Type: application/xml; charset=utf-8\n/robots.txt\n  Content-Type: text/plain; charset=utf-8\n`;
     fs.writeFileSync(HEADERS_PATH, headersContent, { encoding: "utf8" });
     console.log(`✅ _headers file created at ${HEADERS_PATH}`);
@@ -138,7 +134,7 @@ async function generateSitemap() {
   } catch (e) {
     console.error("❌ Sitemap generation failed:", e.message);
     
-    // Fail-safe (BOM Fix applied here)
+    // Fail-safe (BOM Fix applied here too)
     if (!fs.existsSync(PUBLIC_DIR)) {
         fs.mkdirSync(PUBLIC_DIR, { recursive: true });
     }
@@ -146,9 +142,9 @@ async function generateSitemap() {
         '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>',
         { encoding: "utf8" } 
     );
+    // Deployment fail kar dein taaki error log mein dikhe
     process.exit(1);
   }
 }
 
 generateSitemap();
-      
