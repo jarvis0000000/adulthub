@@ -1,56 +1,80 @@
 const fs = require("fs");
 const fetch = require("node-fetch");
+const path = require("path");
 
-// !!! KRIPYA YAHAN APNA WEBSITE KA BASE URL DALEIN (E.g., https://dareloom.fun) !!!
-// Dhyaan dein: Yeh URL HTTPS ke saath hona chahiye
-const BASE_URL = "https://dareloom.fun"; 
+// Base URL (Apna site URL yahan daalo)
+const BASE_URL = "https://dareloom.fun";
 
-// ✅ CHANGES START HERE: Key ab Environment Variable se aayegi
-const API_KEY = process.env.SHEET_KEY; 
-
-// Agar key na ho toh script fail ho jaani chahiye
+// API Key from Environment
+const API_KEY = process.env.SHEET_KEY;
 if (!API_KEY) {
-    console.error("Error: SHEET_KEY environment variable is not set. Cannot run sitemap generation.");
-    // Fail safe: empty sitemap bana do
-    fs.writeFileSync("./sitemap.xml", '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>', 'utf8');
-    return;
+    console.error("❌ Error: SHEET_KEY environment variable is not set.");
+    // Fail safe: Create an empty sitemap in the current directory if API key is missing
+    const emptySitemapPath = path.join(__dirname, "sitemap.xml");
+    fs.writeFileSync(emptySitemapPath,
+        '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>',
+        'utf8'
+    );
+    process.exit(1);
 }
 
+// Google Sheet API
 const SHEET_API = `https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=${API_KEY}`;
-// ✅ CHANGES END HERE
 
-const SITEMAP_PATH = "./sitemap.xml"; 
+// Path to public directory (will be created if it doesn't exist)
+const PUBLIC_DIR = path.join(__dirname, "public"); 
+const SITEMAP_PATH = path.join(PUBLIC_DIR, "sitemap.xml"); // public folder me save hoga
 
-// --- Functions to fetch and parse data ---
+// --- Helpers ---
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
-function findHeaderIndex(headers, candidates){
-  for(let i=0;i<headers.length;i++){
-    const h = norm(headers[i]);
-    for(const c of candidates) if(h === c.toLowerCase()) return i;
-  }
-  return -1;
+
+function slugify(text){
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')   // non-alphanumeric ko "-" me convert
+    .replace(/^-+|-+$/g, '');      // extra dashes hataye
 }
 
-// ✅ UPDATED: Ab yeh function Title, Watch link aur Date teenon nikalega
 function parseRows(values){
   if(!values || values.length < 2) return [];
   const headers = (values[0]||[]).map(h=> (h||'').toString());
-  const ti = findHeaderIndex(headers, ['title']);
-  const wa = findHeaderIndex(headers, ['watch','watch link']);
-  const dt = findHeaderIndex(headers, ['date']);
+  
+  // FIXED INDEXES: Title(A)=0, Watch(G)=6, Date(T)=19
+  const ti = 0;   
+  const wa = 6;   
+  const dt = 19;  
+  
+  // Fallback to searching if fixed index fails (less reliable, but safe)
+  const findHeaderIndex = (candidates) => {
+    for(let i=0;i<headers.length;i++){
+      const h = norm(headers[i]);
+      for(const c of candidates) if(h === c.toLowerCase()) return i;
+    }
+    return -1;
+  };
+
+  const ti_fallback = findHeaderIndex(['title']);
+  const wa_fallback = findHeaderIndex(['watch','watch link']);
+  const dt_fallback = findHeaderIndex(['date']);
+
   const rows = values.slice(1);
   const out = [];
 
   for(let r of rows){
-    const title = ti !== -1 ? (r[ti]||'') : '';
-    const watch = wa !== -1 ? (r[wa]||'') : '';
-    const date = dt !== -1 ? (r[dt]||'') : '';
+    // Use fixed index, fallback to header search
+    const title = (r[ti]||'') || (ti_fallback !== -1 ? (r[ti_fallback]||'') : '');
+    const watch = (r[wa]||'') || (wa_fallback !== -1 ? (r[wa_fallback]||'') : '');
+    const date = (r[dt]||'') || (dt_fallback !== -1 ? (r[dt_fallback]||'') : '');
     
-    // Sirf woh items lo jinka title aur watch link ho
     if(title.trim() && watch.trim()){
+        const slug = slugify(title) || "video";
+        // Create short unique ID, removing non-alphanumeric characters
+        const uniqueId = Buffer.from(watch).toString("base64").slice(0,8).replace(/[^a-zA-Z0-9]/g, ''); 
+        
         out.push({
-            // Deep-link ID: Title|WatchLink
-            id: (title||'') + '|' + (watch||''), 
+            url: `${BASE_URL}/video/${slug}-${uniqueId}`,
             date: date || new Date().toISOString().split("T")[0]
         });
     }
@@ -58,27 +82,33 @@ function parseRows(values){
   return out;
 }
 
-// --- Main Sitemap Generation Logic ---
+// --- Sitemap Generator ---
 async function generateSitemap(){
   try{
+    // 1. Fetch Data
     const res = await fetch(SHEET_API);
     const j = await res.json();
-    const items = parseRows(j.values); // Saare items fetch kiye
+    const items = parseRows(j.values);
     
-    // Default to today's date
-    let latestMod = new Date().toISOString().split("T")[0];
+    // 2. Create public directory if it doesn't exist (Robust path handling)
+    if (!fs.existsSync(PUBLIC_DIR)) {
+        fs.mkdirSync(PUBLIC_DIR, { recursive: true });
+        console.log(`📂 Created directory: ${PUBLIC_DIR}`);
+    }
 
-    // Find the latest update date from the sheet
+    // 3. Determine latest modification date
+    let latestMod = new Date().toISOString().split("T")[0];
     const validDates = items.map(item => new Date(item.date)).filter(d => !isNaN(d));
     if(validDates.length > 0){
         validDates.sort((a, b) => b - a);
         latestMod = validDates[0].toISOString().split("T")[0];
     }
 
-    let xml = `<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n`;
-    xml += `<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n`;
+    // 4. Build XML
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
-    // 1. Home Page URL (Most Important)
+    // Home Page
     xml += `  <url>\n`;
     xml += `    <loc>${BASE_URL}/</loc>\n`;
     xml += `    <lastmod>${latestMod}</lastmod>\n`;
@@ -86,33 +116,14 @@ async function generateSitemap(){
     xml += `    <priority>1.0</priority>\n`; 
     xml += `  </url>\n`;
 
-    // 2. ✅ Video Deep Links (Ab saare videos add honge)
+    // Video Pages
     items.forEach(item => {
-        // Deep link URL: Base URL + #v= + URL Encoded ID (Title|WatchLink)
-        const videoUrl = `${BASE_URL}/#v=${encodeURIComponent(item.id)}`;
-        
-        // Date ko yyyy-mm-dd format mein rakhte hain
         const itemDate = new Date(item.date);
         const lastMod = !isNaN(itemDate) ? itemDate.toISOString().split("T")[0] : latestMod;
         
         xml += `  <url>\n`;
-        xml += `    <loc>${videoUrl}</loc>\n`;
+        xml += `    <loc>${item.url}</loc>\n`;
         xml += `    <lastmod>${lastMod}</lastmod>\n`;
         xml += `    <changefreq>weekly</changefreq>\n`;
-        xml += `    <priority>0.8</priority>\n`; 
-        xml += `  </url>\n`;
-    });
-
-
-    xml += `</urlset>`;
-    
-    fs.writeFileSync(SITEMAP_PATH, xml, 'utf8');
-    console.log(`✅ Sitemap updated successfully with ${items.length} video URLs.`);
-  }catch(e){
-    console.error("Error generating sitemap:", e);
-    // Agar fetch fail ho toh bhi empty sitemap create ho, taki purana wala delete na ho jaaye
-    fs.writeFileSync(SITEMAP_PATH, '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>', 'utf8');
-  }
-}
-
-generateSitemap();
+        xml += `    <priority>0.8</priority>\n
+        
