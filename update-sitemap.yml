@@ -34,19 +34,20 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          # 🚨 CORRECTION: sitemap.js public folder mein file save karta hai
-          git add public/sitemap.xml
-          # Commit only if there are changes
-          git commit -m "Auto-update sitemap [skip ci]" || echo "No new sitemap changes to commit"
+          
+          # 🚨 FINAL CORRECTION 1: File ko force add karein taaki koi tracking issue na ho
+          git add -f public/sitemap.xml
+          
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          # Agar file mein changes hain toh commit hoga, warna skip
+          git commit -m "Auto-update sitemap: ${TIMESTAMP}" || echo "No new sitemap changes to commit"
           git push
 
-      # 3. ✅ FINAL VALUES: Trigger Cloudflare Pages Re-deploy
+      # 3. Trigger Cloudflare Pages Re-deploy
       - name: Trigger Cloudflare Pages Deployment
         env:
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          # ✅ ACCOUNT ID UPDATED
           CF_ACCOUNT_ID: '1de9700c63c35247d84a4caaf3700f6b' 
-          # ✅ PROJECT NAME UPDATED
           CF_PAGES_PROJECT: 'Adulthub' 
         run: |
           if [ "${CLOUDFLARE_TOKEN}" == "" ]; then
