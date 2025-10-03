@@ -31,6 +31,16 @@ function slugify(text) {
     .replace(/^-+|-+$/g, "");
 }
 
+// Escape XML special chars
+function escapeXML(str) {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
 // Parse rows from sheet
 function parseRows(values) {
   if (!values || values.length < 2) return [];
@@ -50,7 +60,7 @@ function parseRows(values) {
         .replace(/[^a-zA-Z0-9]/g, "");
 
       out.push({
-        url: `${BASE_URL}/video/${slug}-${uniqueId}`,
+        url: `${BASE_URL}/video/${escapeXML(slug)}-${uniqueId}`,
         date: date || new Date().toISOString().split("T")[0],
       });
     }
@@ -107,13 +117,13 @@ async function generateSitemap() {
       xml += `  </url>\n`;
     });
 
-    xml += `</urlset>`;
+    xml += `</urlset>\n`;
 
-    fs.writeFileSync(SITEMAP_PATH, xml, "utf8");
+    fs.writeFileSync(SITEMAP_PATH, xml.trim(), "utf8");
     console.log(`✅ Sitemap created at ${SITEMAP_PATH}`);
 
     // Create _headers for correct content-type
-    const headersContent = `/sitemap.xml\n  Content-Type: application/xml; charset=utf-8\n`;
+    const headersContent = `/sitemap.xml\n  Content-Type: application/xml; charset=utf-8\n/robots.txt\n  Content-Type: text/plain; charset=utf-8\n`;
     fs.writeFileSync(HEADERS_PATH, headersContent, "utf8");
     console.log(`✅ _headers file created at ${HEADERS_PATH}`);
   } catch (e) {
