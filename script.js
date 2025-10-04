@@ -581,7 +581,7 @@ async function loadAll() {
 
   renderRandom();
   renderLatest();
-   // renderCategoryDropdown() call ko hata diya gaya hai
+  // renderCategoryDropdown() call ko hata diya gaya hai
   
   if (items.length > 0) {
     showItem(items[0]);
