@@ -120,6 +120,7 @@ function injectSchema(it) {
     "@context": "https://schema.org",
     "@type": "VideoObject",
     "name": it.title,
+    // Description field already using the extracted description for SEO
     "description": it.description && it.description.trim() ?
       it.description : it.title,
     "thumbnailUrl": thumb,
@@ -550,24 +551,16 @@ function openWatchWithAd(targetUrl){
   if(watchAd) watchAd.textContent = 'Opening link... (Allow Pop-ups)';
 }
 
-// --- FINAL Initialization (ROBUST SORTING ADDED) ---
+// --- FINAL Initialization (DATE SORTING REMOVED & REVERSED FOR NEWEST TO OLDEST) ---
 async function loadAll() {
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
 
-  // ** NEW ROBUST SORTING LOGIC: Newest videos first, Invalid dates last **
-  parsed.sort((a, b) => {
-    const timeA = new Date(a.date).getTime();
-    const timeB = new Date(b.date).getTime();
-    
-    // Treat NaN (invalid date) as 0, which pushes it to the end in a descending sort (b-a).
-    const valA = isNaN(timeA) ? 0 : timeA;
-    const valB = isNaN(timeB) ? 0 : timeB;
-    
-    // Descending sort: Newest (highest timestamp) to Oldest
-    return valB - valA;
-  });
-  // ** END NEW SORTING LOGIC **
+  // ** FIXED LOGIC: Date sorting removed, using reverse() for Newest-to-Oldest **
+  // Assuming new entries are added to the bottom of the Google Sheet,
+  // reversing the list provides the Newest-to-Oldest order.
+  parsed.reverse();
+  // ** END FIXED LOGIC **
 
   items = parsed;
 
