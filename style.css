@@ -1,7 +1,6 @@
 /*
 * style.css - Professional, Responsive, Futuristic Look
-* Updated: Oct 2025 - Includes Tags/Category Styling, Age Gate Modal, AdBlocker Modal, Sticky Ads, Responsive Grid
-* FINAL UPDATE: Modal Player Integration & Seductive Styling
+* FINAL UPDATE: Full Screen Modal Player & Ad Placement Fix
 */
 
 /* --- General Styles --- */
@@ -218,23 +217,20 @@ hr {
 
 .tag-btn:hover {
     background-color: var(--primary-color);
-    color: var(--card-bg); /* Text color change on hover */
+    color: var(--card-bg);
     box-shadow: 0 0 10px rgba(255, 75, 145, 0.4);
 }
 /* ---------------------------------- */
 
 
-/* --- Player & Controls --- */
+/* --- Player & Controls (Used only in Modal now) --- */
 .hero { display: block; }
 
 .player-card {
-  background: var(--card-bg);
+  background: #000; /* Darker background for player area */
   border-radius: 20px;
   overflow: hidden;
-  padding: 15px;
-  text-align: center;
-  border: 5px solid var(--primary-color);
-  box-shadow: 0 0 50px var(--shadow-color);
+  /* Removed padding/border/shadow here as it's handled by modal-content */
   z-index: 500; 
   position: relative;
 }
@@ -243,14 +239,6 @@ hr {
   padding: 120px 20px;
   color: var(--muted-color);
   font-size: 20px;
-}
-
-.player-card iframe, .player-card video {
-  width: 100%;
-  min-height: 420px; 
-  border: none;
-  background: #000;
-  border-radius: 12px;
 }
 
 .hero-actions { margin-top: 20px; text-align: center; }
@@ -362,32 +350,7 @@ footer.foot {
 .footer-info a { color: var(--primary-color); text-decoration: none; transition: color 0.2s; }
 .footer-info a:hover { color: var(--accent-color); }
 
-/* --- Category Dropdown (Unused but kept for structure) --- */
-.header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-
-.dropdown { position: relative; display: inline-block; }
-.dropdown-content { display: none; position: absolute; right: 0; background: var(--card-bg); min-width: 250px; box-shadow: 0px 8px 30px rgba(0,0,0,0.9); z-index: 600; border-radius: 10px; max-height: 400px; overflow-y: auto; border: 2px solid var(--primary-color); }
-.dropdown-content a { color: var(--text-color); padding: 12px 18px; text-decoration: none; display: block; transition: background-color 0.2s; border-bottom: 1px solid #2e2e2e; }
-.dropdown-content a:hover { background-color: #2e2e2e; color: var(--primary-color); }
-.dropdown-content a:last-child { border-bottom: none; }
-.dropdown:hover .dropdown-content { display: block; }
-
-/* --- Sticky Footer Ad (Kept style in case you reintroduce it) --- */
-.sticky-ad-footer {
-  position: fixed;
-  bottom: 0; 
-  left: 0;
-  width: 100%;
-  text-align: center;
-  background: #000;
-  padding: 5px 0;
-  z-index: 9999; 
-  box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.9);
-}
-
-/* ---------------------------------------------------- */
 /* --- MODALS (AdBlocker & Age Gate) --- */
-/* ---------------------------------------------------- */
 .full-screen-modal {
   position: fixed;
   top: 0; left: 0; 
@@ -395,11 +358,11 @@ footer.foot {
   height: 100vh;
   background: rgba(0,0,0,0.95);
   z-index: 10000;
-  display: none; /* Default hidden */
+  display: none; 
   justify-content: center;
   align-items: center;
   backdrop-filter: blur(8px);
-  overflow-y: auto; /* Allow scrolling for modal content */
+  overflow-y: auto; 
   padding: 20px 0;
   box-sizing: border-box;
 }
@@ -416,7 +379,6 @@ footer.foot {
   animation: pulse 1.5s infinite alternate; 
 }
 
-/* Animation for the modal border */
 @keyframes pulse {
     from { box-shadow: 0 0 10px var(--primary-color), 0 0 25px var(--shadow-color); }
     to { box-shadow: 0 0 25px var(--primary-color), 0 0 50px var(--shadow-color); }
@@ -428,81 +390,38 @@ footer.foot {
   font-size: 32px;
   text-shadow: 0 0 15px var(--shadow-color);
   text-transform: uppercase;
-  border-left: none; /* h2 override */
-  padding-left: 0; /* h2 override */
+  border-left: none; 
+  padding-left: 0;
 }
 
-.modal-content p { 
-    color: var(--text-color); 
-    font-size: 16px; 
-    margin-bottom: 30px; 
-}
-
-/* Specific styling for AdBlocker Modal */
-#adBlockerModal .modal-content h2 {
-    color: #ff0000; /* Red for warning */
-    text-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
-}
-#adBlockerModal .modal-content {
-    border-color: #ff0000;
-    animation-name: pulse-red;
-}
-@keyframes pulse-red {
-    from { box-shadow: 0 0 10px #ff0000, 0 0 25px rgba(255, 0, 0, 0.5); }
-    to { box-shadow: 0 0 25px #ff0000, 0 0 50px rgba(255, 0, 0, 0.7); }
-}
-
-/* Specific styling for Age Gate Modal */
-#ageGateModal .modal-content button, #followBtn {
-    background: var(--primary-color);
-    color: white;
-    font-size: 20px;
-    border: none;
-    border-radius: 10px;
-    padding: 15px 30px;
-    margin-top: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-weight: bold;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-#ageGateModal .modal-content button:hover, #followBtn:hover { 
-    background: var(--accent-color); 
-    box-shadow: 0 0 35px var(--shadow-color); 
-    transform: scale(1.05); 
-}
-/* ---------------------------------------------------- */
-
-
-/* ---------------------------------------------------- */
 /* --- VIDEO PLAYER MODAL STYLES (for #videoModal) --- */
-/* ---------------------------------------------------- */
-
 .player-content {
-    padding: 0; /* Player ke liye padding hatayi */
-    max-width: 900px; /* Modal ki maximum width */
+    /* For Player Modal, we want a wider layout */
+    max-width: 900px; 
     width: 95%;
     margin: auto;
-    border: none; /* Border player-card mein hai */
-    animation: none; /* No pulse animation for player modal */
+    padding: 0; /* Remove internal padding, container elements will add it */
+    border: none;
+    animation: none;
+    background: transparent; /* Main content background transparent */
+    border-radius: 0;
 }
 
 /* Close Button Style */
 .close-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(255, 255, 255, 0.1);
+    position: fixed; /* Fixed position */
+    top: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.7); /* Darker background */
     color: white;
     border: 2px solid var(--primary-color);
     border-radius: 50%;
-    width: 35px;
-    height: 35px;
-    font-size: 20px;
+    width: 40px;
+    height: 40px;
+    font-size: 22px;
     line-height: 1;
     cursor: pointer;
-    z-index: 1010;
+    z-index: 10100; /* Higher Z-index to be on top of everything */
     transition: background 0.2s, box-shadow 0.3s;
     font-weight: bold;
 }
@@ -513,13 +432,17 @@ footer.foot {
     transform: scale(1.1);
 }
 
-/* Player Wrapper inside Modal */
+/* Player Wrapper inside Modal (16:9 Aspect Ratio) */
 #modalPlayerWrap {
     width: 100%;
     position: relative;
     padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
     height: 0;
     overflow: hidden;
+    /* Adding a slight glow/border around the player area */
+    border: 3px solid var(--header-bg);
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    border-radius: 12px 12px 0 0;
 }
 
 #modalPlayerWrap iframe, 
@@ -529,110 +452,124 @@ footer.foot {
     left: 0;
     width: 100%;
     height: 100%;
-    /* Remove min-height override */
     min-height: auto; 
-    border-radius: 0; /* Full player area */
+    border-radius: 0;
 }
 
 /* Modal Ads and Info Area */
 .modal-controls {
-    padding: 15px 20px 25px;
-    background: #111;
-    border-radius: 0 0 15px 15px;
+    padding: 20px;
+    background: var(--card-bg); /* Dark container for info/buttons */
+    border-radius: 0 0 12px 12px;
 }
 
 .modal-controls h3 {
-    margin-top: 0;
+    margin: 0;
     font-size: 24px;
+    text-align: left;
     color: var(--primary-color);
     text-shadow: 0 0 10px rgba(255, 75, 145, 0.4);
 }
-/* New Description Style */
+
 #modalVideoDescription {
     color: var(--muted-color); 
     font-size: 14px; 
-    margin-top: -5px; 
+    margin-top: 5px; 
     margin-bottom: 15px;
     text-align: left;
 }
 
-
-/* Responsive Adsterra Banner inside Modal */
-.modal-content .adsterra-banner-placement {
-    padding: 15px 20px 5px; 
-    max-width: 728px; 
+/* Ads Placement Container (Native Banner) */
+.adsterra-banner-placement {
+    padding: 15px 10px 10px; 
+    max-width: 728px; /* Standard banner width */
     margin: 0 auto;
-    background: var(--header-bg);
-}
-
-/* Responsive Social Bar inside Modal */
-.modal-content .adsterra-socialbar-placement {
-    padding: 5px 20px 0;
+    background: #000; /* Pure black background for the ad strip */
     text-align: center;
-    background: var(--header-bg);
 }
 
-/* Special look for Streamtape/Telegram buttons inside modal */
-.modal-controls .watch-btn, .modal-controls .btn.primary {
-    /* Keep the attractive look */
-    min-width: 180px;
-    margin: 5px;
+/* Social Bar Placement Container (Social Bar Ad) */
+.adsterra-socialbar-placement {
+    padding: 10px 10px 0;
+    text-align: center;
+    background: #000; /* Pure black background for the ad strip */
+    border-top: 1px solid #333;
 }
 
-/* --- Mobile Responsive (Modal Fixes) --- */
-@media (max-width: 600px) {
-  /* ... (Existing mobile styles kept for homepage) ... */
+/* Adsterra Native Banner Size Fix */
+.adsterra-banner-placement iframe {
+    max-width: 100% !important;
+    height: 90px !important;
+    margin: auto;
+}
+
+/* --- Mobile Responsive (Crucial Fix for Full Screen) --- */
+@media (max-width: 768px) {
+    /* For Player Modal, ensure it uses full screen */
+    .player-content {
+        width: 100%;
+        max-width: none;
+        height: 100%; /* Take full height */
+        padding: 0;
+    }
+    
+    .full-screen-modal {
+        padding: 0;
+    }
+
+    .close-btn {
+        top: 5px;
+        right: 5px;
+        width: 30px;
+        height: 30px;
+        font-size: 16px;
+        background: rgba(0, 0, 0, 0.6);
+        border: none;
+    }
+
+    .modal-controls {
+        padding: 15px;
+    }
+
+    .modal-controls h3 {
+        font-size: 20px;
+        text-align: center;
+    }
+    
+    #modalVideoDescription {
+        text-align: center;
+    }
+
+    /* Buttons should be full width on mobile */
+    .modal-controls .controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .modal-controls .watch-btn, 
+    .modal-controls .btn.primary, 
+    .modal-controls .btn {
+        width: 100%; /* Full width buttons */
+        margin: 0;
+    }
+    
+    .adsterra-banner-placement,
+    .adsterra-socialbar-placement {
+        padding-left: 5px;
+        padding-right: 5px;
+    }
+
+    .latest-item { flex-direction: column; align-items: flex-start; }
+    .latest-thumb { width: 100%; height: 180px; border-radius: 12px 12px 0 0; box-shadow: none; }
+    .latest-info { padding: 10px 15px 15px; }
+    .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+    .card .thumb { height: 120px; }
+}
+
+/* Existing Modal Styles (for Age Gate / AdBlocker, ensures they are centered) */
+@media (min-width: 769px) {
+    .modal-content:not(.player-content) {
+        margin: auto;
+    }
+  }
   
-  /* Modal responsive fix */
-  .full-screen-modal {
-      padding: 0; /* Remove padding from main wrapper */
-  }
-
-  .player-content {
-      width: 100%;
-      max-width: none;
-      height: 100vh;
-      border-radius: 0;
-      padding: 0;
-      /* Remove border/shadow inherited from generic modal */
-      border: none; 
-      box-shadow: none; 
-  }
-    
-  .modal-content .adsterra-socialbar-placement {
-      padding: 5px 10px 0;
-  }
-    
-  .modal-controls {
-      padding: 10px;
-      text-align: center;
-  }
-
-  .modal-controls h3 {
-      font-size: 20px;
-  }
-    
-  #modalVideoDescription {
-      text-align: center;
-  }
-
-  .modal-controls .controls {
-      flex-direction: column;
-      gap: 10px;
-  }
-
-  .modal-controls .watch-btn, .modal-controls .btn.primary, .modal-controls .btn {
-      width: 90%; 
-      margin: 0;
-  }
-
-  .close-btn {
-      top: 5px;
-      right: 5px;
-      width: 30px;
-      height: 30px;
-      font-size: 16px;
-      background: rgba(0, 0, 0, 0.6);
-  }
-  }
-      
