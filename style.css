@@ -1,254 +1,224 @@
-/*
-* style.css – FINAL FIX (2025)
-* Works perfectly on both Mobile & Desktop
-* Responsive Full-Screen Video Modal + Centered Controls
-*/
-
-/* --- Root & Base Colors --- */
 :root {
   --primary-color: #ff4b91;
-  --bg-color: #000000;
-  --card-bg: #181818;
-  --header-bg: #0d0d0d;
+  --secondary-color: #1e90ff;
+  --bg-color: #000;
+  --card-bg: #111;
+  --muted: #999;
   --text-color: #fff;
-  --muted-color: #999;
-  --shadow-color: rgba(255, 75, 145, 0.9);
-  --accent-color: #e63e81;
 }
 
-/* --- General Reset --- */
 body {
   background: var(--bg-color);
   color: var(--text-color);
+  font-family: "Poppins", sans-serif;
   margin: 0;
   padding: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* --- Header --- */
 header.site {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 15px 20px;
-  background: var(--header-bg);
-  border-bottom: 3px solid var(--primary-color);
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.9);
+  background: #111;
+  padding: 10px 16px;
   position: sticky;
   top: 0;
-  z-index: 900;
+  z-index: 99;
 }
 
-.brand .title {
-  font-size: 26px;
-  font-weight: 900;
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-img {
+  height: 40px;
+  width: 40px;
+  border-radius: 50%;
+}
+
+.title {
+  font-size: 1.2rem;
   color: var(--primary-color);
-  text-shadow: 0 0 10px var(--shadow-color);
+  margin: 0;
 }
 
-/* --- Grid & Cards (simplified) --- */
+.nav input {
+  padding: 6px 10px;
+  border: none;
+  border-radius: 20px;
+  outline: none;
+}
+
+.menu-toggle {
+  background: var(--primary-color);
+  border: none;
+  color: #fff;
+  font-size: 18px;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  margin-left: 8px;
+  cursor: pointer;
+}
+
+.wrap {
+  padding: 16px;
+}
+
+.section {
+  margin-bottom: 40px;
+}
+
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
 }
+
 .card {
   background: var(--card-bg);
-  border-radius: 15px;
+  border-radius: 12px;
   overflow: hidden;
-  transition: transform .4s ease, box-shadow .4s ease;
   cursor: pointer;
+  transition: transform 0.2s;
 }
+
 .card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 20px 60px var(--shadow-color);
+  transform: scale(1.05);
 }
 
-/* ============================================================
-   ✅ MODAL PLAYER – FIXED FOR BOTH DESKTOP & MOBILE
-   ============================================================ */
-.full-screen-modal {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: rgba(0,0,0,0.96);
-  z-index: 10000;
-  display: none;
-  justify-content: center;
-  align-items: center;
-  backdrop-filter: blur(8px);
-  overflow: hidden;
+.thumb {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
 }
 
-.player-content {
-  position: relative;
-  width: 90%;
-  max-width: 900px;
-  background: var(--card-bg);
-  border-radius: 15px;
-  box-shadow: 0 0 40px rgba(0,0,0,0.8);
-  overflow: hidden;
+.meta {
+  padding: 10px;
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+.latest-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  animation: none;
+  gap: 14px;
 }
 
-/* Close Button */
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(0, 0, 0, 0.7);
-  color: #fff;
-  border: 2px solid var(--primary-color);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  font-size: 20px;
-  line-height: 38px;
-  text-align: center;
-  cursor: pointer;
-  z-index: 10100;
-  transition: all 0.3s ease;
-}
-.close-btn:hover {
-  background: var(--primary-color);
-  transform: scale(1.1);
-}
-
-/* Video Wrapper */
-#modalPlayerWrap {
-  position: relative;
-  width: 100%;
-  padding-bottom: 56.25%; /* 16:9 aspect ratio for desktop */
-  height: 0;
-  overflow: hidden;
-  background: #000;
-}
-#modalPlayerWrap iframe,
-#modalPlayerWrap video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-  border-radius: 0;
-}
-
-/* Controls Section */
-.modal-controls {
-  width: 100%;
-  padding: 20px;
+.latest-item {
+  display: flex;
   background: var(--card-bg);
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
-}
-.modal-controls h3 {
-  color: var(--primary-color);
-  font-size: 22px;
-  margin: 0;
-  text-align: center;
-  text-shadow: 0 0 10px var(--shadow-color);
-}
-.controls {
-  display: flex;
-  justify-content: center;
+  border-radius: 12px;
+  overflow: hidden;
   gap: 12px;
   flex-wrap: wrap;
 }
-.watch-btn,
-.btn {
+
+.latest-thumb {
+  width: 160px;
+  height: 100px;
+  object-fit: cover;
+}
+
+.latest-info {
+  flex: 1;
+  padding: 10px;
+}
+
+.btn, .watch-btn {
   background: var(--primary-color);
-  border: none;
   color: #fff;
-  font-weight: bold;
-  padding: 10px 25px;
+  border: none;
+  padding: 6px 12px;
   border-radius: 8px;
-  text-transform: uppercase;
+  margin-right: 6px;
   cursor: pointer;
-  transition: all 0.3s ease;
-}
-.watch-btn:hover,
-.btn:hover {
-  background: var(--accent-color);
-  box-shadow: 0 0 25px var(--shadow-color);
 }
 
-/* ============================================================
-   ✅ MOBILE RESPONSIVE FIX – TRUE FULLSCREEN & AUTO-FIT VIDEO
-   ============================================================ */
-@media (max-width: 768px) {
-  .full-screen-modal {
-    padding: 0;
-  }
+.btn:hover, .watch-btn:hover {
+  opacity: 0.8;
+}
 
-  .player-content {
-    width: 100vw;
-    height: 100dvh; /* Dynamic viewport height for mobile */
-    max-width: none;
-    border-radius: 0;
-    background: #000;
-    justify-content: flex-start;
-  }
+.pager {
+  text-align: center;
+  margin-top: 16px;
+}
 
-  #modalPlayerWrap {
-    width: 100%;
-    height: 60dvh; /* Video takes ~60% of screen */
-    padding-bottom: 0; /* Remove 16:9 trick */
-  }
+.page-btn {
+  margin: 4px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  background: var(--card-bg);
+  color: #fff;
+  border: 1px solid #333;
+  cursor: pointer;
+}
 
-  #modalPlayerWrap iframe,
-  #modalPlayerWrap video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
+.page-btn.active {
+  background: var(--primary-color);
+}
 
-  .modal-controls {
-    width: 100%;
-    height: 40dvh; /* Remaining 40% for title + buttons */
-    padding: 15px;
-    justify-content: center;
-    background: var(--card-bg);
-    overflow-y: auto;
-  }
+.full-screen-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
 
-  .modal-controls h3 {
-    font-size: 18px;
-  }
+.modal-content {
+  background: #111;
+  padding: 16px;
+  border-radius: 12px;
+  max-width: 700px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
 
-  .controls {
+.close-btn {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: transparent;
+  color: #fff;
+  font-size: 20px;
+  border: none;
+  cursor: pointer;
+}
+
+.player-card video,
+.player-card iframe {
+  width: 100%;
+  border-radius: 10px;
+  background: #000;
+}
+
+.modal-controls {
+  margin-top: 10px;
+}
+
+.foot {
+  text-align: center;
+  padding: 16px;
+  background: #111;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+a { color: var(--secondary-color); }
+
+@media (max-width: 600px) {
+  .latest-item {
     flex-direction: column;
-    width: 100%;
   }
-
-  .controls .btn,
-  .controls .watch-btn {
+  .latest-thumb {
     width: 100%;
-    font-size: 15px;
-  }
-
-  .close-btn {
-    top: 12px;
-    right: 12px;
-    width: 36px;
-    height: 36px;
-    font-size: 18px;
-    line-height: 34px;
-    background: var(--primary-color);
-    border: none;
-    box-shadow: 0 0 10px rgba(0,0,0,0.6);
+    height: auto;
   }
 }
-
-/* Small glow animation (optional aesthetic) */
-@keyframes pulseGlow {
-  from { box-shadow: 0 0 10px var(--primary-color); }
-  to { box-shadow: 0 0 30px var(--accent-color); }
-  }
