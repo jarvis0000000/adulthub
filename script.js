@@ -1,4 +1,4 @@
-// ✅ DARELOOM HUB FINAL SCRIPT v25 — WITH SHARE BUTTON (MOBILE + DESKTOP SUPPORTED)
+// ✅ DARELOOM HUB FINAL SCRIPT v26 — WITH SMART PAGINATION
 
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
@@ -176,18 +176,67 @@ function renderLatest(page=currentPage){
   displayPagination(totalPages,page);
 }
 
-function displayPagination(totalPages,currentPage){
-  const p=document.getElementById('pager');
-  p.innerHTML='';
-  if(totalPages<=1)return;
-  if(currentPage>1)p.appendChild(pageBtn('« Prev',currentPage-1));
-  for(let i=1;i<=totalPages;i++){
-    const b=pageBtn(i,i);
-    if(i===currentPage)b.classList.add('active');
-    p.appendChild(b);
+// --- SMART PAGINATION LOGIC ---
+function displayPagination(totalPages, currentPage) {
+  const p = document.getElementById('pager');
+  p.innerHTML = '';
+  if (totalPages <= 1) return;
+
+  const numAdjacent = 2; // Show 2 pages before and after current
+  let pages = new Set();
+  
+  // Always include first and last page
+  pages.add(1);
+  pages.add(totalPages);
+  
+  // Include pages around the current page
+  for (let i = currentPage - numAdjacent; i <= currentPage + numAdjacent; i++) {
+    if (i > 1 && i < totalPages) {
+      pages.add(i);
+    }
   }
-  if(currentPage<totalPages)p.appendChild(pageBtn('Next »',currentPage+1));
+  
+  // Also include the current page and its immediate neighbors 
+  pages.add(currentPage);
+  if (currentPage > 1) pages.add(currentPage - 1);
+  if (currentPage < totalPages) pages.add(currentPage + 1);
+
+  // Convert Set to Array, filter for valid range, and sort
+  let sortedPages = Array.from(pages)
+      .filter(i => i >= 1 && i <= totalPages)
+      .sort((a, b) => a - b);
+
+  // Add Prev button
+  if (currentPage > 1) {
+    p.appendChild(pageBtn('« Prev', currentPage - 1));
+  }
+
+  let lastPageAdded = 0;
+  
+  // Render pages and ellipses
+  for (let pageNum of sortedPages) {
+    if (pageNum > lastPageAdded + 1) {
+      // Add ellipsis if there's a gap
+      const ellipsis = document.createElement('span');
+      ellipsis.textContent = '...';
+      ellipsis.className = 'page-ellipsis';
+      p.appendChild(ellipsis);
+    }
+
+    if (pageNum > lastPageAdded) {
+        const b = pageBtn(pageNum, pageNum);
+        if (pageNum === currentPage) b.classList.add('active');
+        p.appendChild(b);
+        lastPageAdded = pageNum;
+    }
+  }
+
+  // Add Next button
+  if (currentPage < totalPages) {
+    p.appendChild(pageBtn('Next »', currentPage + 1));
+  }
 }
+
 function pageBtn(txt,page){
   const b=document.createElement('button');
   b.className='page-btn';
@@ -216,7 +265,8 @@ function openPlayerModal(it){
       const ifr=document.createElement('iframe');
       ifr.src=embed;
       ifr.allow="autoplay;fullscreen";
-      ifr.style="width:100%;height:420px;border:none;";
+      // Removed fixed height here, CSS will handle the aspect ratio
+      ifr.style="width:100%;height:100%;border:none;"; 
       p.appendChild(ifr);
     }
   } else p.innerHTML='<div style="padding:100px;text-align:center;color:var(--muted)">Trailer not available.</div>';
@@ -259,3 +309,4 @@ async function loadAll(){
   renderLatest();
 }
 loadAll();
+                          
