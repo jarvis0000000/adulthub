@@ -1,6 +1,6 @@
 /*
 * style.css - Professional, Responsive, Futuristic Look
-* FINAL UPDATE: Full Screen Modal Player & Ad Placement Fix
+* FINAL UPDATE: Full Screen Modal Player & Ad Placement Fix (MOBILE CENTERING)
 */
 
 /* --- General Styles --- */
@@ -227,7 +227,7 @@ hr {
 .hero { display: block; }
 
 .player-card {
-  background: #000; /* Darker background for player area */
+  background: #000; 
   border-radius: 20px;
   overflow: hidden;
   z-index: 500; 
@@ -395,6 +395,7 @@ footer.foot {
 
 /* --- VIDEO PLAYER MODAL STYLES (for #videoModal) --- */
 .player-content {
+    /* Desktop/Wider Screens */
     max-width: 900px; 
     width: 95%;
     margin: auto;
@@ -403,6 +404,11 @@ footer.foot {
     animation: none;
     background: transparent; 
     border-radius: 0;
+    /* Use flex to align content in the center vertically */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 /* Close Button Style */
@@ -431,7 +437,6 @@ footer.foot {
 }
 
 /* Player Wrapper inside Modal (16:9 Aspect Ratio) */
-/* **CRITICAL FIX HERE - Final Adjustment for better Mobile fit** */
 #modalPlayerWrap {
     width: 100%;
     position: relative;
@@ -441,7 +446,7 @@ footer.foot {
     border: 3px solid var(--header-bg);
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     border-radius: 12px 12px 0 0;
-    margin-top: 10px; /* Thoda space upar se for mobile view */
+    margin-top: 0; /* Final check for margin */
 }
 
 #modalPlayerWrap iframe, 
@@ -454,13 +459,14 @@ footer.foot {
     min-height: auto; 
     border-radius: 0;
 }
-/* **END CRITICAL FIX** */
 
 /* Modal Ads and Info Area */
 .modal-controls {
     padding: 20px;
     background: var(--card-bg); 
     border-radius: 0 0 12px 12px;
+    width: 100%; /* Important for player-content flex */
+    box-sizing: border-box; /* Padding is included in width */
 }
 
 .modal-controls h3 {
@@ -505,35 +511,54 @@ footer.foot {
 
 /* --- Mobile Responsive (Crucial Fix for Full Screen) --- */
 @media (max-width: 768px) {
-    /* For Player Modal, ensure it uses full screen */
-    .player-content {
-        width: 100%;
-        max-width: none;
-        height: 100%; 
-        padding: 0;
-    }
-    
+    /* The Modal itself should use full screen, removing all extra padding */
     .full-screen-modal {
         padding: 0;
     }
 
+    /* FIX: Player content container should take full available height */
+    .player-content {
+        width: 100%;
+        max-width: none;
+        height: 100vh; /* Take full viewport height */
+        justify-content: flex-start; /* FIX: Start content from the top */
+        padding-top: 40px; /* Space for the close button at the top */
+        overflow-y: scroll; /* Allow scrolling if content is too long */
+        box-sizing: border-box;
+    }
+    
     .close-btn {
         top: 5px;
         right: 5px;
-        width: 30px;
-        height: 30px;
-        font-size: 16px;
-        background: rgba(0, 0, 0, 0.6);
+        width: 35px; /* Slightly larger close button */
+        height: 35px;
+        font-size: 18px;
+        background: var(--primary-color); /* Make it more visible */
         border: none;
-    }
-
-    .modal-controls {
-        padding: 15px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.5);
     }
     
+    /* Player Wrapper fix for mobile */
+    #modalPlayerWrap {
+        width: 95%; /* Use 95% of screen width */
+        margin: 0 auto 10px; /* Center it horizontally, no top margin */
+        border-radius: 12px; 
+    }
+    
+    /* Ensure no extra margin/padding inside controls to avoid cutting text */
+    .modal-controls {
+        padding: 15px;
+        width: 95%; 
+        margin: 0 auto; 
+        border-radius: 0;
+        border-radius: 0 0 12px 12px;
+        flex-shrink: 0; /* Prevents controls from shrinking */
+    }
+
     /* Center text on mobile */
     .modal-controls h3, #modalVideoDescription {
         text-align: center;
+        font-size: 18px; /* Slightly smaller title */
     }
 
     /* Buttons should be full width on mobile */
@@ -553,6 +578,8 @@ footer.foot {
     .adsterra-socialbar-placement {
         padding-left: 5px;
         padding-right: 5px;
+        width: 95%;
+        margin: 0 auto;
     }
 
     .latest-item { flex-direction: column; align-items: flex-start; }
@@ -560,19 +587,11 @@ footer.foot {
     .latest-info { padding: 10px 15px 15px; }
     .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
     .card .thumb { height: 120px; }
-    
-    /* FIX: Reduce padding for video player to maximize space on mobile */
-    #modalPlayerWrap {
-        /* Mobile par 16:9 ka ratio maintain rakhte hue width ko 95% se full stretch karega */
-        width: 95%; 
-        margin: 10px auto; 
-        border-radius: 12px; /* Poore wrap ko round corners */
-    }
 }
 
 @media (min-width: 769px) {
     .modal-content:not(.player-content) {
         margin: auto;
     }
-       }
-      
+  }
+  
