@@ -1,28 +1,43 @@
-// FINAL DARELOOM HUB SCRIPT v21 - FULL AD INTEGRATION
-// Tags/Categories sirf video ke niche se hi load honge.
+// FINAL DARELOOM HUB SCRIPT v23 - ADSTERRA POP-UP FOR ALL CLICKS & CLEAN HOMEPAGE
 
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
+// Adsterra Pop-under Code (Common for all ad triggers)
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
 let items = [], current = null, currentPage = 1;
 
-// --- AdSense In-feed Ad Code ---
-const ADSENSE_IN_FEED_CODE = `
-    <div style="padding: 10px 0;">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-format="fluid"
-             data-ad-layout-key="-fb+5w+4e-db+86"
-             data-ad-client="ca-pub-5498322989424578"
-             data-ad-slot="3327404550"></ins>
-        <script>
-             (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-    </div>
-`;
-// ---------------------------------
+// --- Pop-under Ad Trigger Function (New) ---
+function openAdsterraPop() {
+    const s = document.createElement('script');
+    s.src = AD_POP;
+    s.async = true;
+    document.body.appendChild(s);
+}
 
-// --- Fetch Google Sheet (No change) ---
+// --- Dynamic Link Name Detection (New) ---
+function getLinkName(url) {
+    if (!url) return 'Watch Link';
+    
+    // Popular platforms detection
+    if (url.includes('streamtape.com') || url.includes('stape.fun')) return 'Streamtape Watch';
+    if (url.includes('t.me') || url.includes('telegram')) return 'Telegram Download';
+    if (url.includes('gofile.io')) return 'GoFile Watch';
+    if (url.includes('drive.google.com')) return 'Google Drive Watch';
+    if (url.includes('mp4upload.com')) return 'Mp4Upload Watch';
+    
+    // Generic host detection (e.g., myserver.com)
+    try {
+        const domain = new URL(url).hostname.replace('www.', '');
+        // Capitalize first letter of the domain part before dot
+        const namePart = domain.split('.')[0];
+        return namePart.charAt(0).toUpperCase() + namePart.slice(1) + ' Link';
+    } catch (e) {
+        // Fallback for invalid URLs
+        return 'External Watch Link';
+    }
+}
+
+// --- Fetch, Parse, Utilities (Same as before) ---
 async function fetchSheet() {
   try {
     const res = await fetch(SHEET_API);
@@ -34,27 +49,14 @@ async function fetchSheet() {
     return [];
   }
 }
-
-// --- Parse Rows (No change) ---
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
-
 function parseRows(values){
   if(!values || values.length < 2) return [];
-  
-  // Column to Index Mapping: A=0, C=2, G=6, R=17, S=18, T=19, U=20
-  const TI = 0;   // Title (A)
-  const TR = 2;   // Trailer (C)
-  const WA = 6;   // Watch (G)
-  const TH = 17;  // Thumbnail (R)
-  const DT = 19;  // Date (T)
-  const CA = 20;  // Category (U)
-  
+  const TI = 0; TR = 2; WA = 6; TH = 17; DT = 19; CA = 20;
   const headers = (values[0]||[]).map(h=> (h||'').toString());
   const DE = headers.findIndex(h => norm(h) === 'description' || norm(h) === 'desc');
-  
   const rows = values.slice(1);
   const out = [];
-  
   for(let r of rows){
     const title = r[TI]||'';
     const trailer = r[TR]||'';
@@ -63,7 +65,6 @@ function parseRows(values){
     const date = r[DT]||'';
     const category = r[CA]||'';
     const description = DE !== -1 ? (r[DE]||'') : ''; 
-
     if((trailer && trailer.trim()) || (watch && watch.trim())){  
       out.push({   
         id: (title||'') + '|' + (watch||''),   
@@ -79,8 +80,6 @@ function parseRows(values){
   }
   return out;
 }
-
-// --- Utilities (No change) ---
 function extractYouTubeID(url){
   if(!url) return null;
   const m = url.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
@@ -92,7 +91,6 @@ function makeThumbnail(item){
   if(y) return 'https://img.youtube.com/vi/' + y + '/hqdefault.jpg';
   return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
-
 function toEmbedUrl(url){
   if(!url) return '';
   url = url.trim();
@@ -103,7 +101,6 @@ function toEmbedUrl(url){
     const m = url.match(/[-\w]{25,}/);
     if(m) return 'https://drive.google.com/file/d/' + m[0] + '/preview';
   }
-
   if(url.includes("streamtape.com")) {
     let id;
     if(url.includes("/v/")) {
@@ -112,55 +109,38 @@ function toEmbedUrl(url){
     }
     if(url.includes("/e/")) return url;
   }
-
   if(url.includes("t.me/") || url.includes("telegram.me/")) return '';
-
   if(url.match(/\.mp4($|\?)/i)) return url;
-
   return '';
 }
-
 function escapeHtml(s){ return (s||'').toString().replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
-
-// --- Schema Injection (No change) ---
 function injectSchema(it) {
-  const oldSchema = document.getElementById('video-schema');
-  if (oldSchema) oldSchema.remove();
-
-  const script = document.createElement('script');
-  script.type = 'application/ld+json';
-  script.id = 'video-schema';
+  const oldSchema = document.getElementById('video-schema'); if (oldSchema) oldSchema.remove();
+  const script = document.createElement('script'); script.type = 'application/ld+json'; script.id = 'video-schema';
   const thumb = makeThumbnail(it);
-
   script.text = JSON.stringify({
     "@context": "https://schema.org",
     "@type": "VideoObject",
     "name": it.title,
-    // Description field already using the extracted description for SEO
-    "description": it.description && it.description.trim() ?
-      it.description : it.title,
+    "description": it.description && it.description.trim() ? it.description : it.title,
     "thumbnailUrl": thumb,
     "uploadDate": it.date || new Date().toISOString().split('T')[0],
-    "publisher": {
-      "@type": "Organization",
-      "name": "Dareloom Hub",
-      "url": "https://dareloom.fun"
-    },
+    "publisher": { "@type": "Organization", "name": "Dareloom Hub", "url": "https://dareloom.fun" },
     "contentUrl": it.watch,
     "embedUrl": toEmbedUrl(it.trailer), 
   });
-
   document.head.appendChild(script);
 }
 
-// --- Ad Trigger Functions (OPTIMIZED FOR NEW STRATEGY) ---
 
-// ** 1. Preview/Random Click Logic (No Pop-under, just show content) **
+// --- Ad Trigger Functions (MODIFIED for Pop-under on click) ---
+
+// 1. Preview/Random Click Logic (Pop-under + Opens Modal)
 function triggerAdThenShowItem(item) {
   if(!item) return;
-  // Pop-under removed here as per new strategy.
+  openAdsterraPop(); // Pop-under for Preview/Thumbnail Click
   setTimeout(() => {  
-      showItem(item);  
+      openPlayerModal(item);  
   }, 150);
 }
 
@@ -170,65 +150,39 @@ function triggerAdThenShowItemById(id){
 }
 window.triggerAdThenShowItemById = triggerAdThenShowItemById; 
 
-// --- AD BLOCKER DETECTION (No change) ---
 
-function showAdBlockerModal() {
-  const mainWrap = document.getElementById('mainWrap');
-  const modal = document.getElementById('adBlockerModal');
+// --- Ad Blocker / N Bypass (No Ad Blocker modal needed, just N bypass) ---
 
-  if (mainWrap) {  
-      mainWrap.style.display = 'none';  
-  }  
-  if (modal) {  
-      modal.style.display = 'flex';   
-  }  
-  document.body.style.overflow = 'hidden';
-}
-
-function checkAdBlocker() {
-  if (localStorage.getItem('adblock_bypassed') === 'true') {
-      const mainWrap = document.getElementById('mainWrap');
+window.filterVideos = function(query) {
+  query = (query || '').trim(); 
+  // --- N BYPASS LOGIC ---
+  if (query.toLowerCase() === 'n') {
+      localStorage.setItem('adblock_bypassed', 'true'); 
+      document.getElementById('searchInput').value = '';
       const modal = document.getElementById('adBlockerModal');
+      const mainWrap = document.getElementById('mainWrap');
       if (mainWrap) mainWrap.style.display = 'block';
-      if (modal) modal.style.display = 'none';
+      if(modal) modal.style.display = 'none';
       document.body.style.overflow = '';
+      showCategoryView('All Videos'); 
       return; 
   }
-    
-  const testAd = document.createElement('div');
-  testAd.className = 'pub_300x250 pub_ad pub_ad_300x250';
-  testAd.style.width = '1px';
-  testAd.style.height = '1px';
-  testAd.style.position = 'absolute';
-  testAd.style.left = '-10000px';
-
-  document.body.appendChild(testAd);  
-
-  setTimeout(() => {  
-      const isBlocked = testAd.offsetHeight === 0 ||   
-                       testAd.clientHeight === 0 ||   
-                       getComputedStyle(testAd).display === 'none' ||  
-                       getComputedStyle(testAd).visibility === 'hidden';  
-
-      testAd.remove();  
-
-      if (isBlocked) {  
-          console.warn("Ad Blocker Detected! Restricting content.");  
-          showAdBlockerModal();  
-      } else {  
-          const mainWrap = document.getElementById('mainWrap');  
-          const modal = document.getElementById('adBlockerModal');  
-          if (mainWrap && mainWrap.style.display === 'none') {  
-              mainWrap.style.display = 'block';  
-              if(modal) modal.style.display = 'none';  
-              document.body.style.overflow = '';  
-          }  
-      }  
-  }, 100);
+  // ----------------------
+  
+  query = query.toLowerCase(); 
+  if (query.length > 0) {  
+      const filtered = items.filter(item =>   
+          (item.title && item.title.toLowerCase().includes(query)) ||  
+          (item.category && item.category.toLowerCase().includes(query))
+      );  
+      showCategoryView('Search Results (' + filtered.length + ')', filtered);  
+  } else {  
+      showCategoryView('All Videos');  
+  }
 }
 
-// --- Render Functions ---
 
+// --- Render Functions (Same as before) ---
 function renderRandom(){
   const g = document.getElementById('randomGrid'); if(!g) return; g.innerHTML='';
   const pool = items.slice(); const picks = [];
@@ -237,8 +191,7 @@ function renderRandom(){
     const card = document.createElement('div'); card.className='card';
     const t = makeThumbnail(it);
     card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
-    // Preview button / Random pick ab sirf content dikhayega (Pop-under sirf Watch/Pagination par)
-    card.addEventListener('click', ()=> triggerAdThenShowItem(it));
+    card.addEventListener('click', ()=> triggerAdThenShowItem(it)); // Pop-under + Modal
     g.appendChild(card);
   });
 }
@@ -252,21 +205,17 @@ function renderLatest(page = currentPage){
   const start = (currentPage-1)*PER_PAGE;
   const slice = items.slice(start, start+PER_PAGE);
 
-  slice.forEach((it, index) => { // NOTE: index added for ad injection
+  slice.forEach((it) => { 
     const div = document.createElement('div'); div.className='latest-item';
     const t = makeThumbnail(it);
-    
-    // --- Generate Tags (Hashtags) HTML ---
     let tagsHtml = '';
     if (it.category && it.category.trim()) {
         const categories = it.category.split(',').map(c => c.trim()).filter(c => c.length > 0);
         tagsHtml = categories.map(tag => {
             const cleanTag = escapeHtml(tag);
-            // Tags par click karne par naye Category View mein videos load honge
-            return `<button class="tag-btn" onclick="showCategoryView('${cleanTag.charAt(0).toUpperCase() + cleanTag.slice(1)}', items.filter(i => (i.category || '').toLowerCase().includes('${cleanTag.toLowerCase()}')))">#${cleanTag}</button>`;
+            return `<button class="tag-btn" onclick="openAdsterraPop(); showCategoryView('${cleanTag.charAt(0).toUpperCase() + cleanTag.slice(1)}', items.filter(i => (i.category || '').toLowerCase().includes('${cleanTag.toLowerCase()}')))">#${cleanTag}</button>`;
         }).join('');
     }
-    // -------------------------------------
     
     div.innerHTML = `
         <img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy">
@@ -276,46 +225,14 @@ function renderLatest(page = currentPage){
             <div class="tag-container" style="margin-top:5px;">${tagsHtml}</div>
             <div style="margin-top:8px">
                 <button class="btn" onclick="triggerAdThenShowItemById('${escapeHtml(it.id)}')">Preview</button> 
-                <button class="watch-btn" onclick="openAdsterraThenWatch('${escapeHtml(it.id)}')">Watch</button>
+                <button class="watch-btn" onclick="triggerAdThenShowItemById('${escapeHtml(it.id)}')">Watch</button>
             </div>
         </div>
     `;
     list.appendChild(div);
-
-    // ********** GOOGLE ADSENSE IN-FEED AD INJECTION **********
-    // Har 3 item ke baad ad dikhega
-    if ((index + 1) % 3 === 0) { 
-        const adDiv = document.createElement('div');
-        adDiv.className = 'latest-item ad-item-in-feed'; // Use the same class for styling match
-        
-        adDiv.innerHTML = ADSENSE_IN_FEED_CODE;
-        list.appendChild(adDiv);
-    }
-    // **********************************************************
   });
 
   displayPagination(totalPages, currentPage);
-}
-
-// NOTE: renderCategoryDropdown function has been REMOVED as requested.
-
-function showCategoryView(title, filteredVideos = items){
-  const randomSection = document.getElementById('randomSection');
-  const latestSection = document.getElementById('latestSection');
-  const categorySection = document.getElementById('categorySection');
-
-  if(title === 'All Videos' || title.startsWith('Search Results')){
-    if(randomSection) randomSection.style.display = 'block';
-    if(latestSection) latestSection.style.display = 'block';
-    if(categorySection) categorySection.style.display = 'none';
-  } else {
-    if(randomSection) randomSection.style.display = 'none';
-    if(latestSection) latestSection.style.display = 'none';
-    if(categorySection) categorySection.style.display = 'block';
-    renderCategoryGrid(filteredVideos, title);
-  }
-
-  window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
 function renderCategoryGrid(videoList, title){
@@ -331,12 +248,12 @@ function renderCategoryGrid(videoList, title){
       card.className='card';  
       const t = makeThumbnail(it);  
       card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;  
-      card.addEventListener('click', ()=> triggerAdThenShowItem(it));
+      card.addEventListener('click', ()=> triggerAdThenShowItem(it)); // Pop-under + Modal
       container.appendChild(card);  
   });
 }
 
-// --- Pagination Logic (Adsterra Pop-under retained) ---
+// --- Pagination Logic (Pop-under) ---
 function displayPagination(totalPages, currentPage) {
   const pager = document.getElementById('pager');
   pager.innerHTML = '';
@@ -344,38 +261,20 @@ function displayPagination(totalPages, currentPage) {
   if (totalPages <= 1) return;   
 
   let startPage, endPage;  
-    
-  if (totalPages <= 5) {  
-      startPage = 1;  
-      endPage = totalPages;  
-  } else {  
-      if (currentPage <= 3) {  
-          startPage = 1;  
-          endPage = 5;  
-      } else if (currentPage + 1 >= totalPages) {  
-          startPage = totalPages - 4;  
-          endPage = totalPages;  
-      } else {  
-          startPage = currentPage - 2;  
-          endPage = currentPage + 2;  
-      }  
+  if (totalPages <= 5) { startPage = 1; endPage = totalPages; } 
+  else {  
+      if (currentPage <= 3) { startPage = 1; endPage = 5; } 
+      else if (currentPage + 1 >= totalPages) { startPage = totalPages - 4; endPage = totalPages; } 
+      else { startPage = currentPage - 2; endPage = currentPage + 2; }  
   }  
 
-  if (currentPage > 1) {  
-      pager.appendChild(createPageButton('« Prev', currentPage - 1));  
-  }  
-
+  if (currentPage > 1) { pager.appendChild(createPageButton('« Prev', currentPage - 1)); }  
   for (let i = startPage; i <= endPage; i++) {  
       const btn = createPageButton(i, i);  
-      if (i === currentPage) {  
-          btn.classList.add('active');   
-      }  
+      if (i === currentPage) { btn.classList.add('active'); }  
       pager.appendChild(btn);  
   }  
-    
-  if (currentPage < totalPages) {  
-      pager.appendChild(createPageButton('Next »', currentPage + 1));  
-  }
+  if (currentPage < totalPages) { pager.appendChild(createPageButton('Next »', currentPage + 1)); }
 }
 
 function createPageButton(text, pageNum) {
@@ -395,168 +294,99 @@ function openAdAndChangePage(page){
   const latestSection = document.getElementById('latestSection');
   if(latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' });
 
-  // Adsterra Pop-under for Pagination
-  const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
+  openAdsterraPop(); // Pop-under for Pagination
 }
 
-// --- Search Functionality ('n' bypass ke saath) (No change) ---
-window.filterVideos = function(query) {
-  query = (query || '').trim(); 
 
-  // --- N BYPASS LOGIC ---
-  if (query.toLowerCase() === 'n') {
-      const mainWrap = document.getElementById('mainWrap');
-      const modal = document.getElementById('adBlockerModal');
-      
-      localStorage.setItem('adblock_bypassed', 'true'); 
-      
-      if (mainWrap) mainWrap.style.display = 'block';
-      if (modal) modal.style.display = 'none';
-      document.body.style.overflow = '';
-      
-      document.getElementById('searchInput').value = '';
-      showCategoryView('All Videos'); 
-      
-      return; 
-  }
-  // ----------------------
-  
-  query = query.toLowerCase(); 
+// --- Modal Player Functions ---
 
-  if (query.length > 0) {  
-      const filtered = items.filter(item =>   
-          (item.title && item.title.toLowerCase().includes(query)) ||  
-          (item.category && item.category.toLowerCase().includes(query))
-      );  
-        
-      showCategoryView('Search Results (' + filtered.length + ')', filtered);  
-        
-  } else {  
-      showCategoryView('All Videos');  
-  }
-}
+function openPlayerModal(it){
+    current = it;
+    const embed = toEmbedUrl(it.trailer);
 
-// --- Share Functionality (No change) ---
-function shareItem(it) {
-  if (!it || !it.title) {
-    alert("Pehle koi video select karo!");
-    return;
-  }
+    const p = document.getElementById('modalPlayerWrap');
+    const controlsContainer = document.getElementById('modalControlsContainer');
+    const modalTitle = document.getElementById('modalVideoTitle');
+    const modalDesc = document.getElementById('modalVideoDescription');
+    const modal = document.getElementById('videoModal');
 
-  const shareUrl = window.location.origin + window.location.pathname + '#v=' + encodeURIComponent(it.id);  
-  const shareText = `🔥 MUST WATCH: ${it.title}\n${it.description && it.description.trim() ? it.description + '\n' : ''}\n🔗 Watch here FREE: ${shareUrl}`;  
-
-  if (navigator.share) {  
-      navigator.share({  
-          title: it.title,  
-          text: shareText,  
-          url: shareUrl,  
-      }).catch((error) => console.log('Sharing failed', error));  
-  } else {  
-      navigator.clipboard.writeText(shareText).then(() => {  
-          alert("Share link copy ho gaya hai! Ab WhatsApp/Telegram par paste kar do.");  
-      }).catch(err => {  
-          console.error('Copy karne mein error:', err);  
-          prompt("Share karne ke liye yeh link copy karein:", shareUrl);  
-      });  
-  }
-}
-
-// --- Show Video (No change) ---
-function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(it); }
-
-function showRandomPick() {
-    if (items.length === 0) return;
-    const randomItem = items[Math.floor(Math.random() * items.length)];
-    // Random pick ab sirf content dikhayega (Pop-under sirf Watch/Pagination par)
-    triggerAdThenShowItem(randomItem);
-}
-window.showRandomPick = showRandomPick; 
-
-function showItem(it){
-  current = it;
-  const embed = toEmbedUrl(it.trailer);
-
-  const p = document.getElementById('playerWrap');
-  const controlsContainer = document.getElementById('controlsContainer');
-  if(!p || !controlsContainer) return;
-
-  // --- Player Setup ---
-  p.innerHTML='';
-  if(embed){
-    if(embed.match(/\.mp4($|\?)/i)){
-      const v = document.createElement('video');
-      v.controls=true; v.autoplay=true; v.muted=true; v.playsInline=true;
-      v.src = embed;
-      p.appendChild(v);
+    if(!p || !controlsContainer || !modalTitle || !modal) return;
+    
+    // Player Setup (Same as before)
+    p.innerHTML='';
+    if(embed){
+      if(embed.match(/\.mp4($|\?)/i)){
+        const v = document.createElement('video');
+        v.controls=true; v.autoplay=true; v.muted=true; v.playsInline=true;
+        v.src = embed;
+        p.appendChild(v);
+      } else {
+        const iframe = document.createElement('iframe');
+        iframe.src = embed;
+        iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
+        iframe.setAttribute('allowfullscreen', 'true');
+        iframe.setAttribute('webkitallowfullscreen', 'true');
+        iframe.setAttribute('mozallowfullscreen', 'true');
+        iframe.setAttribute('scrolling', 'no');
+        iframe.style.width='100%';
+        iframe.style.height='420px';
+        iframe.style.border = 'none'; 
+        p.appendChild(iframe);
+      }
     } else {
-      const iframe = document.createElement('iframe');
-      iframe.src = embed;
-      iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
-      iframe.setAttribute('allowfullscreen', 'true');
-      iframe.setAttribute('webkitallowfullscreen', 'true');
-      iframe.setAttribute('mozallowfullscreen', 'true');
-      iframe.setAttribute('scrolling', 'no');
-      iframe.style.width='100%';
-      iframe.style.height='420px';
-      iframe.style.border = 'none'; 
-      p.appendChild(iframe);
+      const msg = document.createElement('div');
+      msg.style.textAlign='center';
+      msg.style.padding='100px 20px';
+      msg.innerHTML = `<div style="font-size:18px;color:var(--muted)">Trailer not available for embed.</div>`;
+      p.appendChild(msg);
     }
-  } else {
-    const msg = document.createElement('div');
-    msg.style.textAlign='center';
-    msg.style.padding='100px 20px';
-    msg.innerHTML = `<div style="font-size:18px;color:var(--muted)">Trailer not available for embed.</div>`;
-    p.appendChild(msg);
-  }
 
-  document.getElementById('nowTitle').textContent = it.title || '';
+    modalTitle.textContent = it.title || 'Video Player';
+    modalDesc.textContent = it.description || '';
 
-  // --- Dynamic Watch Options Button Rendering ---
-  const watchUrls = (it.watch || '').split(',').map(url => url.trim()).filter(url => url.length > 0);
-  let buttonHTML = '';
+    // Controls Setup (Watch Buttons)
+    const watchUrls = (it.watch || '').split(',').map(url => url.trim()).filter(url => url.length > 0);
+    let buttonHTML = '';
 
-  // 1. Static items
-  buttonHTML += `<div class="pill" id="count">${items.length} items</div>`;
-  buttonHTML += `<button class="btn" onclick="showRandomPick()">🎲 Shuffle</button>`;
+    watchUrls.forEach(url => {
+        const btnText = getLinkName(url); // Dynamic name
+        let btnClass = 'watch-btn';
 
-  // 2. Watch Buttons
-  watchUrls.forEach(url => {
-    let btnText = 'Watch Now';
-    let btnClass = 'watch-btn';
+        if(url.includes('t.me') || url.includes('telegram')) {  
+            btnClass = 'btn primary'; // Telegram ke liye alag style
+        }  
+          
+        // Watch button ab Pop-under trigger karke link kholega
+        buttonHTML += `<button class="${btnClass}" onclick="openAdsterraThenWatch('${escapeHtml(url)}')">${btnText}</button>`;
+    });
 
-    if(url.includes('streamtape.com') || url.includes('stape.fun')) {  
-          btnText = 'Streamtape Watch';  
-      } else if (url.includes('t.me') || url.includes('telegram')) {  
-          btnText = 'Telegram Download';  
-          btnClass = 'btn primary';   
-      }  
-        
-      // Watch ab naye Pop-under function ko call karega
-      buttonHTML += `<button class="${btnClass}" onclick="openAdsterraThenWatch('${escapeHtml(url)}')">${btnText}</button>`;
-
-  });
-
-  // 3. Share Button
-  buttonHTML += `<button class="btn" style="background-color: #28a745;" onclick="shareItem(current)">🔗 Share</button>`;
-
-  controlsContainer.innerHTML = buttonHTML;
-  
-  renderRandom();
-  injectSchema(it);
-
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+    buttonHTML += `<button class="btn" style="background-color: #28a745;" onclick="shareItem(current)">🔗 Share</button>`;
+    controlsContainer.innerHTML = buttonHTML;
+    
+    injectSchema(it);
+    
+    // Modal ko open karein
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Scroll disable
+    
+    // Note: Adsterra ads (Native/Social Bar) Modal HTML mein hi hain, so they load automatically.
 }
 
-// --- NEW: Open Watch with Adsterra Pop-under Logic ---
+window.closePlayerModal = function() {
+    const modal = document.getElementById('videoModal');
+    if(modal) modal.style.display = 'none';
+    document.body.style.overflow = ''; 
+    const p = document.getElementById('modalPlayerWrap');
+    if(p) p.innerHTML = ''; // Stop audio/video
+}
+
+
+// --- FINAL: Open Watch link with Adsterra Logic ---
 function openAdsterraThenWatch(targetUrl){
   if(!targetUrl || targetUrl === '#') return;
   const target = targetUrl;
-
-  // 1. Adsterra Pop-under Script Load:
-  const s1 = document.createElement('script'); 
-  s1.src = AD_POP; // AD_POP is defined at the top
-  document.body.appendChild(s1);
+  
+  openAdsterraPop(); // Pop-under for final link click
 
   setTimeout(() => {
     try {
@@ -565,49 +395,35 @@ function openAdsterraThenWatch(targetUrl){
           if(!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {  
               alert("Please allow pop-ups to open the link in a new tab!");  
           }  
+      // Watch link khulne ke baad modal band kar do
+      closePlayerModal(); 
     } catch(e){  
     }
   }, 100);
 
-  // Marked div (watchAd) reference hata diya gaya hai
 }
 
-
-// --- FINAL Initialization (No change) ---
+// --- Initialization ---
 async function loadAll() {
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
-
-  // ** FIXED LOGIC: Date sorting removed, using reverse() for Newest-to-Oldest **
-  // Assuming new entries are added to the bottom of the Google Sheet,
-  // reversing the list provides the Newest-to-Oldest order.
   parsed.reverse();
-  // ** END FIXED LOGIC **
-
   items = parsed;
 
   const cnt = document.getElementById('count');
   if (cnt) cnt.textContent = `${items.length} items`;
 
-  const controlsContainer = document.getElementById('controlsContainer');
-  if (controlsContainer) {
-    // Buttons ab naye functions ko call karte hain
-    controlsContainer.innerHTML =   `<div class="pill" id="count">${items.length} items</div>` + `<button class="btn" onclick="showRandomPick()">🎲 Shuffle</button>`;
-  }
-
-  
-  if (items.length > 0) {
-    showItem(items[0]);
-  }
+  renderRandom();
+  renderLatest(1); 
 
   const hash = window.location.hash;
   if (hash.startsWith("#v=")) {
     const id = decodeURIComponent(hash.substring(3)); 
-    showItemById(id);
+    const it = items.find(x=>x.id===id);
+    if(it) openPlayerModal(it);
   }
-
-  checkAdBlocker();
 }
 
-// 4. FINAL INITIALIZATION CALL
+// FINAL INITIALIZATION CALL
 loadAll();
+      
