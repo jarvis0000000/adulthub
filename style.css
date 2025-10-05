@@ -431,16 +431,17 @@ footer.foot {
 }
 
 /* Player Wrapper inside Modal (16:9 Aspect Ratio) */
-/* **CRITICAL FIX HERE** */
+/* **CRITICAL FIX HERE - Final Adjustment for better Mobile fit** */
 #modalPlayerWrap {
     width: 100%;
     position: relative;
-    padding-bottom: 56.25%; /* 16:9 Aspect Ratio (Height will be 56.25% of the width) */
-    height: 0; /* Important to set height to 0 for the aspect ratio trick to work */
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    height: 0; 
     overflow: hidden;
     border: 3px solid var(--header-bg);
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     border-radius: 12px 12px 0 0;
+    margin-top: 10px; /* Thoda space upar se for mobile view */
 }
 
 #modalPlayerWrap iframe, 
@@ -449,7 +450,7 @@ footer.foot {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%; /* Now takes up 100% of the calculated aspect ratio height */
+    height: 100%; 
     min-height: auto; 
     border-radius: 0;
 }
@@ -529,13 +530,9 @@ footer.foot {
     .modal-controls {
         padding: 15px;
     }
-
-    .modal-controls h3 {
-        font-size: 20px;
-        text-align: center;
-    }
     
-    #modalVideoDescription {
+    /* Center text on mobile */
+    .modal-controls h3, #modalVideoDescription {
         text-align: center;
     }
 
@@ -563,11 +560,19 @@ footer.foot {
     .latest-info { padding: 10px 15px 15px; }
     .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
     .card .thumb { height: 120px; }
+    
+    /* FIX: Reduce padding for video player to maximize space on mobile */
+    #modalPlayerWrap {
+        /* Mobile par 16:9 ka ratio maintain rakhte hue width ko 95% se full stretch karega */
+        width: 95%; 
+        margin: 10px auto; 
+        border-radius: 12px; /* Poore wrap ko round corners */
+    }
 }
 
 @media (min-width: 769px) {
     .modal-content:not(.player-content) {
         margin: auto;
     }
-  }
-  
+       }
+      
