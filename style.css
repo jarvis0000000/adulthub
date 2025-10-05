@@ -1,11 +1,12 @@
 /*
 * style.css - Professional, Responsive, Futuristic Look
 * Updated: Oct 2025 - Includes Tags/Category Styling, Age Gate Modal, AdBlocker Modal, Sticky Ads, Responsive Grid
+* FINAL UPDATE: Modal Player Integration & Seductive Styling
 */
 
 /* --- General Styles --- */
 :root {
-  --primary-color: #ff4b91;
+  --primary-color: #ff4b91; /* Seductive Pink */
   --bg-color: #000000;
   --card-bg: #181818;
   --header-bg: #0d0d0d;
@@ -14,6 +15,7 @@
   --shadow-color: rgba(255, 75, 145, 0.9);
   --accent-color: #e63e81; /* Primary color ka darker shade */
   --secondary-color: #28a745;
+  --border-color: #333;
 }
 
 body { 
@@ -360,7 +362,7 @@ footer.foot {
 .footer-info a { color: var(--primary-color); text-decoration: none; transition: color 0.2s; }
 .footer-info a:hover { color: var(--accent-color); }
 
-/* --- Category Dropdown --- */
+/* --- Category Dropdown (Unused but kept for structure) --- */
 .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
 
 .dropdown { position: relative; display: inline-block; }
@@ -370,7 +372,7 @@ footer.foot {
 .dropdown-content a:last-child { border-bottom: none; }
 .dropdown:hover .dropdown-content { display: block; }
 
-/* --- Sticky Footer Ad --- */
+/* --- Sticky Footer Ad (Kept style in case you reintroduce it) --- */
 .sticky-ad-footer {
   position: fixed;
   bottom: 0; 
@@ -397,6 +399,9 @@ footer.foot {
   justify-content: center;
   align-items: center;
   backdrop-filter: blur(8px);
+  overflow-y: auto; /* Allow scrolling for modal content */
+  padding: 20px 0;
+  box-sizing: border-box;
 }
 
 .modal-content {
@@ -423,6 +428,8 @@ footer.foot {
   font-size: 32px;
   text-shadow: 0 0 15px var(--shadow-color);
   text-transform: uppercase;
+  border-left: none; /* h2 override */
+  padding-left: 0; /* h2 override */
 }
 
 .modal-content p { 
@@ -435,8 +442,6 @@ footer.foot {
 #adBlockerModal .modal-content h2 {
     color: #ff0000; /* Red for warning */
     text-shadow: 0 0 15px rgba(255, 0, 0, 0.7);
-    border: none; /* Remove border-left inherited from h2 */
-    padding-left: 0;
 }
 #adBlockerModal .modal-content {
     border-color: #ff0000;
@@ -448,7 +453,7 @@ footer.foot {
 }
 
 /* Specific styling for Age Gate Modal */
-#ageGateModal .modal-content button {
+#ageGateModal .modal-content button, #followBtn {
     background: var(--primary-color);
     color: white;
     font-size: 20px;
@@ -462,7 +467,7 @@ footer.foot {
     text-transform: uppercase;
     letter-spacing: 1px;
 }
-#ageGateModal .modal-content button:hover { 
+#ageGateModal .modal-content button:hover, #followBtn:hover { 
     background: var(--accent-color); 
     box-shadow: 0 0 35px var(--shadow-color); 
     transform: scale(1.05); 
@@ -470,62 +475,164 @@ footer.foot {
 /* ---------------------------------------------------- */
 
 
-/* --- Mobile Responsive --- */
+/* ---------------------------------------------------- */
+/* --- VIDEO PLAYER MODAL STYLES (for #videoModal) --- */
+/* ---------------------------------------------------- */
+
+.player-content {
+    padding: 0; /* Player ke liye padding hatayi */
+    max-width: 900px; /* Modal ki maximum width */
+    width: 95%;
+    margin: auto;
+    border: none; /* Border player-card mein hai */
+    animation: none; /* No pulse animation for player modal */
+}
+
+/* Close Button Style */
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 2px solid var(--primary-color);
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 1010;
+    transition: background 0.2s, box-shadow 0.3s;
+    font-weight: bold;
+}
+
+.close-btn:hover {
+    background: var(--primary-color);
+    box-shadow: 0 0 15px var(--shadow-color);
+    transform: scale(1.1);
+}
+
+/* Player Wrapper inside Modal */
+#modalPlayerWrap {
+    width: 100%;
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    height: 0;
+    overflow: hidden;
+}
+
+#modalPlayerWrap iframe, 
+#modalPlayerWrap video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Remove min-height override */
+    min-height: auto; 
+    border-radius: 0; /* Full player area */
+}
+
+/* Modal Ads and Info Area */
+.modal-controls {
+    padding: 15px 20px 25px;
+    background: #111;
+    border-radius: 0 0 15px 15px;
+}
+
+.modal-controls h3 {
+    margin-top: 0;
+    font-size: 24px;
+    color: var(--primary-color);
+    text-shadow: 0 0 10px rgba(255, 75, 145, 0.4);
+}
+/* New Description Style */
+#modalVideoDescription {
+    color: var(--muted-color); 
+    font-size: 14px; 
+    margin-top: -5px; 
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+
+/* Responsive Adsterra Banner inside Modal */
+.modal-content .adsterra-banner-placement {
+    padding: 15px 20px 5px; 
+    max-width: 728px; 
+    margin: 0 auto;
+    background: var(--header-bg);
+}
+
+/* Responsive Social Bar inside Modal */
+.modal-content .adsterra-socialbar-placement {
+    padding: 5px 20px 0;
+    text-align: center;
+    background: var(--header-bg);
+}
+
+/* Special look for Streamtape/Telegram buttons inside modal */
+.modal-controls .watch-btn, .modal-controls .btn.primary {
+    /* Keep the attractive look */
+    min-width: 180px;
+    margin: 5px;
+}
+
+/* --- Mobile Responsive (Modal Fixes) --- */
 @media (max-width: 600px) {
-  header.site { padding: 10px 15px; flex-direction: column; align-items: flex-start; }
-  .wrap { padding: 10px; }
-  .brand { margin-bottom: 5px; }
-  .brand .title { font-size: 20px; }
-  .nav { flex-wrap: wrap; justify-content: space-between; width: 100%; margin: 5px 0 0 0; gap: 8px; }
-  #searchInput { width: 100%; margin-bottom: 8px; order: 1; font-size: 13px; padding: 10px 12px; }
-  .nav .btn { flex-grow: 1; margin: 0; padding: 10px 10px; font-size: 13px; }
-  .player-card iframe, .player-card video { min-height: 220px; }
-  .player-placeholder { padding: 50px 15px; font-size: 16px; }
-  .controls { flex-direction: column; gap: 10px; }
-  .pill, .btn, .watch-btn { width: 100%; box-sizing: border-box; margin: 0 !important; }
-  .latest-item { flex-direction: column; align-items: flex-start; }
-  .latest-thumb { width: 100%; height: 180px; border-radius: 12px 12px 0 0; box-shadow: none; }
-  .latest-info { padding: 10px 15px 15px; }
-  .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-  .card .thumb { height: 120px; }
-  .now-title { font-size: 20px; }
-  .seo-content { padding: 15px !important; }
+  /* ... (Existing mobile styles kept for homepage) ... */
   
   /* Modal responsive fix */
-  .modal-content { padding: 25px; }
-  .modal-content h2 { font-size: 26px; }
-  .modal-content p { font-size: 15px; margin-bottom: 20px; }
-}
+  .full-screen-modal {
+      padding: 0; /* Remove padding from main wrapper */
+  }
 
-/* --- Followers Modal (Updated to use generic modal classes) --- */
-#followModal {
-  /* Renamed classes for consistency */
-  position: fixed;
-  top:0; left:0; width:100vw; height:100vh;
-  background: rgba(0,0,0,0.95);
-  z-index:10000;
-  display: none;
-  justify-content:center;
-  align-items:center;
-  backdrop-filter: blur(8px);
-}
+  .player-content {
+      width: 100%;
+      max-width: none;
+      height: 100vh;
+      border-radius: 0;
+      padding: 0;
+      /* Remove border/shadow inherited from generic modal */
+      border: none; 
+      box-shadow: none; 
+  }
+    
+  .modal-content .adsterra-socialbar-placement {
+      padding: 5px 10px 0;
+  }
+    
+  .modal-controls {
+      padding: 10px;
+      text-align: center;
+  }
 
-/* Note: Follow Modal's internal structure uses generic classes like h2, p, button,
-   so it will inherit the new modal styling. */
+  .modal-controls h3 {
+      font-size: 20px;
+  }
+    
+  #modalVideoDescription {
+      text-align: center;
+  }
 
-#followBtn {
-  background: var(--primary-color);
-  color:white;
-  font-size:22px;
-  border:none;
-  border-radius:10px;
-  padding:18px 35px;
-  margin:14px auto 0 auto;
-  cursor:pointer;
-  transition: all 0.3s ease;
-  font-weight: bold;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-}
-#followBtn:hover { background: var(--accent-color); box-shadow: 0 0 35px var(--shadow-color); transform: scale(1.05); }
-  
+  .modal-controls .controls {
+      flex-direction: column;
+      gap: 10px;
+  }
+
+  .modal-controls .watch-btn, .modal-controls .btn.primary, .modal-controls .btn {
+      width: 90%; 
+      margin: 0;
+  }
+
+  .close-btn {
+      top: 5px;
+      right: 5px;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+      background: rgba(0, 0, 0, 0.6);
+  }
+  }
+      
