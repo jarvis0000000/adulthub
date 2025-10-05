@@ -230,7 +230,6 @@ hr {
   background: #000; /* Darker background for player area */
   border-radius: 20px;
   overflow: hidden;
-  /* Removed padding/border/shadow here as it's handled by modal-content */
   z-index: 500; 
   position: relative;
 }
@@ -396,23 +395,22 @@ footer.foot {
 
 /* --- VIDEO PLAYER MODAL STYLES (for #videoModal) --- */
 .player-content {
-    /* For Player Modal, we want a wider layout */
     max-width: 900px; 
     width: 95%;
     margin: auto;
-    padding: 0; /* Remove internal padding, container elements will add it */
+    padding: 0; 
     border: none;
     animation: none;
-    background: transparent; /* Main content background transparent */
+    background: transparent; 
     border-radius: 0;
 }
 
 /* Close Button Style */
 .close-btn {
-    position: fixed; /* Fixed position */
+    position: fixed; 
     top: 15px;
     right: 15px;
-    background: rgba(0, 0, 0, 0.7); /* Darker background */
+    background: rgba(0, 0, 0, 0.7); 
     color: white;
     border: 2px solid var(--primary-color);
     border-radius: 50%;
@@ -421,7 +419,7 @@ footer.foot {
     font-size: 22px;
     line-height: 1;
     cursor: pointer;
-    z-index: 10100; /* Higher Z-index to be on top of everything */
+    z-index: 10100; 
     transition: background 0.2s, box-shadow 0.3s;
     font-weight: bold;
 }
@@ -433,13 +431,13 @@ footer.foot {
 }
 
 /* Player Wrapper inside Modal (16:9 Aspect Ratio) */
+/* **CRITICAL FIX HERE** */
 #modalPlayerWrap {
     width: 100%;
     position: relative;
-    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-    height: 0;
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio (Height will be 56.25% of the width) */
+    height: 0; /* Important to set height to 0 for the aspect ratio trick to work */
     overflow: hidden;
-    /* Adding a slight glow/border around the player area */
     border: 3px solid var(--header-bg);
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     border-radius: 12px 12px 0 0;
@@ -451,15 +449,16 @@ footer.foot {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 100%; /* Now takes up 100% of the calculated aspect ratio height */
     min-height: auto; 
     border-radius: 0;
 }
+/* **END CRITICAL FIX** */
 
 /* Modal Ads and Info Area */
 .modal-controls {
     padding: 20px;
-    background: var(--card-bg); /* Dark container for info/buttons */
+    background: var(--card-bg); 
     border-radius: 0 0 12px 12px;
 }
 
@@ -482,9 +481,9 @@ footer.foot {
 /* Ads Placement Container (Native Banner) */
 .adsterra-banner-placement {
     padding: 15px 10px 10px; 
-    max-width: 728px; /* Standard banner width */
+    max-width: 728px; 
     margin: 0 auto;
-    background: #000; /* Pure black background for the ad strip */
+    background: #000; 
     text-align: center;
 }
 
@@ -492,7 +491,7 @@ footer.foot {
 .adsterra-socialbar-placement {
     padding: 10px 10px 0;
     text-align: center;
-    background: #000; /* Pure black background for the ad strip */
+    background: #000; 
     border-top: 1px solid #333;
 }
 
@@ -509,7 +508,7 @@ footer.foot {
     .player-content {
         width: 100%;
         max-width: none;
-        height: 100%; /* Take full height */
+        height: 100%; 
         padding: 0;
     }
     
@@ -549,7 +548,7 @@ footer.foot {
     .modal-controls .watch-btn, 
     .modal-controls .btn.primary, 
     .modal-controls .btn {
-        width: 100%; /* Full width buttons */
+        width: 100%; 
         margin: 0;
     }
     
@@ -566,7 +565,6 @@ footer.foot {
     .card .thumb { height: 120px; }
 }
 
-/* Existing Modal Styles (for Age Gate / AdBlocker, ensures they are centered) */
 @media (min-width: 769px) {
     .modal-content:not(.player-content) {
         margin: auto;
