@@ -1,10 +1,26 @@
-// FINAL DARELOOM HUB SCRIPT v20 - REMOVED TOP CATEGORIES DROPDOWN
+// FINAL DARELOOM HUB SCRIPT v21 - FULL AD INTEGRATION
 // Tags/Categories sirf video ke niche se hi load honge.
 
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
 let items = [], current = null, currentPage = 1;
+
+// --- AdSense In-feed Ad Code ---
+const ADSENSE_IN_FEED_CODE = `
+    <div style="padding: 10px 0;">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-format="fluid"
+             data-ad-layout-key="-fb+5w+4e-db+86"
+             data-ad-client="ca-pub-5498322989424578"
+             data-ad-slot="3327404550"></ins>
+        <script>
+             (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+`;
+// ---------------------------------
 
 // --- Fetch Google Sheet (No change) ---
 async function fetchSheet() {
@@ -19,7 +35,7 @@ async function fetchSheet() {
   }
 }
 
-// --- Parse Rows (FIXED INDEXES) ---
+// --- Parse Rows (No change) ---
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
 
 function parseRows(values){
@@ -137,20 +153,15 @@ function injectSchema(it) {
   document.head.appendChild(script);
 }
 
-// --- Ad Trigger Functions (OPTIMIZED: triggerAdRedirect REMOVED) ---
+// --- Ad Trigger Functions (OPTIMIZED FOR NEW STRATEGY) ---
 
-// NOTE: triggerAdRedirect function has been removed to prevent aggressive browser blocking.
-// We only trigger ads on Watch/Link opens (openWatchWithAd) and Pagination (openAdAndChangePage).
-
+// ** 1. Preview/Random Click Logic (No Pop-under, just show content) **
 function triggerAdThenShowItem(item) {
   if(!item) return;
-
-  // triggerAdRedirect() call removed to prevent aggressive browser blocking
-  
+  // Pop-under removed here as per new strategy.
   setTimeout(() => {  
       showItem(item);  
   }, 150);
-
 }
 
 function triggerAdThenShowItemById(id){
@@ -159,7 +170,7 @@ function triggerAdThenShowItemById(id){
 }
 window.triggerAdThenShowItemById = triggerAdThenShowItemById; 
 
-// --- AD BLOCKER DETECTION ---
+// --- AD BLOCKER DETECTION (No change) ---
 
 function showAdBlockerModal() {
   const mainWrap = document.getElementById('mainWrap');
@@ -172,7 +183,6 @@ function showAdBlockerModal() {
       modal.style.display = 'flex';   
   }  
   document.body.style.overflow = 'hidden';
-
 }
 
 function checkAdBlocker() {
@@ -217,7 +227,8 @@ function checkAdBlocker() {
   }, 100);
 }
 
-// --- Render Functions (Tags and Category View) ---
+// --- Render Functions ---
+
 function renderRandom(){
   const g = document.getElementById('randomGrid'); if(!g) return; g.innerHTML='';
   const pool = items.slice(); const picks = [];
@@ -226,6 +237,7 @@ function renderRandom(){
     const card = document.createElement('div'); card.className='card';
     const t = makeThumbnail(it);
     card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
+    // Preview button / Random pick ab sirf content dikhayega (Pop-under sirf Watch/Pagination par)
     card.addEventListener('click', ()=> triggerAdThenShowItem(it));
     g.appendChild(card);
   });
@@ -240,7 +252,7 @@ function renderLatest(page = currentPage){
   const start = (currentPage-1)*PER_PAGE;
   const slice = items.slice(start, start+PER_PAGE);
 
-  slice.forEach(it => {
+  slice.forEach((it, index) => { // NOTE: index added for ad injection
     const div = document.createElement('div'); div.className='latest-item';
     const t = makeThumbnail(it);
     
@@ -264,11 +276,22 @@ function renderLatest(page = currentPage){
             <div class="tag-container" style="margin-top:5px;">${tagsHtml}</div>
             <div style="margin-top:8px">
                 <button class="btn" onclick="triggerAdThenShowItemById('${escapeHtml(it.id)}')">Preview</button> 
-                <button class="watch-btn" onclick="triggerAdThenShowItemById('${escapeHtml(it.id)}')">Watch</button>
+                <button class="watch-btn" onclick="openAdsterraThenWatch('${escapeHtml(it.id)}')">Watch</button>
             </div>
         </div>
     `;
     list.appendChild(div);
+
+    // ********** GOOGLE ADSENSE IN-FEED AD INJECTION **********
+    // Har 3 item ke baad ad dikhega
+    if ((index + 1) % 3 === 0) { 
+        const adDiv = document.createElement('div');
+        adDiv.className = 'latest-item ad-item-in-feed'; // Use the same class for styling match
+        
+        adDiv.innerHTML = ADSENSE_IN_FEED_CODE;
+        list.appendChild(adDiv);
+    }
+    // **********************************************************
   });
 
   displayPagination(totalPages, currentPage);
@@ -313,7 +336,7 @@ function renderCategoryGrid(videoList, title){
   });
 }
 
-// --- Pagination Logic (No change) ---
+// --- Pagination Logic (Adsterra Pop-under retained) ---
 function displayPagination(totalPages, currentPage) {
   const pager = document.getElementById('pager');
   pager.innerHTML = '';
@@ -361,7 +384,7 @@ function createPageButton(text, pageNum) {
   btn.textContent = text;
   btn.setAttribute('data-page', pageNum);
   btn.onclick = function() {
-    openAdAndChangePage(pageNum);
+    openAdAndChangePage(pageNum); // Pop-under logic is inside this function
   };
   return btn;
 }
@@ -372,10 +395,11 @@ function openAdAndChangePage(page){
   const latestSection = document.getElementById('latestSection');
   if(latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' });
 
+  // Adsterra Pop-under for Pagination
   const s = document.createElement('script'); s.src = AD_POP; s.async = true; document.body.appendChild(s);
 }
 
-// --- Search Functionality ('n' bypass ke saath) ---
+// --- Search Functionality ('n' bypass ke saath) (No change) ---
 window.filterVideos = function(query) {
   query = (query || '').trim(); 
 
@@ -444,6 +468,7 @@ function showItemById(id){ const it = items.find(x=>x.id===id); if(it) showItem(
 function showRandomPick() {
     if (items.length === 0) return;
     const randomItem = items[Math.floor(Math.random() * items.length)];
+    // Random pick ab sirf content dikhayega (Pop-under sirf Watch/Pagination par)
     triggerAdThenShowItem(randomItem);
 }
 window.showRandomPick = showRandomPick; 
@@ -507,7 +532,8 @@ function showItem(it){
           btnClass = 'btn primary';   
       }  
         
-      buttonHTML += `<button class="${btnClass}" onclick="openWatchWithAd('${escapeHtml(url)}')">${btnText}</button>`;
+      // Watch ab naye Pop-under function ko call karega
+      buttonHTML += `<button class="${btnClass}" onclick="openAdsterraThenWatch('${escapeHtml(url)}')">${btnText}</button>`;
 
   });
 
@@ -522,16 +548,14 @@ function showItem(it){
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// --- FINAL: Open Watch with SINGLE Ad Logic (OPTIMIZED FOR ADSTERRA) ---
-function openWatchWithAd(targetUrl){
+// --- NEW: Open Watch with Adsterra Pop-under Logic ---
+function openAdsterraThenWatch(targetUrl){
   if(!targetUrl || targetUrl === '#') return;
   const target = targetUrl;
-  const watchAdCode = 'pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js';
-  const AD_POP_URL = `//${watchAdCode}`;
 
-  // 1. Single Ad Script Load: Browser blocking kam karne ke liye.
+  // 1. Adsterra Pop-under Script Load:
   const s1 = document.createElement('script'); 
-  s1.src = AD_POP_URL; 
+  s1.src = AD_POP; // AD_POP is defined at the top
   document.body.appendChild(s1);
 
   setTimeout(() => {
@@ -545,13 +569,11 @@ function openWatchWithAd(targetUrl){
     }
   }, 100);
 
-  // NOTE: Second ad script HATA DIYA GAYA HAI.
-
-  const watchAd = document.getElementById('watchAd');
-  if(watchAd) watchAd.textContent = 'Opening link... (Allow Pop-ups)';
+  // Marked div (watchAd) reference hata diya gaya hai
 }
 
-// --- FINAL Initialization (DATE SORTING REMOVED & REVERSED FOR NEWEST TO OLDEST) ---
+
+// --- FINAL Initialization (No change) ---
 async function loadAll() {
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
@@ -569,12 +591,10 @@ async function loadAll() {
 
   const controlsContainer = document.getElementById('controlsContainer');
   if (controlsContainer) {
+    // Buttons ab naye functions ko call karte hain
     controlsContainer.innerHTML =   `<div class="pill" id="count">${items.length} items</div>` + `<button class="btn" onclick="showRandomPick()">🎲 Shuffle</button>`;
   }
 
-  renderRandom();
-  renderLatest();
-  // renderCategoryDropdown() call ko hata diya gaya hai
   
   if (items.length > 0) {
     showItem(items[0]);
