@@ -1,10 +1,19 @@
-// FINAL DARELOOM HUB SCRIPT v23 - ADSTERRA POP-UP FOR ALL CLICKS & CLEAN HOMEPAGE
+// FINAL DARELOOM HUB SCRIPT v24 - MODAL PLAYER & POP-UP FOR ALL CLICKS
 
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 // Adsterra Pop-under Code (Common for all ad triggers)
 const AD_POP = "//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
 let items = [], current = null, currentPage = 1;
+
+// --- Adsterra Ad Codes (Injecting inside modal) ---
+const ADSTERRA_NATIVE_BANNER_SCRIPT = `
+    <script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>
+`;
+const ADSTERRA_SOCIAL_BAR_SCRIPT = `
+    <script type='text/javascript' src='//pl27654958.revenuecpmgate.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js'></script>
+`;
+
 
 // --- Pop-under Ad Trigger Function (New) ---
 function openAdsterraPop() {
@@ -14,7 +23,7 @@ function openAdsterraPop() {
     document.body.appendChild(s);
 }
 
-// --- Dynamic Link Name Detection (New) ---
+// --- Dynamic Link Name Detection ---
 function getLinkName(url) {
     if (!url) return 'Watch Link';
     
@@ -25,14 +34,12 @@ function getLinkName(url) {
     if (url.includes('drive.google.com')) return 'Google Drive Watch';
     if (url.includes('mp4upload.com')) return 'Mp4Upload Watch';
     
-    // Generic host detection (e.g., myserver.com)
+    // Generic host detection 
     try {
         const domain = new URL(url).hostname.replace('www.', '');
-        // Capitalize first letter of the domain part before dot
         const namePart = domain.split('.')[0];
         return namePart.charAt(0).toUpperCase() + namePart.slice(1) + ' Link';
     } catch (e) {
-        // Fallback for invalid URLs
         return 'External Watch Link';
     }
 }
@@ -132,26 +139,46 @@ function injectSchema(it) {
   document.head.appendChild(script);
 }
 
+// --- Item Click Logic (New Page Simulation) ---
 
-// --- Ad Trigger Functions (MODIFIED for Pop-under on click) ---
-
-// 1. Preview/Random Click Logic (Pop-under + Opens Modal)
-function triggerAdThenShowItem(item) {
+function triggerAdThenOpenModal(item) {
   if(!item) return;
-  openAdsterraPop(); // Pop-under for Preview/Thumbnail Click
+  
+  // 1. Pop-under Ad (for Preview/Thumbnail Click)
+  openAdsterraPop(); 
+  
+  // 2. Open Modal with a slight delay
   setTimeout(() => {  
       openPlayerModal(item);  
   }, 150);
 }
 
-function triggerAdThenShowItemById(id){
+function triggerAdThenOpenModalById(id){
   const it = items.find(x=>x.id===id);
-  if(it) triggerAdThenShowItem(it);
+  if(it) triggerAdThenOpenModal(it);
 }
-window.triggerAdThenShowItemById = triggerAdThenShowItemById; 
+window.triggerAdThenOpenModalById = triggerAdThenOpenModalById; 
 
 
-// --- Ad Blocker / N Bypass (No Ad Blocker modal needed, just N bypass) ---
+// --- Random Pick Function (Now opens modal) ---
+window.showRandomPick = function() {
+    openAdsterraPop(); // Pop-under for Random button click
+    
+    setTimeout(() => {
+        if (items.length === 0) return;
+        const randomIndex = Math.floor(Math.random() * items.length);
+        const randomItem = items[randomIndex];
+        
+        openPlayerModal(randomItem); // Open Modal for the random item
+        
+        // Scroll to the main section after opening modal, if necessary
+        const mainWrap = document.getElementById('mainWrap');
+        if (mainWrap) window.scrollTo({ top: mainWrap.offsetTop, behavior: 'smooth' });
+    }, 150);
+}
+
+
+// --- Ad Blocker / N Bypass (No changes) ---
 
 window.filterVideos = function(query) {
   query = (query || '').trim(); 
@@ -182,7 +209,7 @@ window.filterVideos = function(query) {
 }
 
 
-// --- Render Functions (Same as before) ---
+// --- Render Functions (Modified to use triggerAdThenOpenModal) ---
 function renderRandom(){
   const g = document.getElementById('randomGrid'); if(!g) return; g.innerHTML='';
   const pool = items.slice(); const picks = [];
@@ -191,7 +218,7 @@ function renderRandom(){
     const card = document.createElement('div'); card.className='card';
     const t = makeThumbnail(it);
     card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
-    card.addEventListener('click', ()=> triggerAdThenShowItem(it)); // Pop-under + Modal
+    card.addEventListener('click', ()=> triggerAdThenOpenModal(it)); // Pop-under + Modal
     g.appendChild(card);
   });
 }
@@ -213,7 +240,8 @@ function renderLatest(page = currentPage){
         const categories = it.category.split(',').map(c => c.trim()).filter(c => c.length > 0);
         tagsHtml = categories.map(tag => {
             const cleanTag = escapeHtml(tag);
-            return `<button class="tag-btn" onclick="openAdsterraPop(); showCategoryView('${cleanTag.charAt(0).toUpperCase() + cleanTag.slice(1)}', items.filter(i => (i.category || '').toLowerCase().includes('${cleanTag.toLowerCase()}')))">#${cleanTag}</button>`;
+            // Category button will also open modal for filtered list
+            return `<button class="tag-btn" onclick="triggerAdThenOpenModalById('${escapeHtml(it.id)}')">#${cleanTag}</button>`; 
         }).join('');
     }
     
@@ -224,8 +252,8 @@ function renderLatest(page = currentPage){
             <div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div>
             <div class="tag-container" style="margin-top:5px;">${tagsHtml}</div>
             <div style="margin-top:8px">
-                <button class="btn" onclick="triggerAdThenShowItemById('${escapeHtml(it.id)}')">Preview</button> 
-                <button class="watch-btn" onclick="triggerAdThenShowItemById('${escapeHtml(it.id)}')">Watch</button>
+                <button class="btn" onclick="triggerAdThenOpenModalById('${escapeHtml(it.id)}')">Preview</button> 
+                <button class="watch-btn" onclick="triggerAdThenOpenModalById('${escapeHtml(it.id)}')">Watch</button>
             </div>
         </div>
     `;
@@ -248,7 +276,7 @@ function renderCategoryGrid(videoList, title){
       card.className='card';  
       const t = makeThumbnail(it);  
       card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;  
-      card.addEventListener('click', ()=> triggerAdThenShowItem(it)); // Pop-under + Modal
+      card.addEventListener('click', ()=> triggerAdThenOpenModal(it)); // Pop-under + Modal
       container.appendChild(card);  
   });
 }
@@ -298,7 +326,7 @@ function openAdAndChangePage(page){
 }
 
 
-// --- Modal Player Functions ---
+// --- Modal Player Functions (The new "page" function) ---
 
 function openPlayerModal(it){
     current = it;
@@ -309,12 +337,15 @@ function openPlayerModal(it){
     const modalTitle = document.getElementById('modalVideoTitle');
     const modalDesc = document.getElementById('modalVideoDescription');
     const modal = document.getElementById('videoModal');
+    const bannerAd = modal.querySelector('.adsterra-banner-placement');
+    const socialBarAd = modal.querySelector('.adsterra-socialbar-placement');
 
     if(!p || !controlsContainer || !modalTitle || !modal) return;
     
-    // Player Setup (Same as before)
+    // 1. Player Setup: Trailer load hoga
     p.innerHTML='';
     if(embed){
+      // (Video/Iframe embed code remains the same)
       if(embed.match(/\.mp4($|\?)/i)){
         const v = document.createElement('video');
         v.controls=true; v.autoplay=true; v.muted=true; v.playsInline=true;
@@ -344,7 +375,11 @@ function openPlayerModal(it){
     modalTitle.textContent = it.title || 'Video Player';
     modalDesc.textContent = it.description || '';
 
-    // Controls Setup (Watch Buttons)
+    // 2. Ad Setup: Native Banner aur Social Bar inject karna
+    if (bannerAd) bannerAd.innerHTML = bannerAd.innerHTML.replace('', '') + ADSTERRA_NATIVE_BANNER_SCRIPT;
+    if (socialBarAd) socialBarAd.innerHTML = socialBarAd.innerHTML.replace('', '') + ADSTERRA_SOCIAL_BAR_SCRIPT;
+
+    // 3. Controls Setup (Watch Buttons)
     const watchUrls = (it.watch || '').split(',').map(url => url.trim()).filter(url => url.length > 0);
     let buttonHTML = '';
 
@@ -353,23 +388,21 @@ function openPlayerModal(it){
         let btnClass = 'watch-btn';
 
         if(url.includes('t.me') || url.includes('telegram')) {  
-            btnClass = 'btn primary'; // Telegram ke liye alag style
+            btnClass = 'btn primary'; 
         }  
           
         // Watch button ab Pop-under trigger karke link kholega
         buttonHTML += `<button class="${btnClass}" onclick="openAdsterraThenWatch('${escapeHtml(url)}')">${btnText}</button>`;
     });
 
-    buttonHTML += `<button class="btn" style="background-color: #28a745;" onclick="shareItem(current)">🔗 Share</button>`;
+    buttonHTML += `<button class="btn" style="background-color: var(--secondary-color);" onclick="shareItem(current)">🔗 Share</button>`;
     controlsContainer.innerHTML = buttonHTML;
     
     injectSchema(it);
     
-    // Modal ko open karein
+    // 4. Modal ko open karein
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden'; // Scroll disable
-    
-    // Note: Adsterra ads (Native/Social Bar) Modal HTML mein hi hain, so they load automatically.
 }
 
 window.closePlayerModal = function() {
@@ -378,6 +411,23 @@ window.closePlayerModal = function() {
     document.body.style.overflow = ''; 
     const p = document.getElementById('modalPlayerWrap');
     if(p) p.innerHTML = ''; // Stop audio/video
+
+    // Cleanup ads when closing modal
+    const bannerAd = modal.querySelector('.adsterra-banner-placement');
+    const socialBarAd = modal.querySelector('.adsterra-socialbar-placement');
+    if (bannerAd) bannerAd.innerHTML = `
+        <script type="text/javascript">
+            atOptions = {
+                'key' : 'd1be46ed95d3e2db572824c531da5082',
+                'format' : 'iframe',
+                'height' : 90,
+                'width' : 728,
+                'params' : {}
+            };
+        </script>
+        `;
+    if (socialBarAd) socialBarAd.innerHTML = `
+        `;
 }
 
 
@@ -403,7 +453,7 @@ function openAdsterraThenWatch(targetUrl){
 
 }
 
-// --- Initialization ---
+// --- Initialization (Same as before) ---
 async function loadAll() {
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
@@ -426,4 +476,4 @@ async function loadAll() {
 
 // FINAL INITIALIZATION CALL
 loadAll();
-      
+        
