@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
 <title>Dareloom Hub: Free HD Erotic & Romantic Full Series, Uncut Movies (18+)</title>
-<meta name="description" content="Watch exclusive Erotic, Romantic, and Bold Full Series and Uncut Movies for free in HD. Daily updated 18+ content with working links. Premium HD streaming without sign-up.">
+<meta name="description" content="Watch exclusive Erotic, Romantic, and Bold Full Series, Uncut Movies, and Clips online for free in HD.">
 <meta name="keywords" content="erotic full series, romantic movies, bold clips, uncut videos, 18+ content, HD streaming, free full series, trending romance, exclusive videos, watch online free, drama series, full episode free, latest web series">
 <meta name="author" content="Dareloom Hub">
 
@@ -26,23 +26,8 @@
 <link rel="manifest" href="/site.webmanifest" />
 <link rel="stylesheet" href="style.css?v=20251003"> 
 
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5498322989424578"
-     crossorigin="anonymous"></script>
 </head>
 <body>
-
-<div class="sticky-ad-footer">
-    <script type="text/javascript">
-      atOptions = {
-        'key':'627de0095b96c6bf7f7e1f352a5fa6b5',
-        'format':'iframe',
-        'height':50, 
-        'width':320, 
-        'params':{}
-      };
-    </script>
-    <script type="text/javascript" src="//www.highperformanceformat.com/627de0095b96c6bf7f4e1f352a5fa6b5/invoke.js"></script>
-</div>
 
 <header class="site">
   <div class="brand">
@@ -60,27 +45,15 @@
 <main class="wrap" id="mainWrap">
 
   <section class="hero">
-    <div class="player-card" id="playerWrap">
-      <div class="player-placeholder">🎬 Select a video to preview</div>
-    </div>
     
-    <div class="adsense-player-bottom-placement" style="margin: 15px 0; text-align: center;">
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-5498322989424578"
-             data-ad-slot="4313183163"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>
-             (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-    </div>
     <aside class="hero-actions">
-      <div id="nowTitle" class="now-title">No video selected</div>
+      <div id="homepagePlayerPlaceholder" class="player-card">
+          <div class="player-placeholder">🎬 Select a video to watch</div>
+      </div>
+      <div id="nowTitle" class="now-title">Ready to watch?</div>
       <div class="controls" id="controlsContainer">
         <div class="pill" id="count">0 items</div>
       </div>
-      <div class="ad-slot small" id="watchAd">Ad space — watch</div>
     </aside>
   </section>
 
@@ -111,23 +84,45 @@
 </main>
 
 <footer class="foot">
-  <div class="banner-wrap">
-    <script type="text/javascript">
-      atOptions = {
-        'key':'627de0095b96c6bf7f4e1f352a5fa6b5',
-        'format':'iframe',
-        'height':250,
-        'width':300,
-        'params':{}
-      };
-    </script>
-    <script type="text/javascript" src="//www.highperformanceformat.com/627de0095b96c6bf7f4e1f352a5fa6b5/invoke.js"></script>
-  </div>
   <div class="footer-info">
     © Dareloom Hub. Contact: <a href="mailto:dareloom.official@gmail.com">dareloom.official@gmail.com</a>
   </div>
 </footer>
 
+
+<div id="videoModal" class="full-screen-modal" style="display: none;">
+    <div class="modal-content player-content">
+        <button class="close-btn" onclick="closePlayerModal()">✖</button> 
+        
+        <div class="adsterra-banner-placement" style="margin: 10px auto; text-align: center;">
+            <script type="text/javascript">
+                atOptions = {
+                    'key' : 'd1be46ed95d3e2db572824c531da5082',
+                    'format' : 'iframe',
+                    'height' : 90,
+                    'width' : 728,
+                    'params' : {}
+                };
+            </script>
+            <script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>
+        </div>
+        
+        <div id="modalPlayerWrap" class="player-card">
+            <div class="player-placeholder">Loading Video...</div>
+        </div>
+
+        <div class="adsterra-socialbar-placement" style="margin: 15px 0;">
+             <script type='text/javascript' src='//pl27654958.revenuecpmgate.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js'></script>
+        </div>
+        
+        <div class="modal-controls">
+            <h3 id="modalVideoTitle">Loading...</h3>
+            <p id="modalVideoDescription" style="color: var(--muted); font-size: 14px;"></p>
+            <div id="modalControlsContainer" class="controls">
+                </div>
+        </div>
+    </div>
+</div>
 <div id="adBlockerModal" class="full-screen-modal">
     <div class="modal-content">
         <h2>Ad Blocker Detected!</h2>
@@ -148,13 +143,8 @@
 
 <script>
   (function() {
-    // pathname check karne ke liye ki yeh /video/ path se start ho raha hai ya nahi.
     const path = window.location.pathname;
-    
     if (path.startsWith('/video/')) {
-        // Agar yeh path /video/ par hai, toh ise home page par redirect kar do.
-        // Yeh maana ja raha hai ki Cloudflare Pages /video/* ko index.html par serve kar raha hoga (using _redirects file).
-        // Phir yeh client-side script URL ko / par set kar dega.
         window.location.replace('/');
     }
   })();
