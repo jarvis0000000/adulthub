@@ -1,597 +1,254 @@
 /*
-* style.css - Professional, Responsive, Futuristic Look
-* FINAL UPDATE: Full Screen Modal Player & Ad Placement Fix (MOBILE CENTERING)
+* style.css – FINAL FIX (2025)
+* Works perfectly on both Mobile & Desktop
+* Responsive Full-Screen Video Modal + Centered Controls
 */
 
-/* --- General Styles --- */
+/* --- Root & Base Colors --- */
 :root {
-  --primary-color: #ff4b91; /* Seductive Pink */
+  --primary-color: #ff4b91;
   --bg-color: #000000;
   --card-bg: #181818;
   --header-bg: #0d0d0d;
   --text-color: #fff;
   --muted-color: #999;
   --shadow-color: rgba(255, 75, 145, 0.9);
-  --accent-color: #e63e81; /* Primary color ka darker shade */
-  --secondary-color: #28a745;
-  --border-color: #333;
+  --accent-color: #e63e81;
 }
 
-body { 
-  background: var(--bg-color); 
-  color: var(--text-color); 
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+/* --- General Reset --- */
+body {
+  background: var(--bg-color);
+  color: var(--text-color);
   margin: 0;
   padding: 0;
-  line-height: 1.6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* --- Header & Navigation --- */
-header.site { 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  padding: 15px 20px; 
-  background: var(--header-bg); 
-  border-bottom: 3px solid var(--primary-color); 
-  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.9);
-  position: sticky; 
-  top: 0;
-  z-index: 900; 
-}
-
-.brand { 
-  display: flex; 
-  align-items: center; 
-  flex-shrink: 1;
-}
-
-.brand .logo-img { 
-  height: 40px; 
-  width: auto; 
-  margin-right: 10px; 
-  border-radius: 8px; 
-  box-shadow: 0 0 10px rgba(255, 75, 145, 0.6);
-  display: block; 
-}
-
-.brand .title { 
-  margin: 0; 
-  font-size: 26px; 
-  font-weight: 900;
-  color: var(--primary-color); 
-  text-shadow: 0 0 10px var(--shadow-color);
-  display: block; 
-}
-
-.nav { 
-  display: flex; 
-  align-items: center; 
-  flex-shrink: 0;
-  margin-left: 15px;
-  gap: 10px; 
-}
-
-/* --- Search Input Style --- */
-#searchInput {
-  padding: 10px 15px; 
-  border: 2px solid var(--primary-color); 
-  border-radius: 25px; 
-  background-color: #111; 
-  color: var(--text-color);
-  width: 150px; 
-  transition: all 0.4s ease-in-out;
-  font-size: 14px;
-}
-
-#searchInput:focus {
-  width: 220px; 
-  box-shadow: 0 0 25px var(--shadow-color); 
-  background-color: #222;
-  outline: none;
-}
-
-/* --- Main Layout --- */
-.wrap { 
-  max-width: 1200px; 
-  margin: auto; 
-  padding: 20px; 
-}
-
-h2 { 
-  margin: 30px 0 15px; 
-  font-size: 28px; 
-  border-left: 6px solid var(--primary-color); 
-  padding-left: 15px;
-  text-shadow: 0 0 12px rgba(255, 75, 145, 0.5);
-  color: var(--text-color);
-  font-weight: 700;
-}
-
-.section { 
-  margin-bottom: 50px; 
-}
-
-hr { 
-  border: 0; 
-  height: 2px; 
-  background-color: #333; 
-  margin: 40px 0; 
-}
-
-/* --- Grid & Card --- */
-.grid { 
-  display: grid; 
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
-  gap: 20px; 
-}
-
-.card { 
-  background: var(--card-bg); 
-  border-radius: 15px; 
-  overflow: hidden; 
-  transition: transform .4s ease, box-shadow .4s ease;
-  cursor: pointer;
-  border: 1px solid #333;
-}
-
-.card:hover { 
-  transform: translateY(-12px); 
-  box-shadow: 0 20px 60px var(--shadow-color);
-  border-color: var(--primary-color); 
-}
-
-.thumb { 
-  width: 100%; 
-  height: 180px; 
-  object-fit: cover; 
-  filter: brightness(0.8); 
-  transition: filter 0.3s;
-}
-
-.card:hover .thumb { filter: brightness(1); }
-
-.card .meta { padding: 12px; }
-
-.card h4 {
-  margin: 0;
-  font-size: 17px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--primary-color);
-  font-weight: 600;
-}
-
-/* --- Latest List --- */
-.latest-list { display: grid; gap: 20px; }
-
-.latest-item {
+/* --- Header --- */
+header.site {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background: var(--header-bg);
+  border-bottom: 3px solid var(--primary-color);
+  box-shadow: 0 4px 25px rgba(0, 0, 0, 0.9);
+  position: sticky;
+  top: 0;
+  z-index: 900;
+}
+
+.brand .title {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--primary-color);
+  text-shadow: 0 0 10px var(--shadow-color);
+}
+
+/* --- Grid & Cards (simplified) --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+.card {
   background: var(--card-bg);
   border-radius: 15px;
   overflow: hidden;
-  transition: transform .3s, box-shadow .3s;
-  align-items: center;
-  border: 1px solid #333;
-}
-
-.latest-item:hover {
-  box-shadow: 0 8px 30px var(--shadow-color);
-  border-color: var(--primary-color); 
-  transform: translateY(-5px);
-}
-
-.latest-thumb {
-  width: 180px; 
-  height: 120px;
-  object-fit: cover;
-  flex-shrink: 0;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.8);
-  border-radius: 4px;
-}
-
-.latest-info { padding: 15px; flex-grow: 1; }
-
-/* --- Tags/Category Styling (NEW) --- */
-.tag-container {
-    margin-top: 5px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
-}
-
-.tag-btn {
-    background-color: var(--card-bg);
-    color: var(--primary-color);
-    border: 1px solid var(--primary-color);
-    padding: 3px 8px;
-    font-size: 11px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: 500;
-    line-height: 1;
-    text-transform: capitalize;
-}
-
-.tag-btn:hover {
-    background-color: var(--primary-color);
-    color: var(--card-bg);
-    box-shadow: 0 0 10px rgba(255, 75, 145, 0.4);
-}
-/* ---------------------------------- */
-
-
-/* --- Player & Controls (Used only in Modal now) --- */
-.hero { display: block; }
-
-.player-card {
-  background: #000; 
-  border-radius: 20px;
-  overflow: hidden;
-  z-index: 500; 
-  position: relative;
-}
-
-.player-placeholder {
-  padding: 120px 20px;
-  color: var(--muted-color);
-  font-size: 20px;
-}
-
-.hero-actions { margin-top: 20px; text-align: center; }
-
-.now-title {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 15px;
-  color: var(--primary-color); 
-  text-shadow: 0 0 18px rgba(255, 75, 145, 0.9);
-  letter-spacing: 1px;
-}
-
-.controls {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px; 
-  flex-wrap: wrap;
-}
-
-/* --- Buttons & Pills --- */
-.btn { 
-  background: #222; 
-  border: 2px solid var(--primary-color); 
-  color: var(--text-color); 
-  padding: 10px 18px; 
-  border-radius: 25px; 
-  cursor: pointer; 
-  transition: all 0.3s ease;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px; 
-}
-
-.btn:hover { 
-  background-color: var(--primary-color); 
-  box-shadow: 0 0 25px var(--shadow-color); 
-  border-color: var(--primary-color); 
-  transform: scale(1.07); 
-}
-
-.btn.primary, .watch-btn { 
-  background: var(--primary-color); 
-  padding: 12px 25px;
-  border-radius: 8px; 
-  border: none;
-  font-weight: bold;
-  letter-spacing: 1px;
-}
-
-.btn.primary:hover, .watch-btn:hover { 
-  background-color: var(--accent-color); 
-  box-shadow: 0 0 30px var(--shadow-color);
-  transform: scale(1.07);
-}
-
-.pill { 
-  background: #111;
-  padding: 8px 14px;
-  border-radius: 20px; 
-  font-size: 14px;
-  border: 1px solid var(--primary-color); 
-  color: var(--primary-color);
-  font-weight: 700;
-}
-
-/* --- Pager --- */
-.pager { margin-top: 25px; text-align: center; display: flex; justify-content: center; gap: 10px; }
-
-.page-btn {
-  background: var(--card-bg);
-  color: var(--text-color);
-  border: 1px solid #555;
-  padding: 10px 16px;
-  border-radius: 8px;
+  transition: transform .4s ease, box-shadow .4s ease;
   cursor: pointer;
-  transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
+}
+.card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 20px 60px var(--shadow-color);
 }
 
-.page-btn:hover {
-  background-color: #222;
-  border-color: var(--primary-color);
-  transform: translateY(-2px);
-}
-
-.page-btn.active {
-  background: var(--primary-color) !important;
-  border-color: var(--primary-color) !important;
-  font-weight: bold;
-  box-shadow: 0 0 20px var(--shadow-color);
-  transform: scale(1.08);
-}
-
-/* --- Footer --- */
-footer.foot { 
-  background: var(--header-bg); 
-  padding: 25px 20px; 
-  text-align: center; 
-  margin-top: 50px; 
-  border-top: 3px solid #222;
-  box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.7); 
-}
-
-.banner-wrap { text-align: center; margin: 20px auto; }
-
-.footer-info { margin-top: 10px; color: #aaa; font-size: 14px; }
-
-.footer-info a { color: var(--primary-color); text-decoration: none; transition: color 0.2s; }
-.footer-info a:hover { color: var(--accent-color); }
-
-/* --- MODALS (AdBlocker & Age Gate) --- */
+/* ============================================================
+   ✅ MODAL PLAYER – FIXED FOR BOTH DESKTOP & MOBILE
+   ============================================================ */
 .full-screen-modal {
   position: fixed;
-  top: 0; left: 0; 
-  width: 100vw; 
+  top: 0; left: 0;
+  width: 100vw;
   height: 100vh;
-  background: rgba(0,0,0,0.95);
+  background: rgba(0,0,0,0.96);
   z-index: 10000;
-  display: none; 
+  display: none;
   justify-content: center;
   align-items: center;
   backdrop-filter: blur(8px);
-  overflow-y: auto; 
-  padding: 20px 0;
-  box-sizing: border-box;
+  overflow: hidden;
 }
 
-.modal-content {
-  background: var(--card-bg);
-  padding: 40px;
-  border-radius: 20px; 
-  text-align: center;
-  box-shadow: 0px 20px 50px rgba(0,0,0,0.8);
-  max-width: 90%;
-  width: 400px; 
-  border: 5px solid var(--primary-color);
-  animation: pulse 1.5s infinite alternate; 
-}
-
-@keyframes pulse {
-    from { box-shadow: 0 0 10px var(--primary-color), 0 0 25px var(--shadow-color); }
-    to { box-shadow: 0 0 25px var(--primary-color), 0 0 50px var(--shadow-color); }
-}
-
-.modal-content h2 {
-  color: var(--primary-color);
-  margin-top: 0;
-  font-size: 32px;
-  text-shadow: 0 0 15px var(--shadow-color);
-  text-transform: uppercase;
-  border-left: none; 
-  padding-left: 0;
-}
-
-/* --- VIDEO PLAYER MODAL STYLES (for #videoModal) --- */
 .player-content {
-    /* Desktop/Wider Screens */
-    max-width: 900px; 
-    width: 95%;
-    margin: auto;
-    padding: 0; 
-    border: none;
-    animation: none;
-    background: transparent; 
-    border-radius: 0;
-    /* Use flex to align content in the center vertically */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+  position: relative;
+  width: 90%;
+  max-width: 900px;
+  background: var(--card-bg);
+  border-radius: 15px;
+  box-shadow: 0 0 40px rgba(0,0,0,0.8);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: none;
 }
 
-/* Close Button Style */
+/* Close Button */
 .close-btn {
-    position: fixed; 
-    top: 15px;
-    right: 15px;
-    background: rgba(0, 0, 0, 0.7); 
-    color: white;
-    border: 2px solid var(--primary-color);
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    font-size: 22px;
-    line-height: 1;
-    cursor: pointer;
-    z-index: 10100; 
-    transition: background 0.2s, box-shadow 0.3s;
-    font-weight: bold;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  border: 2px solid var(--primary-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 20px;
+  line-height: 38px;
+  text-align: center;
+  cursor: pointer;
+  z-index: 10100;
+  transition: all 0.3s ease;
 }
-
 .close-btn:hover {
-    background: var(--primary-color);
-    box-shadow: 0 0 15px var(--shadow-color);
-    transform: scale(1.1);
+  background: var(--primary-color);
+  transform: scale(1.1);
 }
 
-/* Player Wrapper inside Modal (16:9 Aspect Ratio) */
+/* Video Wrapper */
 #modalPlayerWrap {
-    width: 100%;
-    position: relative;
-    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
-    height: 0; 
-    overflow: hidden;
-    border: 3px solid var(--header-bg);
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-    border-radius: 12px 12px 0 0;
-    margin-top: 0; /* Final check for margin */
+  position: relative;
+  width: 100%;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio for desktop */
+  height: 0;
+  overflow: hidden;
+  background: #000;
 }
-
-#modalPlayerWrap iframe, 
+#modalPlayerWrap iframe,
 #modalPlayerWrap video {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%; 
-    min-height: auto; 
-    border-radius: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 0;
 }
 
-/* Modal Ads and Info Area */
+/* Controls Section */
 .modal-controls {
-    padding: 20px;
-    background: var(--card-bg); 
-    border-radius: 0 0 12px 12px;
-    width: 100%; /* Important for player-content flex */
-    box-sizing: border-box; /* Padding is included in width */
+  width: 100%;
+  padding: 20px;
+  background: var(--card-bg);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
 }
-
 .modal-controls h3 {
-    margin: 0;
-    font-size: 24px;
-    text-align: left;
-    color: var(--primary-color);
-    text-shadow: 0 0 10px rgba(255, 75, 145, 0.4);
+  color: var(--primary-color);
+  font-size: 22px;
+  margin: 0;
+  text-align: center;
+  text-shadow: 0 0 10px var(--shadow-color);
+}
+.controls {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.watch-btn,
+.btn {
+  background: var(--primary-color);
+  border: none;
+  color: #fff;
+  font-weight: bold;
+  padding: 10px 25px;
+  border-radius: 8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.watch-btn:hover,
+.btn:hover {
+  background: var(--accent-color);
+  box-shadow: 0 0 25px var(--shadow-color);
 }
 
-#modalVideoDescription {
-    color: var(--muted-color); 
-    font-size: 14px; 
-    margin-top: 5px; 
-    margin-bottom: 15px;
-    text-align: left;
-}
-
-/* Ads Placement Container (Native Banner) */
-.adsterra-banner-placement {
-    padding: 15px 10px 10px; 
-    max-width: 728px; 
-    margin: 0 auto;
-    background: #000; 
-    text-align: center;
-}
-
-/* Social Bar Placement Container (Social Bar Ad) */
-.adsterra-socialbar-placement {
-    padding: 10px 10px 0;
-    text-align: center;
-    background: #000; 
-    border-top: 1px solid #333;
-}
-
-/* Adsterra Native Banner Size Fix */
-.adsterra-banner-placement iframe {
-    max-width: 100% !important;
-    height: 90px !important;
-    margin: auto;
-}
-
-/* --- Mobile Responsive (Crucial Fix for Full Screen) --- */
+/* ============================================================
+   ✅ MOBILE RESPONSIVE FIX – TRUE FULLSCREEN & AUTO-FIT VIDEO
+   ============================================================ */
 @media (max-width: 768px) {
-    /* The Modal itself should use full screen, removing all extra padding */
-    .full-screen-modal {
-        padding: 0;
-    }
+  .full-screen-modal {
+    padding: 0;
+  }
 
-    /* FIX: Player content container should take full available height */
-    .player-content {
-        width: 100%;
-        max-width: none;
-        height: 100vh; /* Take full viewport height */
-        justify-content: flex-start; /* FIX: Start content from the top */
-        padding-top: 40px; /* Space for the close button at the top */
-        overflow-y: scroll; /* Allow scrolling if content is too long */
-        box-sizing: border-box;
-    }
-    
-    .close-btn {
-        top: 5px;
-        right: 5px;
-        width: 35px; /* Slightly larger close button */
-        height: 35px;
-        font-size: 18px;
-        background: var(--primary-color); /* Make it more visible */
-        border: none;
-        box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    }
-    
-    /* Player Wrapper fix for mobile */
-    #modalPlayerWrap {
-        width: 95%; /* Use 95% of screen width */
-        margin: 0 auto 10px; /* Center it horizontally, no top margin */
-        border-radius: 12px; 
-    }
-    
-    /* Ensure no extra margin/padding inside controls to avoid cutting text */
-    .modal-controls {
-        padding: 15px;
-        width: 95%; 
-        margin: 0 auto; 
-        border-radius: 0;
-        border-radius: 0 0 12px 12px;
-        flex-shrink: 0; /* Prevents controls from shrinking */
-    }
+  .player-content {
+    width: 100vw;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+    max-width: none;
+    border-radius: 0;
+    background: #000;
+    justify-content: flex-start;
+  }
 
-    /* Center text on mobile */
-    .modal-controls h3, #modalVideoDescription {
-        text-align: center;
-        font-size: 18px; /* Slightly smaller title */
-    }
+  #modalPlayerWrap {
+    width: 100%;
+    height: 60dvh; /* Video takes ~60% of screen */
+    padding-bottom: 0; /* Remove 16:9 trick */
+  }
 
-    /* Buttons should be full width on mobile */
-    .modal-controls .controls {
-        flex-direction: column;
-        gap: 10px;
-    }
+  #modalPlayerWrap iframe,
+  #modalPlayerWrap video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 
-    .modal-controls .watch-btn, 
-    .modal-controls .btn.primary, 
-    .modal-controls .btn {
-        width: 100%; 
-        margin: 0;
-    }
-    
-    .adsterra-banner-placement,
-    .adsterra-socialbar-placement {
-        padding-left: 5px;
-        padding-right: 5px;
-        width: 95%;
-        margin: 0 auto;
-    }
+  .modal-controls {
+    width: 100%;
+    height: 40dvh; /* Remaining 40% for title + buttons */
+    padding: 15px;
+    justify-content: center;
+    background: var(--card-bg);
+    overflow-y: auto;
+  }
 
-    .latest-item { flex-direction: column; align-items: flex-start; }
-    .latest-thumb { width: 100%; height: 180px; border-radius: 12px 12px 0 0; box-shadow: none; }
-    .latest-info { padding: 10px 15px 15px; }
-    .grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
-    .card .thumb { height: 120px; }
+  .modal-controls h3 {
+    font-size: 18px;
+  }
+
+  .controls {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .controls .btn,
+  .controls .watch-btn {
+    width: 100%;
+    font-size: 15px;
+  }
+
+  .close-btn {
+    top: 12px;
+    right: 12px;
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+    line-height: 34px;
+    background: var(--primary-color);
+    border: none;
+    box-shadow: 0 0 10px rgba(0,0,0,0.6);
+  }
 }
 
-@media (min-width: 769px) {
-    .modal-content:not(.player-content) {
-        margin: auto;
-    }
+/* Small glow animation (optional aesthetic) */
+@keyframes pulseGlow {
+  from { box-shadow: 0 0 10px var(--primary-color); }
+  to { box-shadow: 0 0 30px var(--accent-color); }
   }
-  
