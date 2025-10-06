@@ -13,6 +13,7 @@
 <meta property="og:url" content="https://dareloom.fun">
 <meta property="og:image" content="https://dareloom.fun/preview-thumbnail.jpg"> 
 
+<!-- ✅ Icons -->
 <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
@@ -23,8 +24,8 @@
 <link rel="shortcut icon" href="/favicon.ico" />
 <link rel="manifest" href="/site.webmanifest" />
 <link rel="stylesheet" href="style.css?v=20251006"> 
-
 </head>
+
 <body>
 
 <header class="site">
@@ -83,10 +84,12 @@
 </footer>
 
 
+<!-- ✅ Video Modal with Ad Section -->
 <div id="videoModal" class="full-screen-modal" style="display: none;">
     <div class="modal-content player-content">
         <button class="close-btn" onclick="closePlayerModal()">✖</button> 
         
+        <!-- ✅ Ad Banner (Top) -->
         <div class="adsterra-banner-placement" style="margin: 10px auto; text-align: center;">
             <script type="text/javascript">
                 atOptions = {
@@ -109,22 +112,14 @@
             <div id="modalControlsContainer" class="controls"></div>
         </div>
 
+        <!-- ✅ Bottom Persistent Ad -->
         <div id="modalPersistentAd" style="width:100%;text-align:center;padding:10px 0;background:#000;border-top:1px solid #111;"></div>
 
         <div class="adsterra-socialbar-placement" style="margin: 15px 0;"></div>
-
     </div>
 </div>
 
-<div id="adBlockerModal" class="full-screen-modal" style="display: none !important;">
-    <div class="modal-content">
-        <h2>Ad Blocker Detected!</h2>
-        <p>Support Dareloom Hub by disabling your ad blocker. Our ads help us keep the lights on and bring you more great content. Please consider whitelisting us or disabling your ad blocker to continue watching.</p>
-        <p>
-            <button class="btn primary" onclick="window.location.reload(); return false;">I have disabled Ad Blocker, Reload</button>
-        </p>
-    </div>
-</div>
+<!-- 🚫 Age Gate & AdBlocker Modal Removed -->
 
 <script>
   (function() {
@@ -133,6 +128,13 @@
         window.location.replace('/');
     }
   })();
+
+  // ✅ Close Modal
+  function closePlayerModal() {
+    const modal = document.getElementById('videoModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = 'auto';
+  }
 </script>
 
 <script src="script.js?v=20251006"></script>
