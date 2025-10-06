@@ -1,5 +1,5 @@
 /*
-* style.css - Unique, Dark-Themed, Fully Responsive Design (Fixed Fullscreen Video)
+* style.css - Unique, Dark-Themed, Fully Responsive Design
 */
 
 :root {
@@ -30,6 +30,7 @@ a {
 }
 a:hover { color: var(--primary-color); }
 
+/* --- HEADER AND NAVIGATION --- */
 header.site {
   display: flex;
   justify-content: space-between;
@@ -88,6 +89,38 @@ header.site {
   background: var(--secondary-color);
 }
 
+/* NEW: CATEGORY NAVIGATION BAR (from previous request) */
+.category-nav {
+    background: #0d0d0d; 
+    border-bottom: 2px solid var(--secondary-color);
+    padding: 10px 0;
+    overflow-x: auto; /* Horizontal scroll on mobile */
+    white-space: nowrap;
+    display: flex;
+    box-shadow: 0 4px 5px rgba(0, 0, 0, 0.4);
+}
+
+.category-nav a {
+    color: var(--text-color);
+    text-decoration: none;
+    padding: 8px 15px;
+    margin: 0 5px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: background-color 0.3s, color 0.3s;
+    flex-shrink: 0;
+}
+
+.category-nav a:hover,
+.category-nav a.active {
+    background-color: var(--primary-color);
+    color: #fff;
+    box-shadow: 0 0 8px rgba(255, 75, 145, 0.5);
+}
+
+
+/* --- GENERAL LAYOUT AND TITLES --- */
 .wrap {
   padding: var(--section-padding);
   max-width: 1200px;
@@ -229,6 +262,33 @@ h2 {
 }
 .tag-btn:hover { background: var(--primary-color); color: #fff; }
 
+/* --- PAGINATION --- */
+.pager {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 30px;
+}
+.page-btn {
+    background: #333;
+    color: var(--text-color);
+    border: 1px solid #555;
+    padding: 8px 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s, border-color 0.3s;
+}
+.page-btn.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
+}
+.page-btn:hover:not(.active) {
+    background: #555;
+    border-color: var(--primary-color);
+}
+
+
 /* === MODAL & PLAYER FIX === */
 .full-screen-modal {
   position: fixed;
@@ -241,6 +301,12 @@ h2 {
   padding: 0;
   overflow-y: auto;
 }
+
+/* 🛑 AD BLOCKER MODAL HIDE */
+#adBlockerModal {
+    display: none !important; 
+}
+
 
 .modal-content.player-content {
   background: #111;
@@ -255,11 +321,26 @@ h2 {
   flex-direction: column;
 }
 
-/* 🔥 Fixed Full Height Video for Mobile */
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 100; 
+}
+
+/* Fixed Full Height Video for Mobile */
 #modalPlayerWrap {
   width: 100%;
   height: 100%;
-  max-height: 80vh; /* Desktop visible */
+  max-height: 80vh; 
   position: relative;
   background: #000;
 }
@@ -271,39 +352,107 @@ h2 {
   display: block;
 }
 
+.modal-controls {
+    padding: 15px;
+    background: var(--card-bg);
+}
+
+/* NEW: PERSISTENT AD STYLES */
+#modalPersistentAd iframe,
+#modalPersistentAd .persistent-ad {
+  max-width: 100%;
+  width: 100%;
+  height: 90px;
+  display: inline-block;
+}
+
+/* small label for persistent ad (optional) */
+#modalPersistentAd .ad-label {
+  color: #aaa;
+  font-size: 12px;
+  margin-bottom: 6px;
+  display:block;
+}
+
+/* --- RESPONSIVENESS --- */
 @media (max-width: 768px) {
-  .full-screen-modal {
-    align-items: flex-start;
-  }
-
-  .modal-content.player-content {
-    width: 100%;
-    max-width: 100%;
-    height: 100vh;
-    max-height: none;
-    border-radius: 0;
-    overflow-y: hidden;
-  }
-
-  /* ✅ FULLSCREEN VIDEO FIX MOBILE */
-  #modalPlayerWrap {
-    width: 100%;
-    height: 100vh;
-    padding: 0;
-    margin: 0;
-    border-radius: 0;
-  }
-  #modalPlayerWrap iframe,
-  #modalPlayerWrap video {
-    width: 100%;
-    height: 100vh;
-    object-fit: cover;
-  }
-
-  .modal-controls {
-    width: 100%;
-    padding: 10px;
-    background: #111;
-    text-align: center;
-  }
+    header.site { padding: 10px 10px; }
+    
+    .title { font-size: 1.2rem; }
+    
+    .nav input { width: 100px; }
+    .nav input:focus { width: 120px; }
+    
+    .wrap { padding: 10px; }
+    
+    .latest-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
     }
+    .latest-thumb {
+        width: 100%;
+        height: 180px;
+        min-width: 100%;
+    }
+    
+    /* Fullscreen Video Fix Mobile */
+    .full-screen-modal {
+      align-items: flex-start;
+    }
+
+    .modal-content.player-content {
+      width: 100%;
+      max-width: 100%;
+      height: 100vh;
+      max-height: none;
+      border-radius: 0;
+      overflow-y: hidden;
+    }
+
+    #modalPlayerWrap {
+      height: 100vh;
+      max-height: none; 
+      padding: 0;
+      margin: 0;
+      border-radius: 0;
+    }
+    #modalPlayerWrap iframe,
+    #modalPlayerWrap video {
+      height: 100vh;
+      object-fit: cover;
+    }
+
+    .modal-controls {
+      position: absolute; /* Place controls over the video */
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+      text-align: center;
+      z-index: 50; 
+    }
+    
+    .close-btn {
+        top: 10px;
+        right: 10px;
+    }
+
+    .adsterra-socialbar-placement {
+        display: none; /* Hide social bar on small screens if it interferes */
+    }
+
+    .category-nav a {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Responsive Ad Adjustment */
+@media (max-width: 600px) {
+  #modalPersistentAd iframe,
+  #modalPersistentAd .persistent-ad {
+    height: 80px;
+  }
+}
