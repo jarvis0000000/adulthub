@@ -55,6 +55,8 @@ function openAdsterraPop() {
       s.src = AD_POP;
       s.async = true;
       document.body.appendChild(s);
+      // Remove the script after a short delay to keep the body clean
+      setTimeout(() => s.remove(), 1000); 
     } catch(e) {
       console.warn("Ad pop failed:", e);
     }
@@ -197,7 +199,40 @@ window.showRandomPick = function() {
     }, 150);
 }
 
-// --- Ad Blocker / N Bypass (No changes) ---
+// --- VIEW MANAGEMENT HELPERS (New/Corrected) ---
+
+// Helper to switch to the main/home view
+function showHomeView() {
+    const latestSection = document.getElementById('latestSection');
+    const randomSection = document.getElementById('randomSection'); 
+    const categorySection = document.getElementById('categorySection'); 
+
+    if (categorySection) categorySection.style.display = 'none';
+    if (latestSection) latestSection.style.display = 'block';
+    if (randomSection) randomSection.style.display = 'block';
+    
+    // Re-render latest to ensure correct page state
+    renderLatest(currentPage); 
+    renderRandom(); 
+}
+
+// Helper to switch to the search/category view (missing function fixed)
+function showCategoryView(title, videoList) {
+    const latestSection = document.getElementById('latestSection');
+    const randomSection = document.getElementById('randomSection'); 
+    const categorySection = document.getElementById('categorySection'); 
+
+    if (latestSection) latestSection.style.display = 'none';
+    if (randomSection) randomSection.style.display = 'none';
+    
+    if (categorySection) categorySection.style.display = 'block';
+
+    // Renders the list into the category grid
+    renderCategoryGrid(videoList, title);
+}
+
+
+// --- Ad Blocker / N Bypass (Fixed to use view helpers) ---
 window.filterVideos = function(query) {
   query = (query || '').trim(); 
   if (query.toLowerCase() === 'n') {
@@ -208,7 +243,8 @@ window.filterVideos = function(query) {
       if (mainWrap) mainWrap.style.display = 'block';
       if(modal) modal.style.display = 'none';
       document.body.style.overflow = '';
-      showCategoryView('All Videos'); 
+      // Fixed: Now uses the new view function with all items
+      showCategoryView('All Videos', items); 
       return; 
   }
   query = query.toLowerCase(); 
@@ -217,9 +253,11 @@ window.filterVideos = function(query) {
           (item.title && item.title.toLowerCase().includes(query)) ||  
           (item.category && item.category.toLowerCase().includes(query))
       );  
+      // Fixed: Uses the new view function with filtered items
       showCategoryView('Search Results (' + filtered.length + ')', filtered);  
   } else {  
-      showCategoryView('All Videos');  
+      // Fixed: If search is cleared, show the home view
+      showHomeView();  
   }
 }
 
@@ -383,16 +421,7 @@ function openPlayerModal(it){
         // You can replace this innerHTML with any ad iframe or markup required by your ad provider
         persistentAd.innerHTML = `
           <span class="ad-label">Sponsored</span>
-          ${<script type="text/javascript">
-	atOptions = {
-		'key' : 'd1be46ed95d3e2db572824c531da5082',
-		'format' : 'iframe',
-		'height' : 90,
-		'width' : 728,
-		'params' : {}
-	};
-</script>
-<script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>}
+          ${ADSTERRA_NATIVE_BANNER_SCRIPT}
         `;
     }
 
