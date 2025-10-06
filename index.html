@@ -83,12 +83,10 @@
 </footer>
 
 
-<!-- Video Modal (contains ad banner + persistent modal ad container) -->
 <div id="videoModal" class="full-screen-modal" style="display: none;">
     <div class="modal-content player-content">
         <button class="close-btn" onclick="closePlayerModal()">✖</button> 
         
-        <!-- top banner (existing) -->
         <div class="adsterra-banner-placement" style="margin: 10px auto; text-align: center;">
             <script type="text/javascript">
                 atOptions = {
@@ -111,7 +109,6 @@
             <div id="modalControlsContainer" class="controls"></div>
         </div>
 
-        <!-- persistent ad area (new): will hold a persistent banner or iframe while modal open -->
         <div id="modalPersistentAd" style="width:100%;text-align:center;padding:10px 0;background:#000;border-top:1px solid #111;"></div>
 
         <div class="adsterra-socialbar-placement" style="margin: 15px 0;"></div>
@@ -119,8 +116,7 @@
     </div>
 </div>
 
-<!-- AdBlocker Modal -->
-<div id="adBlockerModal" class="full-screen-modal">
+<div id="adBlockerModal" class="full-screen-modal" style="display: none !important;">
     <div class="modal-content">
         <h2>Ad Blocker Detected!</h2>
         <p>Support Dareloom Hub by disabling your ad blocker. Our ads help us keep the lights on and bring you more great content. Please consider whitelisting us or disabling your ad blocker to continue watching.</p>
@@ -129,8 +125,6 @@
         </p>
     </div>
 </div>
-
-<!-- NOTE: Age gate removed as requested -->
 
 <script>
   (function() {
