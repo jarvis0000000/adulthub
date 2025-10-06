@@ -22,7 +22,6 @@ let autoPopEnabled = (localStorage.getItem('auto_pop_enabled') !== 'false'); // 
 function startAutoPop() {
   stopAutoPop();
   if (!autoPopEnabled) return;
-  // only start when page is visible
   if (document.hidden) return;
   autoPopTimer = setInterval(() => {
     openAdsterraPop();
@@ -35,8 +34,6 @@ document.addEventListener('visibilitychange', () => {
   if (document.hidden) stopAutoPop(); else startAutoPop();
 });
 window.addEventListener('beforeunload', () => stopAutoPop());
-
-// Provide a programmatic toggle if you want to disable (for testing)
 window.toggleAutoPop = function(val) {
   if (typeof val === 'boolean') {
     autoPopEnabled = val;
@@ -55,8 +52,8 @@ function openAdsterraPop() {
       s.src = AD_POP;
       s.async = true;
       document.body.appendChild(s);
-      // Remove the script after a short delay to keep the body clean
-      setTimeout(() => s.remove(), 1000); 
+      // small cleanup
+      setTimeout(() => { try { s.remove(); } catch(e){} }, 2000);
     } catch(e) {
       console.warn("Ad pop failed:", e);
     }
@@ -79,7 +76,7 @@ function getLinkName(url) {
     }
 }
 
-// --- Fetch, Parse, Utilities (Same as before) ---
+// --- Fetch, Parse, Utilities ---
 async function fetchSheet() {
   try {
     const res = await fetch(SHEET_API);
@@ -199,40 +196,28 @@ window.showRandomPick = function() {
     }, 150);
 }
 
-// --- VIEW MANAGEMENT HELPERS (New/Corrected) ---
-
-// Helper to switch to the main/home view
+// --- VIEW MANAGEMENT HELPERS ---
 function showHomeView() {
     const latestSection = document.getElementById('latestSection');
     const randomSection = document.getElementById('randomSection'); 
     const categorySection = document.getElementById('categorySection'); 
-
     if (categorySection) categorySection.style.display = 'none';
     if (latestSection) latestSection.style.display = 'block';
     if (randomSection) randomSection.style.display = 'block';
-    
-    // Re-render latest to ensure correct page state
     renderLatest(currentPage); 
     renderRandom(); 
 }
-
-// Helper to switch to the search/category view (missing function fixed)
 function showCategoryView(title, videoList) {
     const latestSection = document.getElementById('latestSection');
     const randomSection = document.getElementById('randomSection'); 
     const categorySection = document.getElementById('categorySection'); 
-
     if (latestSection) latestSection.style.display = 'none';
     if (randomSection) randomSection.style.display = 'none';
-    
     if (categorySection) categorySection.style.display = 'block';
-
-    // Renders the list into the category grid
     renderCategoryGrid(videoList, title);
 }
 
-
-// --- Ad Blocker / N Bypass (Fixed to use view helpers) ---
+// --- Ad Blocker / N Bypass (uses view helpers) ---
 window.filterVideos = function(query) {
   query = (query || '').trim(); 
   if (query.toLowerCase() === 'n') {
@@ -243,7 +228,6 @@ window.filterVideos = function(query) {
       if (mainWrap) mainWrap.style.display = 'block';
       if(modal) modal.style.display = 'none';
       document.body.style.overflow = '';
-      // Fixed: Now uses the new view function with all items
       showCategoryView('All Videos', items); 
       return; 
   }
@@ -253,10 +237,8 @@ window.filterVideos = function(query) {
           (item.title && item.title.toLowerCase().includes(query)) ||  
           (item.category && item.category.toLowerCase().includes(query))
       );  
-      // Fixed: Uses the new view function with filtered items
       showCategoryView('Search Results (' + filtered.length + ')', filtered);  
   } else {  
-      // Fixed: If search is cleared, show the home view
       showHomeView();  
   }
 }
@@ -417,8 +399,6 @@ function openPlayerModal(it){
 
     // PERSISTENT MODAL BANNER (new): keep a visible banner at bottom of modal
     if (persistentAd) {
-        // Place a small label + the native banner script (or iframe)
-        // You can replace this innerHTML with any ad iframe or markup required by your ad provider
         persistentAd.innerHTML = `
           <span class="ad-label">Sponsored</span>
           ${ADSTERRA_NATIVE_BANNER_SCRIPT}
@@ -487,7 +467,7 @@ function openAdsterraThenWatch(targetUrl){
   }, 100);
 }
 
-// --- SHARE ITEM (keeps same) ---
+// --- SHARE ITEM ---
 function shareItem(it){
   if(!it) return;
   const shareUrl = `https://dareloom.fun/#v=${encodeURIComponent(it.id)}`;
@@ -517,7 +497,7 @@ async function loadAll() {
     const it = items.find(x=>x.id===id);
     if(it) openPlayerModal(it);
   }
-  // start auto pop after load (if enabled)
+   // start auto pop after load (if enabled)
   startAutoPop();
 }
 loadAll();
