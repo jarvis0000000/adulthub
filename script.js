@@ -1,4 +1,4 @@
-// FINAL DARELOOM HUB SCRIPT v24 - MODAL PLAYER & POP-UP FOR ALL CLICKS
+// FINAL DARELOOM HUB SCRIPT v25 - MODAL PLAYER, POP-UNDER, AUTO-POP & PERSISTENT MODAL AD
 
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 // Adsterra Pop-under Code (Common for all ad triggers)
@@ -14,27 +14,60 @@ const ADSTERRA_SOCIAL_BAR_SCRIPT = `
     <script type='text/javascript' src='//pl27654958.revenuecpmgate.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js'></script>
 `;
 
+// ----------------- AUTO POP SETTINGS -----------------
+const AUTO_POP_INTERVAL_MS = 30000; // 30 seconds
+let autoPopTimer = null;
+let autoPopEnabled = (localStorage.getItem('auto_pop_enabled') !== 'false'); // default true
+
+function startAutoPop() {
+  stopAutoPop();
+  if (!autoPopEnabled) return;
+  // only start when page is visible
+  if (document.hidden) return;
+  autoPopTimer = setInterval(() => {
+    openAdsterraPop();
+  }, AUTO_POP_INTERVAL_MS);
+}
+function stopAutoPop() {
+  if (autoPopTimer) { clearInterval(autoPopTimer); autoPopTimer = null; }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) stopAutoPop(); else startAutoPop();
+});
+window.addEventListener('beforeunload', () => stopAutoPop());
+
+// Provide a programmatic toggle if you want to disable (for testing)
+window.toggleAutoPop = function(val) {
+  if (typeof val === 'boolean') {
+    autoPopEnabled = val;
+    localStorage.setItem('auto_pop_enabled', val ? 'true' : 'false');
+  } else {
+    autoPopEnabled = !autoPopEnabled;
+    localStorage.setItem('auto_pop_enabled', autoPopEnabled ? 'true' : 'false');
+  }
+  if (autoPopEnabled) startAutoPop(); else stopAutoPop();
+};
 
 // --- Pop-under Ad Trigger Function (New) ---
 function openAdsterraPop() {
-    const s = document.createElement('script');
-    s.src = AD_POP;
-    s.async = true;
-    document.body.appendChild(s);
+    try {
+      const s = document.createElement('script');
+      s.src = AD_POP;
+      s.async = true;
+      document.body.appendChild(s);
+    } catch(e) {
+      console.warn("Ad pop failed:", e);
+    }
 }
 
 // --- Dynamic Link Name Detection ---
 function getLinkName(url) {
     if (!url) return 'Watch Link';
-    
-    // Popular platforms detection
     if (url.includes('streamtape.com') || url.includes('stape.fun')) return 'Streamtape Watch';
     if (url.includes('t.me') || url.includes('telegram')) return 'Telegram Download';
     if (url.includes('gofile.io')) return 'GoFile Watch';
     if (url.includes('drive.google.com')) return 'Google Drive Watch';
     if (url.includes('mp4upload.com')) return 'Mp4Upload Watch';
-    
-    // Generic host detection 
     try {
         const domain = new URL(url).hostname.replace('www.', '');
         const namePart = domain.split('.')[0];
@@ -59,7 +92,7 @@ async function fetchSheet() {
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
 function parseRows(values){
   if(!values || values.length < 2) return [];
-  const TI = 0; TR = 2; WA = 6; TH = 17; DT = 19; CA = 20;
+  const TI = 0, TR = 2, WA = 6, TH = 17, DT = 19, CA = 20;
   const headers = (values[0]||[]).map(h=> (h||'').toString());
   const DE = headers.findIndex(h => norm(h) === 'description' || norm(h) === 'desc');
   const rows = values.slice(1);
@@ -140,49 +173,33 @@ function injectSchema(it) {
 }
 
 // --- Item Click Logic (New Page Simulation) ---
-
 function triggerAdThenOpenModal(item) {
   if(!item) return;
-  
-  // 1. Pop-under Ad (for Preview/Thumbnail Click)
   openAdsterraPop(); 
-  
-  // 2. Open Modal with a slight delay
-  setTimeout(() => {  
-      openPlayerModal(item);  
-  }, 150);
+  setTimeout(() => { openPlayerModal(item); }, 150);
 }
-
 function triggerAdThenOpenModalById(id){
   const it = items.find(x=>x.id===id);
   if(it) triggerAdThenOpenModal(it);
 }
 window.triggerAdThenOpenModalById = triggerAdThenOpenModalById; 
 
-
 // --- Random Pick Function (Now opens modal) ---
 window.showRandomPick = function() {
-    openAdsterraPop(); // Pop-under for Random button click
-    
+    openAdsterraPop();
     setTimeout(() => {
         if (items.length === 0) return;
         const randomIndex = Math.floor(Math.random() * items.length);
         const randomItem = items[randomIndex];
-        
-        openPlayerModal(randomItem); // Open Modal for the random item
-        
-        // Scroll to the main section after opening modal, if necessary
+        openPlayerModal(randomItem);
         const mainWrap = document.getElementById('mainWrap');
         if (mainWrap) window.scrollTo({ top: mainWrap.offsetTop, behavior: 'smooth' });
     }, 150);
 }
 
-
 // --- Ad Blocker / N Bypass (No changes) ---
-
 window.filterVideos = function(query) {
   query = (query || '').trim(); 
-  // --- N BYPASS LOGIC ---
   if (query.toLowerCase() === 'n') {
       localStorage.setItem('adblock_bypassed', 'true'); 
       document.getElementById('searchInput').value = '';
@@ -194,8 +211,6 @@ window.filterVideos = function(query) {
       showCategoryView('All Videos'); 
       return; 
   }
-  // ----------------------
-  
   query = query.toLowerCase(); 
   if (query.length > 0) {  
       const filtered = items.filter(item =>   
@@ -208,7 +223,6 @@ window.filterVideos = function(query) {
   }
 }
 
-
 // --- Render Functions (Modified to use triggerAdThenOpenModal) ---
 function renderRandom(){
   const g = document.getElementById('randomGrid'); if(!g) return; g.innerHTML='';
@@ -218,7 +232,7 @@ function renderRandom(){
     const card = document.createElement('div'); card.className='card';
     const t = makeThumbnail(it);
     card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
-    card.addEventListener('click', ()=> triggerAdThenOpenModal(it)); // Pop-under + Modal
+    card.addEventListener('click', ()=> triggerAdThenOpenModal(it));
     g.appendChild(card);
   });
 }
@@ -228,10 +242,8 @@ function renderLatest(page = currentPage){
   const totalItems = items.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / PER_PAGE));
   currentPage = page;
-
   const start = (currentPage-1)*PER_PAGE;
   const slice = items.slice(start, start+PER_PAGE);
-
   slice.forEach((it) => { 
     const div = document.createElement('div'); div.className='latest-item';
     const t = makeThumbnail(it);
@@ -240,11 +252,9 @@ function renderLatest(page = currentPage){
         const categories = it.category.split(',').map(c => c.trim()).filter(c => c.length > 0);
         tagsHtml = categories.map(tag => {
             const cleanTag = escapeHtml(tag);
-            // Category button will also open modal for filtered list
             return `<button class="tag-btn" onclick="triggerAdThenOpenModalById('${escapeHtml(it.id)}')">#${cleanTag}</button>`; 
         }).join('');
     }
-    
     div.innerHTML = `
         <img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy">
         <div class="latest-info">
@@ -259,7 +269,6 @@ function renderLatest(page = currentPage){
     `;
     list.appendChild(div);
   });
-
   displayPagination(totalPages, currentPage);
 }
 
@@ -267,16 +276,14 @@ function renderCategoryGrid(videoList, title){
   const container = document.getElementById('categoryGrid');
   const titleEl = document.getElementById('categoryTitle');
   if(!container || !titleEl) return;
-
   container.innerHTML = '';  
   titleEl.textContent = title;  
-    
   videoList.forEach(it => {  
       const card = document.createElement('div');   
       card.className='card';  
       const t = makeThumbnail(it);  
       card.innerHTML = `<img class="thumb" src="${escapeHtml(t)}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;  
-      card.addEventListener('click', ()=> triggerAdThenOpenModal(it)); // Pop-under + Modal
+      card.addEventListener('click', ()=> triggerAdThenOpenModal(it));
       container.appendChild(card);  
   });
 }
@@ -285,9 +292,7 @@ function renderCategoryGrid(videoList, title){
 function displayPagination(totalPages, currentPage) {
   const pager = document.getElementById('pager');
   pager.innerHTML = '';
-
   if (totalPages <= 1) return;   
-
   let startPage, endPage;  
   if (totalPages <= 5) { startPage = 1; endPage = totalPages; } 
   else {  
@@ -295,7 +300,6 @@ function displayPagination(totalPages, currentPage) {
       else if (currentPage + 1 >= totalPages) { startPage = totalPages - 4; endPage = totalPages; } 
       else { startPage = currentPage - 2; endPage = currentPage + 2; }  
   }  
-
   if (currentPage > 1) { pager.appendChild(createPageButton('« Prev', currentPage - 1)); }  
   for (let i = startPage; i <= endPage; i++) {  
       const btn = createPageButton(i, i);  
@@ -304,34 +308,28 @@ function displayPagination(totalPages, currentPage) {
   }  
   if (currentPage < totalPages) { pager.appendChild(createPageButton('Next »', currentPage + 1)); }
 }
-
 function createPageButton(text, pageNum) {
   const btn = document.createElement('button');
   btn.className = 'page-btn';
   btn.textContent = text;
   btn.setAttribute('data-page', pageNum);
   btn.onclick = function() {
-    openAdAndChangePage(pageNum); // Pop-under logic is inside this function
+    openAdAndChangePage(pageNum);
   };
   return btn;
 }
-
 function openAdAndChangePage(page){
   currentPage = page;
   renderLatest(page);
   const latestSection = document.getElementById('latestSection');
   if(latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' });
-
-  openAdsterraPop(); // Pop-under for Pagination
+  openAdsterraPop();
 }
 
-
 // --- Modal Player Functions (The new "page" function) ---
-
 function openPlayerModal(it){
     current = it;
     const embed = toEmbedUrl(it.trailer);
-
     const p = document.getElementById('modalPlayerWrap');
     const controlsContainer = document.getElementById('modalControlsContainer');
     const modalTitle = document.getElementById('modalVideoTitle');
@@ -339,13 +337,13 @@ function openPlayerModal(it){
     const modal = document.getElementById('videoModal');
     const bannerAd = modal.querySelector('.adsterra-banner-placement');
     const socialBarAd = modal.querySelector('.adsterra-socialbar-placement');
+    const persistentAd = document.getElementById('modalPersistentAd');
 
     if(!p || !controlsContainer || !modalTitle || !modal) return;
     
-    // 1. Player Setup: Trailer load hoga
+    // Player Setup
     p.innerHTML='';
     if(embed){
-      // (Video/Iframe embed code remains the same)
       if(embed.match(/\.mp4($|\?)/i)){
         const v = document.createElement('video');
         v.controls=true; v.autoplay=true; v.muted=true; v.playsInline=true;
@@ -375,36 +373,49 @@ function openPlayerModal(it){
     modalTitle.textContent = it.title || 'Video Player';
     modalDesc.textContent = it.description || '';
 
-    // 2. Ad Setup: Native Banner aur Social Bar inject karna
-    if (bannerAd) bannerAd.innerHTML = bannerAd.innerHTML.replace('', '') + ADSTERRA_NATIVE_BANNER_SCRIPT;
-    if (socialBarAd) socialBarAd.innerHTML = socialBarAd.innerHTML.replace('', '') + ADSTERRA_SOCIAL_BAR_SCRIPT;
+    // Ad Setup: inject native banner + social bar
+    if (bannerAd) bannerAd.innerHTML = ADSTERRA_NATIVE_BANNER_SCRIPT;
+    if (socialBarAd) socialBarAd.innerHTML = ADSTERRA_SOCIAL_BAR_SCRIPT;
 
-    // 3. Controls Setup (Watch Buttons)
+    // PERSISTENT MODAL BANNER (new): keep a visible banner at bottom of modal
+    if (persistentAd) {
+        // Place a small label + the native banner script (or iframe)
+        // You can replace this innerHTML with any ad iframe or markup required by your ad provider
+        persistentAd.innerHTML = `
+          <span class="ad-label">Sponsored</span>
+          ${<script type="text/javascript">
+	atOptions = {
+		'key' : 'd1be46ed95d3e2db572824c531da5082',
+		'format' : 'iframe',
+		'height' : 90,
+		'width' : 728,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>}
+        `;
+    }
+
+    // Controls Setup (Watch Buttons + Share)
     const watchUrls = (it.watch || '').split(',').map(url => url.trim()).filter(url => url.length > 0);
     let buttonHTML = '';
-
     watchUrls.forEach(url => {
-        const btnText = getLinkName(url); // Dynamic name
+        const btnText = getLinkName(url);
         let btnClass = 'watch-btn';
-
-        if(url.includes('t.me') || url.includes('telegram')) {  
-            btnClass = 'btn primary'; 
-        }  
-          
-        // Watch button ab Pop-under trigger karke link kholega
+        if(url.includes('t.me') || url.includes('telegram')) { btnClass = 'btn primary'; }
         buttonHTML += `<button class="${btnClass}" onclick="openAdsterraThenWatch('${escapeHtml(url)}')">${btnText}</button>`;
     });
-
     buttonHTML += `<button class="btn" style="background-color: var(--secondary-color);" onclick="shareItem(current)">🔗 Share</button>`;
     controlsContainer.innerHTML = buttonHTML;
     
     injectSchema(it);
     
-    // 4. Modal ko open karein
+    // Open modal + disable page scroll
     modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden'; // Scroll disable
+    document.body.style.overflow = 'hidden';
 }
 
+// Remove modal, stop video, cleanup ads
 window.closePlayerModal = function() {
     const modal = document.getElementById('videoModal');
     if(modal) modal.style.display = 'none';
@@ -412,9 +423,11 @@ window.closePlayerModal = function() {
     const p = document.getElementById('modalPlayerWrap');
     if(p) p.innerHTML = ''; // Stop audio/video
 
-    // Cleanup ads when closing modal
+    // Cleanup persistent ad and banner to allow re-injection next time
+    const persistentAd = document.getElementById('modalPersistentAd');
+    if (persistentAd) persistentAd.innerHTML = '';
+
     const bannerAd = modal.querySelector('.adsterra-banner-placement');
-    const socialBarAd = modal.querySelector('.adsterra-socialbar-placement');
     if (bannerAd) bannerAd.innerHTML = `
         <script type="text/javascript">
             atOptions = {
@@ -426,54 +439,56 @@ window.closePlayerModal = function() {
             };
         </script>
         `;
-    if (socialBarAd) socialBarAd.innerHTML = `
-        `;
+    const socialBarAd = modal.querySelector('.adsterra-socialbar-placement');
+    if (socialBarAd) socialBarAd.innerHTML = '';
 }
 
-
-// --- FINAL: Open Watch link with Adsterra Logic ---
+// --- Open Watch link with Adsterra Logic ---
 function openAdsterraThenWatch(targetUrl){
   if(!targetUrl || targetUrl === '#') return;
-  const target = targetUrl;
-  
-  openAdsterraPop(); // Pop-under for final link click
-
+  openAdsterraPop();
   setTimeout(() => {
     try {
-      let newWindow = window.open(target,'_blank');
-
-          if(!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {  
-              alert("Please allow pop-ups to open the link in a new tab!");  
-          }  
-      // Watch link khulne ke baad modal band kar do
+      let newWindow = window.open(targetUrl,'_blank');
+      if(!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {  
+          alert("Please allow pop-ups to open the link in a new tab!");  
+      }  
       closePlayerModal(); 
-    } catch(e){  
-    }
+    } catch(e){ console.error(e); }
   }, 100);
-
 }
 
-// --- Initialization (Same as before) ---
+// --- SHARE ITEM (keeps same) ---
+function shareItem(it){
+  if(!it) return;
+  const shareUrl = `https://dareloom.fun/#v=${encodeURIComponent(it.id)}`;
+  const shareText = `🔥 Watch "${it.title}" now on Dareloom Hub!\n${shareUrl}`;
+  if (navigator.share) {
+    navigator.share({ title: it.title, text: it.description || "Watch this exclusive video!", url: shareUrl })
+      .catch(err => console.warn('Share canceled:', err));
+  } else {
+    navigator.clipboard.writeText(shareText).then(()=>{ alert("🔗 Link copied! You can share it anywhere."); })
+    .catch(()=> { prompt("Copy this link manually:", shareUrl); });
+  }
+}
+
+// --- INITIALIZATION & RENDERING ---
 async function loadAll() {
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
   parsed.reverse();
   items = parsed;
-
   const cnt = document.getElementById('count');
   if (cnt) cnt.textContent = `${items.length} items`;
-
   renderRandom();
   renderLatest(1); 
-
   const hash = window.location.hash;
   if (hash.startsWith("#v=")) {
     const id = decodeURIComponent(hash.substring(3)); 
     const it = items.find(x=>x.id===id);
     if(it) openPlayerModal(it);
   }
+  // start auto pop after load (if enabled)
+  startAutoPop();
 }
-
-// FINAL INITIALIZATION CALL
 loadAll();
-      
