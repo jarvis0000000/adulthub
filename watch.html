@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Now Watching</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    // Get Streamtape URL from query param
+    const params = new URLSearchParams(window.location.search);
+    const videoUrl = params.get("url");
+
+    if (videoUrl) {
+      // NOTE: Assuming the URL from the sheet is already in Streamtape Embed format (/e/...)
+      document.body.innerHTML = `
+        <iframe src="${videoUrl}" allowfullscreen></iframe>
+      `;
+    } else {
+      document.body.innerHTML = "<h2 style='color:white;'>⚠️ No video link found!</h2>";
+    }
+  </script>
+</body>
+</html>
