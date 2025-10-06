@@ -148,7 +148,7 @@ function toEmbedUrl(url){
     }
     if(url.includes("/e/")) return url;
   }
-  if(url.includes("t.me/") || url.includes("telegram.me/")) return '';
+  if(url.includes('t.me/') || url.includes('telegram.me/')) return '';
   if(url.match(/\.mp4($|\?)/i)) return url;
   return '';
 }
@@ -452,13 +452,24 @@ window.closePlayerModal = function() {
     if (socialBarAd) socialBarAd.innerHTML = '';
 }
 
-// --- Open Watch link with Adsterra Logic ---
+// --- Open Watch link with Adsterra Logic (UPDATED for watch.html) ---
 function openAdsterraThenWatch(targetUrl){
   if(!targetUrl || targetUrl === '#') return;
   openAdsterraPop();
+  
   setTimeout(() => {
     try {
-      let newWindow = window.open(targetUrl,'_blank');
+      let newWindow;
+      
+      if (targetUrl.includes("streamtape.com") || targetUrl.includes("stape.fun")) {
+          // If Streamtape, redirect to the full-screen player page
+          const watchPageUrl = `watch.html?url=${encodeURIComponent(targetUrl)}`;
+          newWindow = window.open(watchPageUrl, '_blank');
+      } else {
+          // For all other links (Telegram, Drive, etc.), open directly
+          newWindow = window.open(targetUrl, '_blank');
+      }
+
       if(!newWindow || newWindow.closed || typeof newWindow.closed=='undefined') {  
           alert("Please allow pop-ups to open the link in a new tab!");  
       }  
@@ -497,7 +508,7 @@ async function loadAll() {
     const it = items.find(x=>x.id===id);
     if(it) openPlayerModal(it);
   }
-   // start auto pop after load (if enabled)
+  // start auto pop after load (if enabled)
   startAutoPop();
 }
-loadAll();
+loadAll(); 
