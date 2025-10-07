@@ -35,9 +35,6 @@
     </div>
   </div>
   <div class="nav">
-    <a class="menu-toggle" href="https://dareloom.pages.dev" target="_blank" title="Movie Site" style="text-decoration: none;">
-        🎬
-    </a>
     <input type="text" id="searchInput" placeholder="Search titles..." onkeyup="filterVideos(this.value)">
     <button class="menu-toggle" onclick="showRandomPick()">🎲</button>
   </div>
@@ -49,9 +46,7 @@
     <aside class="hero-actions" style="margin-bottom: 30px;">
         <div id="nowTitle" class="now-title">Ready to watch the latest series?</div>
         <div class="controls" id="controlsContainer">
-            <a href="https://dareloom.pages.dev" target="_blank" class="watch-btn" style="padding: 10px 20px; font-size: 16px;">
-                Visit Movie Site (🎬)
-            </a>
+            <div class="pill" id="count">0 items</div>
         </div>
     </aside>
   </section>
