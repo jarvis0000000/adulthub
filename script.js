@@ -500,15 +500,39 @@ async function loadAll() {
   items = parsed;
   const cnt = document.getElementById('count');
   if (cnt) cnt.textContent = `${items.length} items`;
-  renderRandom();
-  renderLatest(1); 
+  
+  // SEO URL (e.g., /video/title-id) को चेक करें
+  let uniqueVideoId = null;
+  const path = window.location.pathname;
+  
+  if (path.startsWith('/video/') && path.split('/').length > 2) {
+    const titleIdSlug = path.split('/')[2];
+    // ID extract करने के लिए अंतिम डैश (-) के बाद का हिस्सा लें
+    const parts = titleIdSlug.split('-');
+    uniqueVideoId = parts[parts.length - 1]; 
+  }
+
+  // Hash URL (e.g., #v=id) को चेक करें (जैसा कि पहले था)
   const hash = window.location.hash;
   if (hash.startsWith("#v=")) {
-    const id = decodeURIComponent(hash.substring(3)); 
-    const it = items.find(x=>x.id===id);
-    if(it) openPlayerModal(it);
+    uniqueVideoId = decodeURIComponent(hash.substring(3)); 
   }
+  
+  // 3. SEO या Hash ID मिलने पर मोडल खोलें
+  if (uniqueVideoId) {
+    const it = items.find(x => x.id.includes(uniqueVideoId));
+    if (it) {
+      // मोडल ओपन करें
+      openPlayerModal(it);
+    }
+  }
+
+  // 4. लिस्टिंग हमेशा लोड करें
+  renderRandom();
+  renderLatest(1); 
+  
   // start auto pop after load (if enabled)
   startAutoPop();
 }
-loadAll(); 
+loadAll();
+
