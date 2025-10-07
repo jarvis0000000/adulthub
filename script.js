@@ -492,8 +492,9 @@ function shareItem(it){
   }
 }
 
-// --- INITIALIZATION & RENDERING ---
+// --- INITIALIZATION & RENDERING (FINAL FIX) ---
 async function loadAll() {
+  // 1. डेटा फ़ेच करें
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
   parsed.reverse();
@@ -501,38 +502,37 @@ async function loadAll() {
   const cnt = document.getElementById('count');
   if (cnt) cnt.textContent = `${items.length} items`;
   
-  // SEO URL (e.g., /video/title-id) को चेक करें
+  // 2. SEO या Hash URL से ID निकालें
   let uniqueVideoId = null;
   const path = window.location.pathname;
   
   if (path.startsWith('/video/') && path.split('/').length > 2) {
     const titleIdSlug = path.split('/')[2];
-    // ID extract करने के लिए अंतिम डैश (-) के बाद का हिस्सा लें
     const parts = titleIdSlug.split('-');
+    // URL में अंतिम डैश के बाद का हिस्सा ID होगा
     uniqueVideoId = parts[parts.length - 1]; 
   }
 
-  // Hash URL (e.g., #v=id) को चेक करें (जैसा कि पहले था)
   const hash = window.location.hash;
   if (hash.startsWith("#v=")) {
     uniqueVideoId = decodeURIComponent(hash.substring(3)); 
   }
   
-  // 3. SEO या Hash ID मिलने पर मोडल खोलें
-  if (uniqueVideoId) {
-    const it = items.find(x => x.id.includes(uniqueVideoId));
-    if (it) {
-      // मोडल ओपन करें
-      openPlayerModal(it);
-    }
-  }
-
-  // 4. लिस्टिंग हमेशा लोड करें
+  // 3. लिस्टिंग हमेशा लोड करें (डेटा अब उपलब्ध है)
+  // यह सुनिश्चित करता है कि Google Bot को हमेशा items.length के बराबर लिस्टिंग मिले
   renderRandom();
   renderLatest(1); 
   
-  // start auto pop after load (if enabled)
+  // 4. अगर ID मिली है, तो मोडल खोलें
+  if (uniqueVideoId) {
+    const it = items.find(x => x.id.includes(uniqueVideoId));
+    if (it) {
+      // openPlayerModal() मोडल को खोलेगा, लेकिन लिस्टिंग को लोड होने से नहीं रोकेगा।
+      openPlayerModal(it);
+    }
+  }
+  
+  // 5. ऑटो पॉप शुरू करें
   startAutoPop();
 }
 loadAll();
-
