@@ -1,0 +1,2 @@
+# Cloudflare Pages Rewrites: /video/* URLs को index.html पर लोड करता है
+/video/* /index.html 200
