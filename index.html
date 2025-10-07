@@ -117,14 +117,7 @@
 </div>
 
 <script>
-  (function() {
-    const path = window.location.pathname;
-    if (path.startsWith('/video/')) {
-        window.location.replace('/');
-    }
-  })();
-
-  // small helper close (redundant - main close exists in script file too)
+  // अब यह फ़ंक्शन केवल मोडल को बंद करता है।
   function closePlayerModal() {
     const modal = document.getElementById('videoModal');
     modal.style.display = 'none';
