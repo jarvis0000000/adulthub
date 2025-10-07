@@ -1,5 +1,3 @@
-// scripts/generate-sitemap.js
-
 const fs = require("fs");
 const fetch = require("node-fetch");
 const path = require("path");
@@ -15,10 +13,9 @@ if (!API_KEY) {
 }
 
 // Google Sheet API endpoint (range updated to include Date column T=19)
-// Note: Google Sheets API is 0-indexed, but the range is A1 notation.
 const SHEET_API = `https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1!A:T?alt=json&key=${API_KEY}`;
 
-// Output folder
+// Output folder (Path fix: scripts se repo root ke public folder tak)
 const PUBLIC_DIR = path.join(__dirname, "..", "public");
 const SITEMAP_PATH = path.join(PUBLIC_DIR, "sitemap.xml");
 const HEADERS_PATH = path.join(PUBLIC_DIR, "_headers");
@@ -71,7 +68,8 @@ function parseRows(values) {
 
       // Construct the final URL (URL path should not be XML escaped)
       out.push({
-        url: `${BASE_URL}/video/${slug}-${uniqueId}`,
+        // URL path should not be XML escaped, only slug is used here
+        url: `${BASE_URL}/video/${slug}-${uniqueId}`, 
         date: dateStr, // Keep as string for later processing
       });
     }
@@ -89,6 +87,7 @@ async function generateSitemap() {
     const j = await res.json();
     const items = parseRows(j.values);
     console.log(`✅ Fetched and parsed ${items.length} video entries.`);
+
 
     if (!fs.existsSync(PUBLIC_DIR)) {
       fs.mkdirSync(PUBLIC_DIR, { recursive: true });
@@ -157,4 +156,3 @@ async function generateSitemap() {
 }
 
 generateSitemap();
-                                
