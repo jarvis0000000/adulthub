@@ -492,7 +492,7 @@ function shareItem(it){
   }
 }
 
-// --- INITIALIZATION & RENDERING (MOST RELIABLE FIX) ---
+// --- INITIALIZATION & RENDERING (FINAL, FINAL FIX WITH CANONICAL) ---
 async function loadAll() {
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
@@ -506,13 +506,23 @@ async function loadAll() {
   const path = window.location.pathname;
   
   if (path.startsWith('/video/') && path.split('/').length > 2) {
-    // URL के अंतिम सेगमेंट से ID निकालें
     const fullSlug = path.substring(path.lastIndexOf('/') + 1); 
-    // ID slug के अंतिम डैश के बाद का हिस्सा है
     const parts = fullSlug.split('-');
     if (parts.length > 1) {
         uniqueVideoId = parts[parts.length - 1]; 
     }
+    
+    // ****** SEO CANONICAL FIX: ******
+    const currentUrl = window.location.origin + window.location.pathname;
+    let canonicalLink = document.querySelector('link[rel="canonical"]');
+    if (!canonicalLink) {
+        canonicalLink = document.createElement('link');
+        canonicalLink.rel = 'canonical';
+        document.head.appendChild(canonicalLink);
+    }
+    // SEO URL के लिए, कैनॉनिकल को खुद के URL पर सेट करें।
+    canonicalLink.href = currentUrl;
+    // *******************************
   }
 
   const hash = window.location.hash;
@@ -526,7 +536,6 @@ async function loadAll() {
   
   // 4. अगर ID मिली है, तो मोडल खोलें
   if (uniqueVideoId) {
-    // यहाँ हम ID को पूरी स्ट्रिंग में खोज रहे हैं, जो सुरक्षित है
     const it = items.find(x => x.id.includes(uniqueVideoId));
     if (it) {
       openPlayerModal(it);
