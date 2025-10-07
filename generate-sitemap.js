@@ -1,4 +1,5 @@
 // scripts/generate-sitemap.js
+
 const fs = require("fs");
 const fetch = require("node-fetch");
 const path = require("path");
@@ -13,10 +14,11 @@ if (!API_KEY) {
   process.exit(1);
 }
 
-// Google Sheet API endpoint (replace spreadsheetId & range as per your sheet)
-const SHEET_API = `https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=${API_KEY}`;
+// Google Sheet API endpoint (range updated to include Date column T=19)
+// Note: Google Sheets API is 0-indexed, but the range is A1 notation.
+const SHEET_API = `https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1!A:T?alt=json&key=${API_KEY}`;
 
-// Output folder (Path fix: scripts se repo root ke public folder tak)
+// Output folder
 const PUBLIC_DIR = path.join(__dirname, "..", "public");
 const SITEMAP_PATH = path.join(PUBLIC_DIR, "sitemap.xml");
 const HEADERS_PATH = path.join(PUBLIC_DIR, "_headers");
@@ -40,27 +42,37 @@ function escapeXML(str) {
     .replace(/'/g, "&apos;");
 }
 
+function formatDate(date) {
+    if (date instanceof Date && !isNaN(date)) {
+        return date.toISOString().split("T")[0];
+    }
+    return new Date().toISOString().split("T")[0];
+}
+
 function parseRows(values) {
   if (!values || values.length < 2) return [];
   const rows = values.slice(1);
   const out = [];
 
   for (let r of rows) {
-    // Columns: Title(A)=0, Watch(G)=6, Date(T)=19
+    // Columns: Title(A)=0, Watch(G)=6, Date(T)=19 (API call includes up to T)
     const title = r[0] || "";
     const watch = r[6] || "";
-    const date = r[19] || "";
+    const dateStr = r[19] || ""; // Date string from column T
 
     if (title.trim() && watch.trim()) {
       const slug = slugify(title) || "video";
+      
+      // Creating a simple unique ID from the Watch URL (Base64)
       const uniqueId = Buffer.from(watch)
         .toString("base64")
         .slice(0, 8)
         .replace(/[^a-zA-Z0-9]/g, "");
 
+      // Construct the final URL (URL path should not be XML escaped)
       out.push({
-        url: `${BASE_URL}/video/${escapeXML(slug)}-${uniqueId}`,
-        date: date || new Date().toISOString().split("T")[0],
+        url: `${BASE_URL}/video/${slug}-${uniqueId}`,
+        date: dateStr, // Keep as string for later processing
       });
     }
   }
@@ -69,25 +81,27 @@ function parseRows(values) {
 
 // Generate sitemap
 async function generateSitemap() {
+  console.log("🧩 Starting sitemap generation...");
   try {
     const res = await fetch(SHEET_API);
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
 
     const j = await res.json();
     const items = parseRows(j.values);
+    console.log(`✅ Fetched and parsed ${items.length} video entries.`);
 
     if (!fs.existsSync(PUBLIC_DIR)) {
       fs.mkdirSync(PUBLIC_DIR, { recursive: true });
     }
 
-    let latestMod = new Date().toISOString().split("T")[0];
+    // Determine latest modification date for the homepage
     const validDates = items
       .map((i) => new Date(i.date))
       .filter((d) => !isNaN(d));
-    if (validDates.length > 0) {
-      validDates.sort((a, b) => b - a);
-      latestMod = validDates[0].toISOString().split("T")[0];
-    }
+      
+    validDates.push(new Date()); // Always include current time
+    validDates.sort((a, b) => b - a);
+    const latestMod = formatDate(validDates[0]);
 
     // 3. XML Build
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
@@ -104,9 +118,7 @@ async function generateSitemap() {
     // Video Pages
     items.forEach((item) => {
       const itemDate = new Date(item.date);
-      const lastMod = !isNaN(itemDate)
-        ? itemDate.toISOString().split("T")[0]
-        : latestMod;
+      const lastMod = formatDate(itemDate);
 
       xml += `  <url>\n`;
       xml += `    <loc>${item.url}</loc>\n`;
@@ -118,12 +130,12 @@ async function generateSitemap() {
 
     xml += `</urlset>\n`;
 
-    // 4. ✅ FINAL FIX: Using Buffer to guarantee BOM-free file writing
+    // 4. Write sitemap.xml (Using Buffer for BOM-free file writing)
     const sitemapBuffer = Buffer.from(xml.trim(), 'utf8');
     fs.writeFileSync(SITEMAP_PATH, sitemapBuffer); 
-    console.log(`✅ Sitemap created at ${SITEMAP_PATH}`);
+    console.log(`✅ Sitemap created at ${SITEMAP_PATH} with ${items.length + 1} entries.`);
 
-    // 5. ✅ FINAL FIX: Using Buffer for _headers
+    // 5. Write _headers file
     const headersContent = `/sitemap.xml\n  Content-Type: application/xml; charset=utf-8\n/robots.txt\n  Content-Type: text/plain; charset=utf-8\n`;
     const headersBuffer = Buffer.from(headersContent, 'utf8');
     fs.writeFileSync(HEADERS_PATH, headersBuffer); 
@@ -132,7 +144,7 @@ async function generateSitemap() {
   } catch (e) {
     console.error("❌ Sitemap generation failed:", e.message);
     
-    // Fail-safe (Buffer fix applied here too)
+    // Fail-safe
     if (!fs.existsSync(PUBLIC_DIR)) {
         fs.mkdirSync(PUBLIC_DIR, { recursive: true });
     }
@@ -145,3 +157,4 @@ async function generateSitemap() {
 }
 
 generateSitemap();
+                                
