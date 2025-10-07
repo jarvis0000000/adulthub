@@ -492,9 +492,8 @@ function shareItem(it){
   }
 }
 
-// --- INITIALIZATION & RENDERING (FINAL FIX) ---
+// --- INITIALIZATION & RENDERING (MOST RELIABLE FIX) ---
 async function loadAll() {
-  // 1. डेटा फ़ेच करें
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
   parsed.reverse();
@@ -507,10 +506,13 @@ async function loadAll() {
   const path = window.location.pathname;
   
   if (path.startsWith('/video/') && path.split('/').length > 2) {
-    const titleIdSlug = path.split('/')[2];
-    const parts = titleIdSlug.split('-');
-    // URL में अंतिम डैश के बाद का हिस्सा ID होगा
-    uniqueVideoId = parts[parts.length - 1]; 
+    // URL के अंतिम सेगमेंट से ID निकालें
+    const fullSlug = path.substring(path.lastIndexOf('/') + 1); 
+    // ID slug के अंतिम डैश के बाद का हिस्सा है
+    const parts = fullSlug.split('-');
+    if (parts.length > 1) {
+        uniqueVideoId = parts[parts.length - 1]; 
+    }
   }
 
   const hash = window.location.hash;
@@ -518,16 +520,15 @@ async function loadAll() {
     uniqueVideoId = decodeURIComponent(hash.substring(3)); 
   }
   
-  // 3. लिस्टिंग हमेशा लोड करें (डेटा अब उपलब्ध है)
-  // यह सुनिश्चित करता है कि Google Bot को हमेशा items.length के बराबर लिस्टिंग मिले
+  // 3. लिस्टिंग हमेशा लोड करें
   renderRandom();
   renderLatest(1); 
   
   // 4. अगर ID मिली है, तो मोडल खोलें
   if (uniqueVideoId) {
+    // यहाँ हम ID को पूरी स्ट्रिंग में खोज रहे हैं, जो सुरक्षित है
     const it = items.find(x => x.id.includes(uniqueVideoId));
     if (it) {
-      // openPlayerModal() मोडल को खोलेगा, लेकिन लिस्टिंग को लोड होने से नहीं रोकेगा।
       openPlayerModal(it);
     }
   }
