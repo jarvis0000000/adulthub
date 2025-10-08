@@ -3,103 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Now Watching | Dareloom Hub</title>
-  
-  <!-- SEO + Fallback Meta -->
-  <meta name="robots" content="index, follow" />
-  <meta name="description" content="Watch high-quality streaming content safely on Dareloom Hub." />
-  <link rel="canonical" href="https://dareloom.fun/watch.html" />
-
+  <title>Dareloom Hub – Now Watching</title>
   <style>
-    html, body {
+    body {
       margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
       background-color: #000;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: Arial, sans-serif;
       color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
     }
-
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      position: absolute;
-      top: 0;
-      left: 0;
-      background: #000;
-    }
-
-    .fallback {
+    header {
+      background: #111;
       text-align: center;
-      padding: 20px;
-      max-width: 90%;
+      padding: 15px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      border-bottom: 1px solid #333;
     }
-
-    .fallback h2 {
-      color: #ff4d4d;
-      font-size: 1.4em;
-      margin-bottom: 10px;
+    iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
     }
-
-    .fallback p {
-      color: #bbb;
-      font-size: 0.9em;
-    }
-
-    @media (max-width: 600px) {
-      .fallback h2 { font-size: 1.1em; }
-      .fallback p { font-size: 0.8em; }
+    footer {
+      background: #111;
+      text-align: center;
+      padding: 10px;
+      font-size: 0.9rem;
+      color: #aaa;
+      border-top: 1px solid #333;
     }
   </style>
 </head>
 <body>
+  <header>Dareloom Hub 🎬</header>
+
+  <div id="player">
+    <h2 style="text-align:center; color:#aaa;">Loading video...</h2>
+  </div>
+
+  <footer>© 2025 Dareloom Hub – All rights reserved.</footer>
+
   <script>
-    (function() {
-      const params = new URLSearchParams(window.location.search);
-      let videoUrl = params.get("url");
+    const params = new URLSearchParams(window.location.search);
+    let videoUrl = params.get("url");
 
-      // ✅ Safety: Validate and auto-correct streamtape links if needed
-      if (videoUrl) {
-        videoUrl = decodeURIComponent(videoUrl.trim());
-        if (videoUrl.includes("streamtape.com/v/")) {
-          const id = videoUrl.split("/v/")[1]?.split("/")[0];
-          if (id) videoUrl = `https://streamtape.com/e/${id}/`;
-        } else if (videoUrl.includes("stape.fun/v/")) {
-          const id = videoUrl.split("/v/")[1]?.split("/")[0];
-          if (id) videoUrl = `https://stape.fun/e/${id}/`;
-        }
-      }
-
-      // ✅ Display iframe if valid embed link
-      if (videoUrl && (videoUrl.includes("streamtape.com/e/") || videoUrl.includes("stape.fun/e/"))) {
-        document.body.innerHTML = `
-          <iframe 
-            src="${videoUrl}" 
-            allowfullscreen 
-            allow="autoplay; fullscreen; encrypted-media; picture-in-picture">
-          </iframe>
-        `;
-      } else {
-        // ⚠️ Fallback safe message
-        document.body.innerHTML = `
-          <div class="fallback">
-            <h2>⚠️ No valid video link found.</h2>
-            <p>Please return to Dareloom Hub and try another link.</p>
-          </div>
-        `;
-        console.warn("Invalid or missing video URL:", videoUrl);
-      }
-
-      // 🧩 Optional: auto-set canonical dynamically
-      const canonical = document.querySelector('link[rel="canonical"]');
-      if (canonical && videoUrl) canonical.href = location.origin + location.pathname + "?url=" + encodeURIComponent(videoUrl);
-    })();
+    if (videoUrl && (videoUrl.includes("streamtape.com/e/") || videoUrl.includes("stape.fun/e/"))) {
+      document.getElementById("player").innerHTML = `
+        <iframe src="${videoUrl}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>
+      `;
+    } else {
+      document.getElementById("player").innerHTML = `
+        <h2 style="color:white; text-align:center;">⚠️ No valid Streamtape video link found.</h2>
+      `;
+    }
   </script>
 </body>
 </html>
