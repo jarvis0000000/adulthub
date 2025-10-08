@@ -14,6 +14,7 @@
       flex-direction: column;
       min-height: 100vh;
     }
+
     header {
       background: #111;
       text-align: center;
@@ -23,11 +24,47 @@
       letter-spacing: 1px;
       border-bottom: 1px solid #333;
     }
-    iframe {
+
+    #player {
       flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+      position: relative;
+    }
+
+    iframe {
       width: 100%;
+      height: 80vh;
       border: none;
     }
+
+    .download-box {
+      text-align: center;
+      padding: 20px;
+      background: #111;
+      border-top: 1px solid #333;
+    }
+
+    .download-btn {
+      background: linear-gradient(90deg, #ff4d4d, #ff9933);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .download-btn:hover {
+      opacity: 0.85;
+      transform: scale(1.03);
+    }
+
     footer {
       background: #111;
       text-align: center;
@@ -45,6 +82,10 @@
     <h2 style="text-align:center; color:#aaa;">Loading video...</h2>
   </div>
 
+  <div class="download-box" id="downloadBox" style="display:none;">
+    <a id="downloadBtn" class="download-btn" target="_blank">⬇️ Download Video</a>
+  </div>
+
   <footer>© 2025 Dareloom Hub – All rights reserved.</footer>
 
   <script>
@@ -55,6 +96,10 @@
       document.getElementById("player").innerHTML = `
         <iframe src="${videoUrl}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>
       `;
+      // Show Download button below
+      const downloadLink = videoUrl.replace("/e/", "/v/"); // convert embed to view/download link
+      document.getElementById("downloadBtn").href = downloadLink;
+      document.getElementById("downloadBox").style.display = "block";
     } else {
       document.getElementById("player").innerHTML = `
         <h2 style="color:white; text-align:center;">⚠️ No valid Streamtape video link found.</h2>
