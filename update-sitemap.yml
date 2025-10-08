@@ -1,7 +1,4 @@
-# Name: Update Sitemap
-# YML file path: .github/workflows/update-sitemap.yml
-
-name: Update Sitemap
+name: 🗺️ Update Sitemap & Trigger Cloudflare Deployment
 
 on:
   schedule:
@@ -12,61 +9,56 @@ jobs:
   build-sitemap:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: 🧾 Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Set up Node
-        uses: actions/setup-node@v3
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install dependencies
-        run: npm install node-fetch@2.6.7 # Fix: Using specific version from package.json
+      - name: 📦 Install Dependencies
+        run: npm ci
 
-      - name: Generate sitemap (This runs the script)
+      - name: 🗺️ Generate Sitemap
         env:
           SHEET_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }}
-        run: node scripts/generate-sitemap.js
+        run: npm run generate
 
-      - name: Commit & Push Sitemap
+      - name: 💾 Commit & Push Sitemap Updates
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          
-          # Force add both the sitemap and the headers file
-          git add -f public/sitemap.xml public/_headers
-          
+          git add -f public/sitemap.xml public/_headers public/robots.txt || true
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           git commit -m "Auto-update sitemap: ${TIMESTAMP}" || echo "No changes"
-          git push
+          git push origin main || echo "No push needed"
 
-      - name: Trigger Cloudflare Pages Deployment
+      - name: 🚀 Trigger Cloudflare Pages Deployment
         env:
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ACCOUNT_ID: '1de9700c63c35247d84a4caaf3700f6b'
-          CF_PAGES_PROJECT: 'Adulthub'
+          CF_ACCOUNT_ID: "1de9700c63c35247d84a4caaf3700f6b"
+          CF_PAGES_PROJECT: "Adulthub"
         run: |
           curl -X POST "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PAGES_PROJECT}/deployments" \
           -H "Authorization: Bearer ${CLOUDFLARE_TOKEN}" \
           -H "Content-Type: application/json" \
           --fail \
-          --data '{"branch": "main"}'
+          --silent \
+          --show-error \
+          --data '{"branch":"main"}'
 
-      - name: Purge Cloudflare Cache (Requires CLOUDFLARE_ZONE_ID secret)
+      - name: 🧹 Purge Cloudflare Cache (Optional)
+        if: env.CLOUDFLARE_ZONE_ID != ''
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         run: |
-          if [ -z "$CLOUDFLARE_ZONE_ID" ]; then
-            echo "CLOUDFLARE_ZONE_ID is not set. Skipping cache purge."
-            exit 0
-          fi
-          
-          echo "Purging Cloudflare cache for sitemap.xml..."
+          echo "🧹 Purging Cloudflare cache for sitemap.xml..."
           curl -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
           -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
           -H "Content-Type: application/json" \
           --fail \
           --silent \
           --show-error \
-          --data '{"files":["https://dareloom.fun/sitemap.xml"]}'
-          
+          --data '{"files":["https://dareloom.fun/sitemap.xml","https://dareloom.fun/robots.txt"]}'
