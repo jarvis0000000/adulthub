@@ -1,6 +1,26 @@
 User-agent: *
 Allow: /
+
+# Sitemap for search engines
+Sitemap: https://dareloom.fun/sitemap.xml
+
+# Prevent search bots from crawling unnecessary files
+Disallow: /admin/
+Disallow: /api/
+Disallow: /node_modules/
+Disallow: /scripts/
 Disallow: /private/
 Disallow: /temp/
+Disallow: /*?*sort=*
+Disallow: /*?*filter=*
 
-Sitemap: https://dareloom.fun/sitemap.xml
+# Respectful crawling
+Crawl-delay: 5
+
+# Extra hint for Googlebot
+User-agent: Googlebot
+Allow: /
+
+# For Bing and other major bots
+User-agent: Bingbot
+Allow: /
