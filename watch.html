@@ -1,105 +1,47 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Now Watching | Dareloom Hub</title>
-  
-  <!-- SEO + Fallback Meta -->
-  <meta name="robots" content="index, follow" />
-  <meta name="description" content="Watch high-quality streaming content safely on Dareloom Hub." />
-  <link rel="canonical" href="https://dareloom.fun/watch.html" />
+<!DOCTYPE html>  <html lang="en">    <head>    
+  <meta charset="UTF-8" />    
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />    
+  <title>Now Watching</title>    
+  <style>    
+    body, html {    
+      margin: 0;    
+      padding: 0;    
+      height: 100%;    
+      background: #000;    
+      display: flex;    
+      justify-content: center;    
+      align-items: center;    
+    }    
+    iframe {    
+      width: 100%;    
+      height: 100%;    
+      border: none;    
+      /* Streamtape embed requires this for full-screen */  
+      position: absolute;  
+      top: 0;  
+      left: 0;  
+    }    
+    h2 {  
+        z-index: 10;  
+    }  
+  </style>    
+</head>    
+<body>    
+  <script>    
+    // Get Streamtape URL from query param    
+    const params = new URLSearchParams(window.location.search);    
+    let videoUrl = params.get("url");   // Safety check: only display if a video URL is present and it looks like a Streamtape embed  
+if (videoUrl && (videoUrl.includes('streamtape.com/e/') || videoUrl.includes('stape.fun/e/'))) {    
+  // Set iframe source using the videoUrl (which is now guaranteed to be an embed link from script.js)  
+  document.body.innerHTML = `    
+    <iframe src="${videoUrl}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>    
+  `;    
+} else {    
+  // Fallback message  
+  document.body.innerHTML = "<h2 style='color:white;'>⚠️ No video link found or link is invalid.</h2>";    
+  console.error("Invalid URL passed to watch.html:", videoUrl);  
+}
 
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
-      background-color: #000;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: Arial, sans-serif;
-      color: #fff;
-    }
-
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      position: absolute;
-      top: 0;
-      left: 0;
-      background: #000;
-    }
-
-    .fallback {
-      text-align: center;
-      padding: 20px;
-      max-width: 90%;
-    }
-
-    .fallback h2 {
-      color: #ff4d4d;
-      font-size: 1.4em;
-      margin-bottom: 10px;
-    }
-
-    .fallback p {
-      color: #bbb;
-      font-size: 0.9em;
-    }
-
-    @media (max-width: 600px) {
-      .fallback h2 { font-size: 1.1em; }
-      .fallback p { font-size: 0.8em; }
-    }
-  </style>
-</head>
-<body>
-  <script>
-    (function() {
-      const params = new URLSearchParams(window.location.search);
-      let videoUrl = params.get("url");
-
-      // ✅ Safety: Validate and auto-correct streamtape links if needed
-      if (videoUrl) {
-        videoUrl = decodeURIComponent(videoUrl.trim());
-        if (videoUrl.includes("streamtape.com/v/")) {
-          const id = videoUrl.split("/v/")[1]?.split("/")[0];
-          if (id) videoUrl = `https://streamtape.com/e/${id}/`;
-        } else if (videoUrl.includes("stape.fun/v/")) {
-          const id = videoUrl.split("/v/")[1]?.split("/")[0];
-          if (id) videoUrl = `https://stape.fun/e/${id}/`;
-        }
-      }
-
-      // ✅ Display iframe if valid embed link
-      if (videoUrl && (videoUrl.includes("streamtape.com/e/") || videoUrl.includes("stape.fun/e/"))) {
-        document.body.innerHTML = `
-          <iframe 
-            src="${videoUrl}" 
-            allowfullscreen 
-            allow="autoplay; fullscreen; encrypted-media; picture-in-picture">
-          </iframe>
-        `;
-      } else {
-        // ⚠️ Fallback safe message
-        document.body.innerHTML = `
-          <div class="fallback">
-            <h2>⚠️ No valid video link found.</h2>
-            <p>Please return to Dareloom Hub and try another link.</p>
-          </div>
-        `;
-        console.warn("Invalid or missing video URL:", videoUrl);
-      }
-
-      // 🧩 Optional: auto-set canonical dynamically
-      const canonical = document.querySelector('link[rel="canonical"]');
-      if (canonical && videoUrl) canonical.href = location.origin + location.pathname + "?url=" + encodeURIComponent(videoUrl);
-    })();
-  </script>
-</body>
-</html>
+  </script>    
+</body>    
+</html>  
