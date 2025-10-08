@@ -542,5 +542,4 @@ openPlayerModal(it);
 startAutoPop();
 }
 loadAll();
-
   
