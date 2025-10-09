@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All Videos - Dareloom Hub | Watch 18+ Series & Movies</title>
+  <meta name="description" content="Watch bold, romantic, erotic full series and movies (18+) online on Dareloom Hub. Free streaming, updated daily." />
+  <style>
+    body, html {
+      margin: 0; padding: 0;
+      background: #000; color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    header {
+      background: #111; padding: 15px 20px;
+      text-align: center; font-size: 24px;
+      color: #e91e63;
+    }
+    #searchWrap {
+      padding: 10px 20px; text-align: center;
+    }
+    #searchInput {
+      width: 80%; padding: 8px;
+      font-size: 16px; border-radius: 4px; border: none;
+    }
+    #videoList {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 15px;
+      padding: 20px;
+    }
+    .videoCard {
+      background: #111; border: 1px solid #222; border-radius: 6px;
+      overflow: hidden; display: flex; flex-direction: column;
+    }
+    .videoCard img {
+      width: 100%; object-fit: cover;
+    }
+    .videoInfo {
+      padding: 8px;
+      flex: 1;
+    }
+    .videoInfo h4 {
+      margin: 0; font-size: 16px; color: #fff;
+    }
+    .videoInfo p {
+      margin: 4px 0; color: #ccc; font-size: 12px;
+    }
+    .watchBtn {
+      margin: 8px;
+      background: #e91e63;
+      color: #fff; border: none;
+      padding: 8px; border-radius: 4px;
+      cursor: pointer; width: calc(100% - 16px);
+    }
+    .watchBtn:hover {
+      background: #ff4081;
+    }
+  </style>
+</head>
+<body>
+  <header>Dareloom Hub — Videos</header>
+  <div id="searchWrap">
+    <input type="text" id="searchInput" placeholder="Search titles..." />
+  </div>
+  <div id="videoList">Loading videos...</div>
+
+  <script>
+    const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
+    const videoListEl = document.getElementById('videoList');
+    const searchInput = document.getElementById('searchInput');
+
+    function extractYouTubeID(url) {
+      if (!url) return null;
+      const m = url.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
+      return m ? m[1] : null;
+    }
+
+    function toEmbedUrl(url) {
+      if (!url) return '';
+      url = url.trim();
+      if (url.includes('/v/') && url.includes('streamtape.com')) {
+        const id = url.split('/v/')[1].split('/')[0];
+        return "https://streamtape.com/e/" + id + "/";
+      }
+      if (url.includes('/e/') && url.includes('streamtape.com')) {
+        return url;
+      }
+      const y = extractYouTubeID(url);
+      if (y) return 'https://www.youtube.com/embed/' + y + '?autoplay=1';
+      if (url.match(/drive\.google\.com/)) {
+        const m = url.match(/[-\w]{25,}/);
+        if (m) return 'https://drive.google.com/file/d/' + m[0] + '/preview';
+      }
+      return url;
+    }
+
+    function escapeHtml(s) {
+      return (s||'').toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    async function fetchSheet() {
+      try {
+        const res = await fetch(SHEET_API);
+        const j = await res.json();
+        return j.values || [];
+      } catch(e) {
+        console.error("Sheet fetch error:", e);
+        return [];
+      }
+    }
+
+    function parseRows(vals) {
+      if (!vals || vals.length < 2) return [];
+      const TI = 0, WA = 6, TH = 17, DT = 19, CA = 20;
+      const rows = vals.slice(1);
+      return rows.map(r => ({
+        title: r[TI] || 'Untitled',
+        watch: r[WA] || '',
+        poster: r[TH] || '',
+        date: r[DT] || '',
+        category: r[CA] || ''
+      })).filter(item => item.watch && item.watch.trim());
+    }
+
+    function renderVideos(list) {
+      if (list.length === 0) {
+        videoListEl.innerHTML = '<p style="color:#ccc; text-align:center;">No videos found.</p>';
+        return;
+      }
+      videoListEl.innerHTML = '';
+      list.forEach(item => {
+        const thumb = item.poster && item.poster.trim()
+          ? item.poster
+          : (extractYouTubeID(item.watch) ? `https://img.youtube.com/vi/${extractYouTubeID(item.watch)}/hqdefault.jpg` : '');
+        const card = document.createElement('div');
+        card.className = 'videoCard';
+        card.innerHTML = `
+          <img src="${escapeHtml(thumb)}" alt="${escapeHtml(item.title)}" />
+          <div class="videoInfo">
+            <h4>${escapeHtml(item.title)}</h4>
+            <p>${escapeHtml(item.date)}</p>
+            <button class="watchBtn" onclick="goToWatch('${encodeURIComponent(item.watch)}')">Watch</button>
+          </div>
+        `;
+        videoListEl.appendChild(card);
+      });
+    }
+
+    function goToWatch(watchParam) {
+      window.location.href = `watch.html?url=${watchParam}`;
+    }
+
+    // Search / filter
+    searchInput.addEventListener('input', () => {
+      const q = searchInput.value.trim().toLowerCase();
+      const filtered = allVideos.filter(item =>
+        (item.title && item.title.toLowerCase().includes(q)) ||
+        (item.category && item.category.toLowerCase().includes(q))
+      );
+      renderVideos(filtered);
+    });
+
+    let allVideos = [];
+
+    (async function(){
+      const vals = await fetchSheet();
+      allVideos = parseRows(vals);
+      renderVideos(allVideos);
+    })();
+  </script>
+</body>
+</html>
