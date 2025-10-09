@@ -1,4 +1,4 @@
-// scripts/script.js
+//script.js
 // FINAL DARELOOM HUB SCRIPT - CLEAN, FIXED & SEO-FRIENDLY
 // Uses Google Sheets API (same URL you provided)
 
