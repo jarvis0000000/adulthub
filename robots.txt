@@ -1,10 +1,14 @@
+# ===============================
+# Dareloom Hub - Robots Configuration (Optimized for SEO)
+# ===============================
+
 User-agent: *
 Allow: /
 
 # Sitemap for search engines
 Sitemap: https://dareloom.fun/sitemap.xml
 
-# Prevent search bots from crawling unnecessary files
+# Prevent bots from crawling unnecessary or duplicate files
 Disallow: /admin/
 Disallow: /api/
 Disallow: /node_modules/
@@ -13,14 +17,45 @@ Disallow: /private/
 Disallow: /temp/
 Disallow: /*?*sort=*
 Disallow: /*?*filter=*
+Disallow: /*?*session=*
+Disallow: /*?*ref=*
+Disallow: /*?*utm_*
 
-# Respectful crawling
+# Respectful crawling to reduce server load
 Crawl-delay: 5
 
-# Extra hint for Googlebot
+# Googlebot settings
 User-agent: Googlebot
 Allow: /
+Disallow: /admin/
+Disallow: /private/
 
-# For Bing and other major bots
+# Bingbot (Microsoft)
 User-agent: Bingbot
 Allow: /
+Disallow: /admin/
+Disallow: /private/
+
+# Yandex (Russian search engine)
+User-agent: Yandex
+Allow: /
+Disallow: /admin/
+Disallow: /private/
+
+# DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+
+# Social media bots (for link previews)
+User-agent: Twitterbot
+Allow: /
+
+User-agent: FacebookExternalHit
+Allow: /
+
+User-agent: Pinterestbot
+Allow: /
+
+# ===============================
+# End of robots.txt
+# ===============================
