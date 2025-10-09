@@ -1,110 +1,130 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Dareloom Hub – Now Watching</title>
-  <style>
-    body {
-      margin: 0;
-      background-color: #000;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-    }
-
-    header {
-      background: #111;
-      text-align: center;
-      padding: 15px;
-      font-size: 1.3rem;
-      font-weight: bold;
-      letter-spacing: 1px;
-      border-bottom: 1px solid #333;
-    }
-
-    #player {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #000;
-      position: relative;
-    }
-
-    iframe {
-      width: 100%;
-      height: 80vh;
-      border: none;
-    }
-
-    .download-box {
-      text-align: center;
-      padding: 20px;
-      background: #111;
-      border-top: 1px solid #333;
-    }
-
-    .download-btn {
-      background: linear-gradient(90deg, #ff4d4d, #ff9933);
-      color: white;
-      border: none;
-      padding: 12px 24px;
-      font-size: 1rem;
-      border-radius: 8px;
-      cursor: pointer;
-      text-decoration: none;
-      font-weight: bold;
-      transition: 0.3s;
-    }
-
-    .download-btn:hover {
-      opacity: 0.85;
-      transform: scale(1.03);
-    }
-
-    footer {
-      background: #111;
-      text-align: center;
-      padding: 10px;
-      font-size: 0.9rem;
-      color: #aaa;
-      border-top: 1px solid #333;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Now Watching - Dareloom Hub</title>
+<style>
+  * {box-sizing: border-box;}
+  body,html {
+    margin:0; padding:0; height:100%;
+    background:#000; color:#fff;
+    font-family:Arial, Helvetica, sans-serif;
+    display:flex; flex-direction:column;
+  }
+  header {
+    background:#111;
+    padding:12px 20px;
+    text-align:center;
+    font-size:20px;
+    font-weight:bold;
+    color:#e91e63;
+    letter-spacing:0.5px;
+  }
+  #videoWrap {
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    position:relative;
+  }
+  iframe {
+    width:100%;
+    height:80vh;
+    border:none;
+  }
+  footer {
+    text-align:center;
+    padding:15px;
+    background:#111;
+    border-top:1px solid #222;
+  }
+  .btn {
+    background:#e91e63;
+    color:#fff;
+    border:none;
+    padding:10px 20px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+    transition:0.3s;
+  }
+  .btn:hover {
+    background:#ff4081;
+  }
+  .notice {
+    text-align:center;
+    color:#ccc;
+    padding:20px;
+    font-size:16px;
+  }
+  .ad-container {
+    margin-top:10px;
+    display:flex;
+    justify-content:center;
+  }
+  @media(max-width:768px){
+    iframe { height:60vh; }
+  }
+</style>
 </head>
 <body>
-  <header>Dareloom Hub 🎬</header>
+  <header>🎥 Dareloom Hub</header>
 
-  <div id="player">
-    <h2 style="text-align:center; color:#aaa;">Loading video...</h2>
+  <div id="videoWrap">
+    <div class="notice">Loading video...</div>
   </div>
 
-  <div class="download-box" id="downloadBox" style="display:none;">
-    <a id="downloadBtn" class="download-btn" target="_blank">⬇️ Download Video</a>
-  </div>
+  <footer id="footer">
+    <button id="downloadBtn" class="btn" style="display:none;">⬇️ Download / Open Original</button>
+    <div class="ad-container" id="footerAd"></div>
+  </footer>
 
-  <footer>© 2025 Dareloom Hub – All rights reserved.</footer>
+<script>
+const params = new URLSearchParams(window.location.search);
+const videoUrl = params.get("url");
+const wrap = document.getElementById("videoWrap");
+const btn = document.getElementById("downloadBtn");
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    let videoUrl = params.get("url");
+if (videoUrl) {
+  if (videoUrl.includes('streamtape.com/e/') || videoUrl.includes('stape.fun/e/')) {
+    // ✅ Streamtape embed works fine
+    wrap.innerHTML = `<iframe src="${videoUrl}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>`;
+    btn.style.display = "block";
+    btn.onclick = () => window.open(videoUrl, "_blank");
+  } 
+  else if (videoUrl.includes('t.me/') || videoUrl.includes('telegram.me/')) {
+    // ⚡ Telegram link - open via button
+    wrap.innerHTML = `
+      <div class="notice">
+        📱 This video is available on Telegram.<br><br>
+        <button class="btn" onclick="window.open('${videoUrl}','_blank')">Open in Telegram</button>
+      </div>
+    `;
+    document.getElementById("footer").style.display = "none";
+  }
+  else {
+    wrap.innerHTML = "<h2 class='notice'>⚠️ Invalid or unsupported video link.</h2>";
+  }
+} else {
+  wrap.innerHTML = "<h2 class='notice'>⚠️ No video link found.</h2>";
+}
 
-    if (videoUrl && (videoUrl.includes("streamtape.com/e/") || videoUrl.includes("stape.fun/e/"))) {
-      document.getElementById("player").innerHTML = `
-        <iframe src="${videoUrl}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>
-      `;
-      // Show Download button below
-      const downloadLink = videoUrl.replace("/e/", "/v/"); // convert embed to view/download link
-      document.getElementById("downloadBtn").href = downloadLink;
-      document.getElementById("downloadBox").style.display = "block";
-    } else {
-      document.getElementById("player").innerHTML = `
-        <h2 style="color:white; text-align:center;">⚠️ No valid Streamtape video link found.</h2>
-      `;
-    }
-  </script>
+// ---- Footer Ad (Adsterra 728x90) ----
+const adContainer = document.getElementById('footerAd');
+adContainer.innerHTML = `
+<script type="text/javascript">
+	atOptions = {
+		'key' : 'd1be46ed95d3e2db572824c531da5082',
+		'format' : 'iframe',
+		'height' : 90,
+		'width' : 728,
+		'params' : {}
+	};
+</script>
+<script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>
+`;
+</script>
+
 </body>
 </html>
