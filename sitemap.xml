@@ -1,12 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset 
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 
+                      http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 
-  <url><loc>https://dareloom.fun/</loc><priority>1.0</priority></url>
-  <url><loc>https://dareloom.fun/seo/main.html</loc><priority>0.9</priority></url>
-  <url><loc>https://dareloom.fun/seo/global.html</loc><priority>0.9</priority></url>
-  <url><loc>https://dareloom.fun/seo/categories.html</loc><priority>0.9</priority></url>
-  <url><loc>https://dareloom.fun/watch.html</loc><priority>0.8</priority></url>
+  <!-- Main Pages -->
+  <url>
+    <loc>https://dareloom.fun/</loc>
+    <priority>1.0</priority>
+    <changefreq>daily</changefreq>
+  </url>
 
+  <url>
+    <loc>https://dareloom.fun/seo/main.html</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <url>
+    <loc>https://dareloom.fun/seo/global.html</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <url>
+    <loc>https://dareloom.fun/seo/categories.html</loc>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <url>
+    <loc>https://dareloom.fun/watch.html</loc>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <!-- SEO Category Pages -->
   <url><loc>https://dareloom.fun/seo/anal.html</loc><priority>0.7</priority></url>
   <url><loc>https://dareloom.fun/seo/milf.html</loc><priority>0.7</priority></url>
   <url><loc>https://dareloom.fun/seo/teen.html</loc><priority>0.7</priority></url>
@@ -32,5 +62,5 @@
   <url><loc>https://dareloom.fun/seo/orgy.html</loc><priority>0.7</priority></url>
   <url><loc>https://dareloom.fun/seo/lingerie.html</loc><priority>0.7</priority></url>
   <url><loc>https://dareloom.fun/seo/petite.html</loc><priority>0.7</priority></url>
+
 </urlset>
-    
