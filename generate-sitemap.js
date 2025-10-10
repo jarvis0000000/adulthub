@@ -4,15 +4,20 @@
  * Author: Namo ⚡
  */
 
-const fs = require("fs");
-const fetch = require("node-fetch");
-const path = require("path");
-const zlib = require("zlib");
+import fs from "fs";
+import fetch from "node-fetch";
+import path from "path";
+import zlib from "zlib";
+import { fileURLToPath } from "url";
 
 // --- CONFIG ---
 const BASE_URL = "https://dareloom.fun";
 const API_KEY = process.env.SHEET_KEY || "";
 const SHEET_URL = `https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1!A:T?alt=json&key=${API_KEY}`;
+
+// Handle __dirname in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const ROOT_DIR = __dirname; // no "public" folder
 const SITEMAP_PATH = path.join(ROOT_DIR, "sitemap.xml");
@@ -23,10 +28,7 @@ const META_PATH = path.join(ROOT_DIR, "seo-meta.json");
 
 // --- HELPERS ---
 function slugify(text) {
-  return text
-    .toString()
-    .toLowerCase()
-    .trim()
+  return text.toString().toLowerCase().trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
@@ -66,82 +68,40 @@ async function generate() {
     const res = await fetch(SHEET_URL);
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const json = await res.json();
-    const items = parseRows(json.values);
+    const items = parseRows(json.values || []);
     console.log(`✅ Parsed ${items.length} entries from Google Sheets.`);
 
-    // --- Static Pages (main pages) ---
-    const staticPages = [
-      "/",
-      "/watch.html",
-      "/seo/main.html",
-      "/seo/global.html",
-      "/seo/categories.html",
-    ];
+    // --- Static Pages ---
+    const staticPages = ["/", "/watch.html", "/seo/main.html", "/seo/global.html", "/seo/categories.html"];
 
     // --- SEO Category Pages ---
     const seoCategories = [
-      "amateur",
-      "anal",
-      "asian",
-      "bdsm",
-      "big-tits",
-      "categories",
-      "cosplay",
-      "creampie",
-      "cumshot",
-      "ebony",
-      "gangbang",
-      "global",
-      "handjob",
-      "interracial",
-      "lesbian",
-      "lingerie",
-      "main",
-      "massage",
-      "milf",
-      "orgy",
-      "petite",
-      "pov",
-      "public",
-      "rough-sex",
-      "squirting",
-      "step-fantasy",
-      "teen",
-      "threesome",
+      "amateur", "anal", "asian", "bdsm", "big-tits", "categories", "cosplay", "creampie", "cumshot",
+      "ebony", "gangbang", "global", "handjob", "interracial", "lesbian", "lingerie", "main", "massage",
+      "milf", "orgy", "petite", "pov", "public", "rough-sex", "squirting", "step-fantasy", "teen", "threesome"
     ];
 
     const latestMod = formatDate(
-      items
-        .map(i => new Date(i.date))
-        .filter(d => !isNaN(d))
-        .sort((a, b) => b - a)[0] || new Date()
+      items.map(i => new Date(i.date)).filter(d => !isNaN(d)).sort((a, b) => b - a)[0] || new Date()
     );
 
     // --- Build XML Sitemap ---
-    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-    xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
-    // Static pages
-    for (const page of staticPages) {
+    for (const page of staticPages)
       xml += `  <url><loc>${BASE_URL}${page}</loc><lastmod>${latestMod}</lastmod><priority>1.0</priority></url>\n`;
-    }
 
-    // SEO category pages
-    for (const cat of seoCategories) {
+    for (const cat of seoCategories)
       xml += `  <url><loc>${BASE_URL}/seo/${cat}.html</loc><lastmod>${latestMod}</lastmod><priority>0.8</priority></url>\n`;
-    }
 
-    // Dynamic video URLs from sheet
-    for (const item of items) {
+    for (const item of items)
       xml += `  <url><loc>${item.url}</loc><lastmod>${formatDate(new Date(item.date))}</lastmod><priority>0.7</priority></url>\n`;
-    }
 
     xml += `</urlset>`;
-
     fs.writeFileSync(SITEMAP_PATH, xml.trim());
     console.log(`✅ sitemap.xml generated`);
 
-    // --- Compress Sitemap (.gz) ---
+    // --- Compress Sitemap ---
     zlib.gzip(xml.trim(), (err, buffer) => {
       if (!err) {
         fs.writeFileSync(SITEMAP_GZ_PATH, buffer);
@@ -150,23 +110,7 @@ async function generate() {
     });
 
     // --- Robots.txt ---
-    const robots = `# 🤖 Robots.txt — Dareloom.fun (Auto-generated)
-User-agent: *
-Allow: /
-
-Disallow: /_next/
-Disallow: /api/
-Disallow: /node_modules/
-Disallow: /private/
-Disallow: /temp/
-Disallow: /static/
-Disallow: /sw.js
-
-Crawl-delay: 5
-
-Sitemap: ${BASE_URL}/sitemap.xml
-Sitemap: ${BASE_URL}/sitemap.xml.gz
-`;
+    const robots = `User-agent: *\nAllow: /\n\nCrawl-delay: 5\n\nSitemap: ${BASE_URL}/sitemap.xml\nSitemap: ${BASE_URL}/sitemap.xml.gz\n`;
     fs.writeFileSync(ROBOTS_PATH, robots);
     console.log("✅ robots.txt created");
 
@@ -181,7 +125,7 @@ Sitemap: ${BASE_URL}/sitemap.xml.gz
     fs.writeFileSync(META_PATH, JSON.stringify(metaData, null, 2));
     console.log("✅ seo-meta.json created");
 
-    // --- Cloudflare Headers ---
+    // --- Headers ---
     const headers = `/sitemap.xml
   Content-Type: application/xml; charset=utf-8
 /sitemap.xml.gz
@@ -194,20 +138,17 @@ Sitemap: ${BASE_URL}/sitemap.xml.gz
     fs.writeFileSync(HEADERS_PATH, headers);
     console.log("✅ _headers created");
 
-    // --- Ping Google & Bing ---
-    await Promise.all([
+    // --- Ping Search Engines ---
+    await Promise.allSettled([
       fetch(`https://www.google.com/ping?sitemap=${BASE_URL}/sitemap.xml`),
-      fetch(`https://www.bing.com/ping?sitemap=${BASE_URL}/sitemap.xml`),
+      fetch(`https://www.bing.com/ping?sitemap=${BASE_URL}/sitemap.xml`)
     ]);
     console.log("📡 PING sent to Google & Bing");
 
     console.log("🎉 All SEO files generated successfully!");
   } catch (err) {
     console.error("❌ Error:", err.message);
-    fs.writeFileSync(
-      SITEMAP_PATH,
-      '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>'
-    );
+    fs.writeFileSync(SITEMAP_PATH, '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
   }
 }
 
