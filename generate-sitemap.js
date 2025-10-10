@@ -1,6 +1,7 @@
 /**
- * 🗺️ Dareloom.fun — Ultimate Sitemap + Robots.txt Generator
- * ✅ Google Sheets + Cloudflare Pages + SEO Meta JSON + Pinging
+ * 🗺️ Dareloom.fun — Ultimate Sitemap + Robots.txt + SEO Meta JSON Generator
+ * ✅ Compatible with Cloudflare Pages + GitHub repo structure
+ * Author: Namo ⚡️
  */
 
 const fs = require("fs");
@@ -70,15 +71,45 @@ async function generate() {
     const items = parseRows(json.values);
     console.log(`✅ Parsed ${items.length} entries from Google Sheets.`);
 
-    // --- Static Pages ---
+    // --- Static Pages (main pages) ---
     const staticPages = [
       "/",
+      "/watch.html",
       "/seo/main.html",
       "/seo/global.html",
       "/seo/categories.html",
-      "/watch.html",
-      "/privacy-policy.html",
-      "/terms.html",
+    ];
+
+    // --- SEO Category Pages ---
+    const seoCategories = [
+      "amateur",
+      "anal",
+      "asian",
+      "bdsm",
+      "big-tits",
+      "categories",
+      "cosplay",
+      "creampie",
+      "cumshot",
+      "ebony",
+      "gangbang",
+      "global",
+      "handjob",
+      "interracial",
+      "lesbian",
+      "lingerie",
+      "main",
+      "massage",
+      "milf",
+      "orgy",
+      "petite",
+      "pov",
+      "public",
+      "rough-sex",
+      "squirting",
+      "step-fantasy",
+      "teen",
+      "threesome",
     ];
 
     const latestMod = formatDate(
@@ -92,12 +123,19 @@ async function generate() {
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
     xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
+    // Static pages
     for (const page of staticPages) {
       xml += `  <url><loc>${BASE_URL}${page}</loc><lastmod>${latestMod}</lastmod><priority>1.0</priority></url>\n`;
     }
 
+    // SEO category pages
+    for (const cat of seoCategories) {
+      xml += `  <url><loc>${BASE_URL}/seo/${cat}.html</loc><lastmod>${latestMod}</lastmod><priority>0.8</priority></url>\n`;
+    }
+
+    // Dynamic video URLs from sheet
     for (const item of items) {
-      xml += `  <url><loc>${item.url}</loc><lastmod>${formatDate(new Date(item.date))}</lastmod><priority>0.8</priority></url>\n`;
+      xml += `  <url><loc>${item.url}</loc><lastmod>${formatDate(new Date(item.date))}</lastmod><priority>0.7</priority></url>\n`;
     }
 
     xml += `</urlset>`;
@@ -134,7 +172,7 @@ Sitemap: ${BASE_URL}/sitemap.xml.gz
     fs.writeFileSync(ROBOTS_PATH, robots);
     console.log("✅ Robots.txt written");
 
-    // --- SEO Meta JSON (for external indexing or AI SEO) ---
+    // --- SEO Meta JSON ---
     const metaData = items.map(item => ({
       title: item.title,
       url: item.url,
@@ -158,7 +196,7 @@ Sitemap: ${BASE_URL}/sitemap.xml.gz
     fs.writeFileSync(HEADERS_PATH, headers);
     console.log("✅ _headers written");
 
-    // --- Auto Ping Google & Bing ---
+    // --- Ping Google & Bing ---
     await Promise.all([
       fetch(`https://www.google.com/ping?sitemap=${BASE_URL}/sitemap.xml`),
       fetch(`https://www.bing.com/ping?sitemap=${BASE_URL}/sitemap.xml`),
