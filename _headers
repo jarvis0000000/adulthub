@@ -1,11 +1,71 @@
+# ===============================
+# Dareloom.fun - Cloudflare Headers (SEO + Performance)
+# ===============================
+
+# --------------------------------
+# XML + TXT Files
+# --------------------------------
 /sitemap.xml
   Content-Type: application/xml; charset=utf-8
+  Cache-Control: public, max-age=3600
 
 /robots.txt
   Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=3600
 
+
+# --------------------------------
+# HTML Files (Main Pages)
+# --------------------------------
 /*
-  X-Frame-Options: DENY
+  Content-Type: text/html; charset=utf-8
+  X-Frame-Options: SAMEORIGIN
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer-when-downgrade
   X-XSS-Protection: 1; mode=block
+  Cache-Control: public, max-age=600
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+
+
+# --------------------------------
+# Static Assets (CSS, JS, Images)
+# --------------------------------
+/*.css
+  Content-Type: text/css; charset=utf-8
+  Cache-Control: public, max-age=604800, immutable
+
+/*.js
+  Content-Type: application/javascript; charset=utf-8
+  Cache-Control: public, max-age=604800, immutable
+
+/*.png
+  Cache-Control: public, max-age=604800, immutable
+
+/*.jpg
+  Cache-Control: public, max-age=604800, immutable
+
+/*.jpeg
+  Cache-Control: public, max-age=604800, immutable
+
+/*.svg
+  Cache-Control: public, max-age=604800, immutable
+
+/*.webp
+  Cache-Control: public, max-age=604800, immutable
+
+/*.ico
+  Cache-Control: public, max-age=604800, immutable
+
+
+# --------------------------------
+# Security Headers
+# --------------------------------
+/*
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), microphone=(), payment=()
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
+
+# ===============================
+# End of File
+# ===============================
