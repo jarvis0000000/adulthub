@@ -74,7 +74,8 @@ Crawl-delay: 5
 # Sitemap Location
 # -------------------------------
 Sitemap: https://dareloom.fun/sitemap.xml
-
+Sitemap: https://dareloom.fun/sitemap-video.xml
+Sitemap: https://dareloom.fun/sitemap-seo.xml
 # ===============================
 # End of File
 # ===============================
