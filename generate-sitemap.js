@@ -1,5 +1,5 @@
 /**
- * 🗺️ Dareloom.fun — Ultimate Sitemap + Robots.txt + SEO Meta JSON Generator
+ * 🗺️ Dareloom.fun — Ultimate Sitemap + Robots.txt + SEO Meta JSON + IndexNow
  * ✅ Works perfectly with Cloudflare Pages (no /public folder)
  * Author: Namo ⚡
  */
@@ -13,6 +13,7 @@ import { fileURLToPath } from "url";
 // --- CONFIG ---
 const BASE_URL = "https://dareloom.fun";
 const API_KEY = process.env.SHEET_KEY || "";
+const INDEXNOW_KEY = "c5b6124b5f8744fbb1a44a96266b9aa7"; // keep this key same for IndexNow
 const SHEET_URL = `https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1!A:T?alt=json&key=${API_KEY}`;
 
 // Handle __dirname in ES modules
@@ -25,6 +26,7 @@ const SITEMAP_GZ_PATH = path.join(ROOT_DIR, "sitemap.xml.gz");
 const ROBOTS_PATH = path.join(ROOT_DIR, "robots.txt");
 const HEADERS_PATH = path.join(ROOT_DIR, "_headers");
 const META_PATH = path.join(ROOT_DIR, "seo-meta.json");
+const INDEXNOW_FILE = path.join(ROOT_DIR, "indexnow-key.txt");
 
 // --- HELPERS ---
 function slugify(text) {
@@ -57,6 +59,31 @@ function parseRows(values) {
   }
 
   return out;
+}
+
+async function pingSearchEngines(urls) {
+  try {
+    console.log("📡 Sending PINGs to Google, Bing & IndexNow...");
+
+    await Promise.allSettled([
+      fetch(`https://www.google.com/ping?sitemap=${BASE_URL}/sitemap.xml`),
+      fetch(`https://www.bing.com/ping?sitemap=${BASE_URL}/sitemap.xml`),
+      fetch("https://api.indexnow.org/indexnow", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          host: "dareloom.fun",
+          key: INDEXNOW_KEY,
+          keyLocation: `${BASE_URL}/indexnow-key.txt`,
+          urlList: urls.slice(0, 100)
+        })
+      })
+    ]);
+
+    console.log("✅ All search engine pings sent successfully!");
+  } catch (err) {
+    console.error("⚠️ Ping failed:", err.message);
+  }
 }
 
 // --- MAIN FUNCTION ---
@@ -134,18 +161,20 @@ async function generate() {
   Content-Type: text/plain; charset=utf-8
 /seo-meta.json
   Content-Type: application/json; charset=utf-8
+/indexnow-key.txt
+  Content-Type: text/plain; charset=utf-8
 `;
     fs.writeFileSync(HEADERS_PATH, headers);
     console.log("✅ _headers created");
 
-    // --- Ping Search Engines ---
-    await Promise.allSettled([
-      fetch(`https://www.google.com/ping?sitemap=${BASE_URL}/sitemap.xml`),
-      fetch(`https://www.bing.com/ping?sitemap=${BASE_URL}/sitemap.xml`)
-    ]);
-    console.log("📡 PING sent to Google & Bing");
+    // --- IndexNow Key ---
+    fs.writeFileSync(INDEXNOW_FILE, INDEXNOW_KEY);
+    console.log("✅ indexnow-key.txt created");
 
-    console.log("🎉 All SEO files generated successfully!");
+    // --- Ping Search Engines ---
+    await pingSearchEngines(items.map(i => i.url));
+
+    console.log("🎉 All SEO files + IndexNow ping completed successfully!");
   } catch (err) {
     console.error("❌ Error:", err.message);
     fs.writeFileSync(SITEMAP_PATH, '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
