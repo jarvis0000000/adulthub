@@ -2,9 +2,10 @@
   "name": "dareloom-hub",
   "version": "1.0.0",
   "scripts": {
-    "build": "node generate.js"
+    "build": "node generate-sitemap.js"
   },
   "dependencies": {
-    "node-fetch": "^3.3.2"
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7"
   }
 }
