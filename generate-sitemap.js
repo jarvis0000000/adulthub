@@ -1,7 +1,7 @@
 /**
  * 🗺️ Dareloom.fun — Ultimate Sitemap + Robots.txt + SEO Meta JSON Generator
- * ✅ Compatible with Cloudflare Pages + GitHub repo (no public folder)
- * Author: Namo ⚡️
+ * ✅ Works perfectly with Cloudflare Pages (no /public folder)
+ * Author: Namo ⚡
  */
 
 const fs = require("fs");
@@ -14,7 +14,7 @@ const BASE_URL = "https://dareloom.fun";
 const API_KEY = process.env.SHEET_KEY || "";
 const SHEET_URL = `https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1!A:T?alt=json&key=${API_KEY}`;
 
-const ROOT_DIR = path.join(__dirname);
+const ROOT_DIR = __dirname; // no "public" folder
 const SITEMAP_PATH = path.join(ROOT_DIR, "sitemap.xml");
 const SITEMAP_GZ_PATH = path.join(ROOT_DIR, "sitemap.xml.gz");
 const ROBOTS_PATH = path.join(ROOT_DIR, "robots.txt");
@@ -69,15 +69,45 @@ async function generate() {
     const items = parseRows(json.values);
     console.log(`✅ Parsed ${items.length} entries from Google Sheets.`);
 
-    // --- Static Pages ---
-    const staticPages = ["/", "/watch.html", "/seo/main.html", "/seo/global.html", "/seo/categories.html"];
+    // --- Static Pages (main pages) ---
+    const staticPages = [
+      "/",
+      "/watch.html",
+      "/seo/main.html",
+      "/seo/global.html",
+      "/seo/categories.html",
+    ];
 
-    // --- SEO Category Pages (from seo folder) ---
+    // --- SEO Category Pages ---
     const seoCategories = [
-      "amateur", "anal", "asian", "bdsm", "big-tits", "categories", "cosplay", "creampie",
-      "cumshot", "ebony", "gangbang", "global", "handjob", "interracial", "lesbian",
-      "lingerie", "main", "massage", "milf", "orgy", "petite", "pov", "public", "rough-sex",
-      "squirting", "step-fantasy", "teen", "threesome"
+      "amateur",
+      "anal",
+      "asian",
+      "bdsm",
+      "big-tits",
+      "categories",
+      "cosplay",
+      "creampie",
+      "cumshot",
+      "ebony",
+      "gangbang",
+      "global",
+      "handjob",
+      "interracial",
+      "lesbian",
+      "lingerie",
+      "main",
+      "massage",
+      "milf",
+      "orgy",
+      "petite",
+      "pov",
+      "public",
+      "rough-sex",
+      "squirting",
+      "step-fantasy",
+      "teen",
+      "threesome",
     ];
 
     const latestMod = formatDate(
@@ -96,21 +126,22 @@ async function generate() {
       xml += `  <url><loc>${BASE_URL}${page}</loc><lastmod>${latestMod}</lastmod><priority>1.0</priority></url>\n`;
     }
 
-    // SEO pages
+    // SEO category pages
     for (const cat of seoCategories) {
       xml += `  <url><loc>${BASE_URL}/seo/${cat}.html</loc><lastmod>${latestMod}</lastmod><priority>0.8</priority></url>\n`;
     }
 
-    // Dynamic video URLs from Google Sheets
+    // Dynamic video URLs from sheet
     for (const item of items) {
       xml += `  <url><loc>${item.url}</loc><lastmod>${formatDate(new Date(item.date))}</lastmod><priority>0.7</priority></url>\n`;
     }
 
     xml += `</urlset>`;
-    fs.writeFileSync(SITEMAP_PATH, xml.trim());
-    console.log(`✅ sitemap.xml created`);
 
-    // --- Compress Sitemap ---
+    fs.writeFileSync(SITEMAP_PATH, xml.trim());
+    console.log(`✅ sitemap.xml generated`);
+
+    // --- Compress Sitemap (.gz) ---
     zlib.gzip(xml.trim(), (err, buffer) => {
       if (!err) {
         fs.writeFileSync(SITEMAP_GZ_PATH, buffer);
@@ -143,7 +174,7 @@ Sitemap: ${BASE_URL}/sitemap.xml.gz
     const metaData = items.map(item => ({
       title: item.title,
       url: item.url,
-      description: `${item.title} — Watch now on Dareloom.fun in full HD.`,
+      description: `${item.title} — Watch now on Dareloom.fun in HD.`,
       keywords: item.title.split(" ").join(", "),
       lastModified: item.date || latestMod,
     }));
@@ -168,9 +199,9 @@ Sitemap: ${BASE_URL}/sitemap.xml.gz
       fetch(`https://www.google.com/ping?sitemap=${BASE_URL}/sitemap.xml`),
       fetch(`https://www.bing.com/ping?sitemap=${BASE_URL}/sitemap.xml`),
     ]);
-    console.log("📡 Pinged Google & Bing — sitemap updated!");
+    console.log("📡 PING sent to Google & Bing");
 
-    console.log("🎉 All SEO assets generated successfully in ROOT folder!");
+    console.log("🎉 All SEO files generated successfully!");
   } catch (err) {
     console.error("❌ Error:", err.message);
     fs.writeFileSync(
