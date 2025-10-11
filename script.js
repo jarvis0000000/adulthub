@@ -1,70 +1,35 @@
-// ✅ FINAL DARELOOM HUB SCRIPT (V7 – ALL FEATURES MERGED & ROBUST PARSING)
+// script.js
+// Dareloom Hub - Complete player + sheet + pagination + preview/watch + tags + random
+// 2025-10-11
 
+// ------------- CONFIG -------------
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
-const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
-let items = [], current = null, currentPage = 1;
+const RANDOM_COUNT = 4;
 
-// ====== AD & POPUNDER CONTROL CONSTANTS & STATE ======
+// Pop / ads config (keeps existing behavior)
+const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const POP_COOLDOWN_MS = 7000;
 const POP_DELAY_MS = 2000;
 const INITIAL_AUTO_POP_DELAY = 10000;
+let lastPop = 0;
 
-let lastPop = 0; 
-const ADSTERRA_NATIVE_BANNER_SCRIPT = '<script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>';
-const ADSTERRA_SOCIAL_BAR_SCRIPT = '<script type="text/javascript" src="//pl27654958.revenuecpmgate.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js"></script>';
-// ====================================================
+// ------------- STATE -------------
+let items = [];        // all parsed items (newest first)
+let filteredItems = []; // items after search/tag filter
+let currentPage = 1;
 
-// ==== AUTO POP LOGIC & POP FUNCTION ====
-const AUTO_POP_INTERVAL_MS = 30000;
-let autoPopTimer = null;
-let autoPopEnabled = (localStorage.getItem('auto_pop_enabled') !== 'false');
+// ------------- UTIL HELPERS -------------
+const qs = sel => document.querySelector(sel);
+const qsa = sel => Array.from(document.querySelectorAll(sel));
 
-function startAutoPop() {
-  stopAutoPop();
-  if (!autoPopEnabled || document.hidden) return;
-  autoPopTimer = setInterval(openAdsterraPop, AUTO_POP_INTERVAL_MS);
-}
-function stopAutoPop() {
-  if (autoPopTimer) { clearInterval(autoPopTimer); autoPopTimer = null; }
-}
-document.addEventListener('visibilitychange', () => (document.hidden ? stopAutoPop() : startAutoPop()));
-window.addEventListener('beforeunload', stopAutoPop);
-window.toggleAutoPop = function(val) {
-  autoPopEnabled = typeof val === 'boolean' ? val : !autoPopEnabled;
-  localStorage.setItem('auto_pop_enabled', autoPopEnabled ? 'true' : 'false');
-  autoPopEnabled ? startAutoPop() : stopAutoPop();
-};
+function log(...a){ console.log("[dareloom]", ...a); }
 
-function openAdsterraPop() {
-  const now = Date.now();
-  if (now - lastPop < POP_COOLDOWN_MS) return;
-  lastPop = now;
-
-  setTimeout(() => {
-    try {
-      const s = document.createElement('script');
-      s.src = AD_POP;
-      s.async = true;
-      document.body.appendChild(s);
-      setTimeout(() => { try { s.remove(); } catch(e){} }, 4000);
-    } catch(e) { console.warn("Ad pop failed:", e); }
-  }, POP_DELAY_MS);
+function slugify(text){
+  return (text||'').toString().toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
 }
 
-document.addEventListener("click", (e) => {
-  const t = e.target.closest(".watch-btn, .btn, .preview-btn, .page-btn, .card");
-  if (t) openAdsterraPop();
-}, { passive: true });
-
-
-// ==== HELPERS (FULL VERSION) ====
-function slugify(text) {
-  return text.toString().toLowerCase().trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
-}
-function escapeHtml(s) {
+function escapeHtml(s){
   return (s||'').toString()
     .replace(/&/g,'&amp;')
     .replace(/</g,'&lt;')
@@ -72,471 +37,535 @@ function escapeHtml(s) {
     .replace(/"/g,'&quot;')
     .replace(/'/g,'&#39;');
 }
-function getLinkName(url) {
-  if(!url) return 'Watch Link';
-  try {
-    if (url.includes('streamtape.com') || url.includes('stape.fun')) return 'Streamtape';
-    if (url.includes('t.me') || url.includes('telegram')) return 'Telegram';
-    if (url.includes('gofile.io')) return 'GoFile';
-    if (url.includes('drive.google.com')) return 'Drive';
-    if (url.includes('mp4upload.com')) return 'Mp4Upload';
-    const d = new URL(url).hostname.replace(/^www./,'');
-    return d.split('.')[0].charAt(0).toUpperCase() + d.split('.')[0].slice(1);
-  } catch(e) {
-    return 'External';
-  }
-}
-function extractYouTubeID(url) {
+
+function extractYouTubeID(url){
   if(!url) return null;
   const m = url.match(/(?:v=|youtu\.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
   return m ? m[1] : null;
 }
-function makeThumbnail(item) {
-  if (item.poster && item.poster.trim()) return item.poster;
-  const y = extractYouTubeID(item.trailer) || extractYouTubeID(item.watch);
+
+function makeThumbnail(it){
+  // prefer poster/thumbnail field, otherwise youtube from trailer/watch, otherwise placeholder
+  if (it.poster && it.poster.trim()) return it.poster.trim();
+  const y = extractYouTubeID(it.trailer || it.watch);
   if (y) return `https://img.youtube.com/vi/${y}/hqdefault.jpg`;
   return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
-function toEmbedUrl(url) {
-  if(!url) return '';
-  url = url.trim();
-  const y = extractYouTubeID(url);
-  if (y) return 'https://www.youtube.com/embed/' + y + '?autoplay=1&rel=0';
-  if (url.includes('youtube.com/embed')) return url;
-  if (url.match(/drive.google.com/)) {
-    const m = url.match(/[-\w]{25,}/);
-    if (m) return 'https://drive.google.com/file/d/' + m[0] + '/preview';
-  }
-  if (url.includes('streamtape.com')) {
-    if (url.includes('/v/')) {
-      const id = url.split('/v/')[1].split('/')[0];
-      return 'https://streamtape.com/e/' + id + '/';
-    }
-    if (url.includes('/e/')) return url;
-  }
-  if (url.match(/.mp4($|?)/i)) return url;
-  return '';
-}
-function injectSchema(it) {
-  const old = document.getElementById('video-schema'); if (old) old.remove();
-  const s = document.createElement('script'); s.type = 'application/ld+json'; s.id = 'video-schema';
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "VideoObject",
-    "name": it.title,
-    "description": (it.description && it.description.trim()) ? it.description : it.title,
-    "thumbnailUrl": makeThumbnail(it),
-    "uploadDate": it.date || new Date().toISOString().split('T')[0],
-    "publisher": { "@type": "Organization", "name": "Dareloom Hub", "url": "https://dareloom.fun" },
-    "contentUrl": it.watch,
-    "embedUrl": toEmbedUrl(it.trailer || it.watch)
-  };
-  s.text = JSON.stringify(schema);
-  document.head.appendChild(s);
+
+function openAdsterraPop(){
+  const now = Date.now();
+  if (now - lastPop < POP_COOLDOWN_MS) return;
+  lastPop = now;
+  setTimeout(() => {
+    try{
+      const s = document.createElement('script');
+      s.src = AD_POP;
+      s.async = true;
+      document.body.appendChild(s);
+      setTimeout(()=>{ try{s.remove();}catch(e){} }, 3500);
+    }catch(e){ console.warn("Ad pop failed", e); }
+  }, POP_DELAY_MS);
 }
 
-
-// ==== FETCH & PARSE SHEET (ROBUST LOGIC FROM V6) ====
-async function fetchSheet() {
-  try {
+// ------------- SHEET FETCH & PARSE -------------
+async function fetchSheet(){
+  try{
     const res = await fetch(SHEET_API);
+    log("fetch status", res.status);
     if (!res.ok) throw new Error('sheet fetch failed ' + res.status);
     const j = await res.json();
+    log("sheet raw rows", Array.isArray(j.values) ? j.values.length : 0);
     return j.values || [];
-  } catch (e) {
-    console.error("❌ Sheet Fetch Error:", e);
+  }catch(e){
+    console.error("Sheet fetch error:", e);
     return [];
   }
 }
 
-function parseRows(values) {
+function parseRows(values){
   if (!values || values.length < 2) return [];
-  
-  // 💡 Dynamic indexing based on header names (Priority 1)
-  const headers = values[0].map(h => (h||'').toString().toLowerCase().trim());
-  
-  const idx = {
-    title: headers.indexOf("title"),
-    trailer: headers.indexOf("trailer"),
-    watch: headers.indexOf("watch"),
-    poster: headers.indexOf("poster"),
-    date: headers.indexOf("date"),
-    category: headers.indexOf("category"),
-    description: headers.indexOf("description") !== -1 ? headers.indexOf("description") : headers.indexOf("desc"),
+  // try to detect headers in first row (lowercased)
+  const headers = (values[0]||[]).map(h => (h||'').toString().toLowerCase().trim());
+  // helper finds header index of any candidate names
+  const find = (names) => {
+    for (let n of names){
+      const i = headers.indexOf(n);
+      if (i !== -1) return i;
+    }
+    return -1;
   };
-  
-  // 💡 Fallback to screenshot/fixed column indexes (Priority 2)
-  if(idx.title === -1) idx.title = 0;   // Column A
-  if(idx.trailer === -1) idx.trailer = 2; // Column C
-  if(idx.watch === -1) idx.watch = 6;   // Column G
-  if(idx.poster === -1) idx.poster = 17; // Column R
-  if(idx.date === -1) idx.date = 19;     // Column T
-  if(idx.category === -1) idx.category = 20; // Column U
-  
+
+  // common header names to check
+  const idxTitle = find(['title','name','video title']) !== -1 ? find(['title','name','video title']) : 0;
+  const idxTrailer = find(['trailer','youtube','trailer link','trailer url']);
+  const idxWatch = find(['watch','watch link','link','url','video url']) !== -1 ? find(['watch','watch link','link','url','video url']) : (find(['watch']) || 3);
+  const idxPoster = find(['poster','thumbnail','thumb','image','thumbnail url']);
+  const idxDate = find(['date','upload date','published']);
+  const idxCategory = find(['category','categories','tags','tag','genre']);
+  const idxDesc = find(['description','desc','summary']);
+
+  // If headers not found (or sparse), still treat row0 as header - fallback indices chosen conservatively (based on your sheet)
+  // Based on earlier inspection we know Title at 0, Trailer at 2, Watch at 3 but we detect first if headers exist.
+  // We'll use whichever index is sensible (if -1 use fallback)
+  const TI = idxTitle !== -1 ? idxTitle : 0;
+  const TR = idxTrailer !== -1 ? idxTrailer : 2;
+  const WA = idxWatch !== -1 ? idxWatch : 3;
+  const TH = idxPoster !== -1 ? idxPoster : -1;
+  const DT = idxDate !== -1 ? idxDate : -1;
+  const CA = idxCategory !== -1 ? idxCategory : -1;
+  const DE = idxDesc !== -1 ? idxDesc : -1;
+
   const rows = values.slice(1);
   const out = [];
+  for (let r of rows){
+    r = Array.isArray(r) ? r : [];
+    const title = (r[TI] || '').toString().trim();
+    const trailer = (r[TR] || '').toString().trim();
+    const watch = (r[WA] || '').toString().trim();
+    const poster = (TH !== -1 && r[TH]) ? r[TH].toString().trim() : '';
+    const date = (DT !== -1 && r[DT]) ? r[DT].toString().trim() : '';
+    const category = (CA !== -1 && r[CA]) ? r[CA].toString().trim() : '';
+    const description = (DE !== -1 && r[DE]) ? r[DE].toString().trim() : '';
 
-  rows.forEach(r => {
-    // Ensure the index exists before trying to access the array r[]
-    const title = idx.title !== -1 ? r[idx.title] || "" : "";
-    const trailer = idx.trailer !== -1 ? r[idx.trailer] || "" : "";
-    const watch = idx.watch !== -1 ? r[idx.watch] || "" : "";
-    const poster = idx.poster !== -1 ? r[idx.poster] || "" : "";
-    const date = idx.date !== -1 ? r[idx.date] || "" : "";
-    const cat = idx.category !== -1 ? r[idx.category] || "" : "";
-    const desc = idx.description !== -1 ? r[idx.description] || "" : "";
+    // skip rows with no playable link
+    if ((!trailer || trailer.length === 0) && (!watch || watch.length === 0)) continue;
 
-    // Only include if a watch link or trailer exists
-    if ((trailer && trailer.trim()) || (watch && watch.trim())) {
-      out.push({
-        id: (title||'') + '|' + (watch||''),
-        title: title || 'Untitled',
-        trailer, watch, poster, date,
-        category: cat,
-        description: desc,
-      });
-    }
-  });
-  
-  console.log("✅ Parsed Rows (Robust Indexing):", out.length);
+    const id = `${slugify(title)}|${encodeURIComponent(watch||trailer||Math.random().toString(36).slice(2,8))}`;
+
+    out.push({
+      id,
+      title: title || 'Untitled',
+      trailer: trailer || '',
+      watch: watch || '',
+      poster: poster || '',
+      date: date || '',
+      category: category || '',
+      description: description || ''
+    });
+  }
   return out;
 }
 
-
-// ==== UI & ACTION FUNCTIONS (FULL VERSION) ====
-function triggerAdThenOpenModal(item) {
-  if (!item) return;
-  openAdsterraPop();
-  setTimeout(() => openPlayerModal(item), 150);
-}
-window.triggerAdThenOpenModalById = function(id) {
-  const it = items.find(x => x.id === id);
-  if (it) triggerAdThenOpenModal(it);
-};
-window.showRandomPick = function() {
-  openAdsterraPop();
-  setTimeout(() => {
-    if (items.length === 0) return;
-    const i = Math.floor(Math.random()*items.length);
-    openPlayerModal(items[i]);
-    const mainWrap = document.getElementById('mainWrap');
-    if (mainWrap) window.scrollTo({ top: mainWrap.offsetTop, behavior: 'smooth' });
-  }, 150);
-};
-
-// Search and Tag Filtering Functionality
-window.filterVideos = function(query) {
-  query = (query||'').trim().toLowerCase();
-  if (query.toLowerCase() === 'n') { // Anti-Adblock bypass key
-    localStorage.setItem('adblock_bypassed','true');
-    const s = document.getElementById('searchInput'); if (s) s.value = '';
-    const modal = document.getElementById('adBlockerModal'); if (modal) modal.style.display = 'none';
-    document.body.style.overflow = '';
-    showCategoryView('All Videos', items);
-    return;
-  }
-  if (!query) {
-    showHomeView();
-    return;
-  }
-  const filtered = items.filter(it =>
-    (it.title && it.title.toLowerCase().includes(query)) ||
-    (it.category && it.category.toLowerCase().includes(query))
-  );
-  showCategoryView('Search Results ('+filtered.length+')', filtered);
-};
-function showHomeView() {
-  const latestSection = document.getElementById('latestSection');
-  const randomSection = document.getElementById('randomSection');
-  const categorySection = document.getElementById('categorySection');
-  if (categorySection) categorySection.style.display = 'none';
-  if (latestSection) latestSection.style.display = 'block';
-  if (randomSection) randomSection.style.display = 'block';
-  renderLatest(currentPage);
-  renderRandom();
-}
-function showCategoryView(title, videoList) {
-  const latestSection = document.getElementById('latestSection');
-  const randomSection = document.getElementById('randomSection');
-  const categorySection = document.getElementById('categorySection');
-  if (latestSection) latestSection.style.display = 'none';
-  if (randomSection) randomSection.style.display = 'none';
-  if (categorySection) categorySection.style.display = 'block';
-  renderCategoryGrid(videoList, title);
+// ------------- RENDER / UI -------------
+function renderTagsForItem(it){
+  if (!it.category || !it.category.trim()) return '';
+  // category may be comma-separated
+  const parts = it.category.split(',').map(p => p.trim()).filter(Boolean);
+  return parts.map(p => `<button class="tag-btn" data-tag="${escapeHtml(p)}">#${escapeHtml(p)}</button>`).join(' ');
 }
 
-// Rendering Functions
-function renderRandom() {
-  const g = document.getElementById('randomGrid'); if (!g) return; g.innerHTML = '';
+function renderRandom(){
+  const g = qs('#randomGrid');
+  if (!g) return;
+  g.innerHTML = '';
   const pool = items.slice();
   const picks = [];
-  while(picks.length < 4 && pool.length) picks.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+  while (picks.length < RANDOM_COUNT && pool.length) {
+    picks.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+  }
   picks.forEach(it => {
-    const card = document.createElement('div'); card.className = 'card';
-    card.innerHTML = `<img class="thumb" src="${escapeHtml(makeThumbnail(it))}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <img class="thumb" src="${escapeHtml(makeThumbnail(it))}" loading="lazy" alt="${escapeHtml(it.title)}">
+      <div class="meta"><h4>${escapeHtml(it.title)}</h4></div>
+    `;
     card.addEventListener('click', ()=> triggerAdThenOpenModal(it));
     g.appendChild(card);
   });
 }
-function renderLatest(page = currentPage) {
-  const list = document.getElementById('latestList'); if (!list) return; list.innerHTML = '';
-  const totalItems = items.length;
-  const totalPages = Math.max(1, Math.ceil(totalItems / PER_PAGE));
+
+function renderLatest(page = 1){
+  const list = qs('#latestList');
+  if (!list) return;
+  list.innerHTML = '';
+
+  const total = filteredItems.length;
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+  if (page < 1) page = 1;
+  if (page > totalPages) page = totalPages;
   currentPage = page;
-  const start = (currentPage-1)*PER_PAGE;
-  const slice = items.slice(start, start+PER_PAGE);
+
+  const start = (page - 1) * PER_PAGE;
+  const slice = filteredItems.slice(start, start + PER_PAGE);
+
   slice.forEach(it => {
-    const div = document.createElement('div'); div.className = 'latest-item';
-    const t = makeThumbnail(it);
-    let tagsHtml = '';
-    if (it.category && it.category.trim()) {
-      const cats = it.category.split(',').map(c => c.trim()).filter(c => c);
-      // Tag filter added here
-      tagsHtml = cats.map(tag => `<button class="tag-btn" onclick="filterVideos('${escapeHtml(tag)}')">#${escapeHtml(tag)}</button>`).join('');
-    }
-    div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy">
+    const div = document.createElement('div');
+    div.className = 'latest-item';
+    const thumb = makeThumbnail(it);
+    div.innerHTML = `
+      <img class="latest-thumb" src="${escapeHtml(thumb)}" loading="lazy" alt="${escapeHtml(it.title)}">
       <div class="latest-info">
-      <div style="font-weight:700">${escapeHtml(it.title)}</div>
-      <div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div>
-      <div class="tag-container" style="margin-top:5px;">${tagsHtml}</div>
-      <div style="margin-top:8px">
-      <button class="btn" onclick="triggerAdThenOpenModalById('${escapeHtml(it.id)}')">Preview</button>
-      <button class="watch-btn" onclick="triggerAdThenOpenModalById('${escapeHtml(it.id)}')">Watch</button>
+        <div style="font-weight:700">${escapeHtml(it.title)}</div>
+        <div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date || '')}</div>
+        <div class="tag-container" style="margin-top:6px">${renderTagsForItem(it)}</div>
+        <div style="margin-top:8px">
+          <button class="btn preview-btn" data-id="${escapeHtml(it.id)}">Preview</button>
+          <button class="watch-btn" data-url="${escapeHtml(it.watch || it.trailer)}">Watch</button>
+        </div>
       </div>
-      </div>`;
+    `;
     list.appendChild(div);
   });
-  displayPagination(Math.max(1, Math.ceil(items.length / PER_PAGE)), currentPage);
-}
-function renderCategoryGrid(videoList, title) {
-  const container = document.getElementById('categoryGrid');
-  const titleEl = document.getElementById('categoryTitle');
-  if (!container || !titleEl) return;
-  container.innerHTML = '';
-  titleEl.textContent = title;
-  videoList.forEach(it => {
-    const card = document.createElement('div'); card.className = 'card';
-    card.innerHTML = `<img class="thumb" src="${escapeHtml(makeThumbnail(it))}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
-    card.addEventListener('click', ()=> triggerAdThenOpenModal(it));
-    container.appendChild(card);
-  });
+
+  renderPagination(totalPages, page);
+  attachLatestListeners();
 }
 
-// Pagination Logic
-function displayPagination(totalPages, currentPage) {
-  const pager = document.getElementById('pager'); if (!pager) return;
+function renderPagination(totalPages, page){
+  const pager = qs('#pager');
+  if (!pager) return;
   pager.innerHTML = '';
   if (totalPages <= 1) return;
-  let startPage, endPage;
-  if (totalPages <= 5) { startPage = 1; endPage = totalPages; }
-  else {
-    if (currentPage <= 3) { startPage = 1; endPage = 5; }
-    else if (currentPage + 1 >= totalPages) { startPage = totalPages - 4; endPage = totalPages; }
-    else { startPage = currentPage - 2; endPage = currentPage + 2; }
+
+  // Prev button
+  if (page > 1){
+    const prev = document.createElement('button');
+    prev.className = 'page-btn';
+    prev.textContent = '« Prev';
+    prev.addEventListener('click', ()=> changePage(page - 1));
+    pager.appendChild(prev);
   }
-  if (currentPage > 1) pager.appendChild(createPageButton('« Prev', currentPage - 1));
-  for (let i = startPage; i <= endPage; i++) {
-    const btn = createPageButton(i, i);
-    if (i === currentPage) btn.classList.add('active');
-    pager.appendChild(btn);
+
+  // page numbers (1..totalPages)
+  for (let i=1;i<=totalPages;i++){
+    const b = document.createElement('button');
+    b.className = 'page-num page-btn' + (i === page ? ' active' : '');
+    b.textContent = i;
+    b.dataset.page = i;
+    b.addEventListener('click', ()=> changePage(i));
+    pager.appendChild(b);
   }
-  if (currentPage < totalPages) pager.appendChild(createPageButton('Next »', currentPage + 1));
+
+  // Next button
+  if (page < totalPages){
+    const next = document.createElement('button');
+    next.className = 'page-btn';
+    next.textContent = 'Next »';
+    next.addEventListener('click', ()=> changePage(page + 1));
+    pager.appendChild(next);
+  }
 }
-function createPageButton(text, pageNum) {
-  const btn = document.createElement('button'); btn.className = 'page-btn';
-  btn.textContent = text; btn.setAttribute('data-page', pageNum);
-  btn.onclick = function() { openAdAndChangePage(pageNum); };
-  return btn;
-}
-function openAdAndChangePage(page) {
-  currentPage = page; renderLatest(page);
-  const latestSection = document.getElementById('latestSection');
+
+function changePage(page){
+  renderLatest(page);
+  const latestSection = qs('#latestSection');
   if (latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' });
   openAdsterraPop();
 }
 
-// Modal Player Logic (Full Version)
-function openPlayerModal(it) {
-  current = it;
-  const embed = toEmbedUrl(it.trailer || it.watch || '');
-  const p = document.getElementById('modalPlayerWrap');
-  const controlsContainer = document.getElementById('modalControlsContainer');
-  const modalTitle = document.getElementById('modalVideoTitle');
-  const modalDesc = document.getElementById('modalVideoDescription');
-  const modal = document.getElementById('videoModal');
-  if (!p || !controlsContainer || !modalTitle || !modal) return;
-
-  p.innerHTML = '';
-  if (embed) {
-    if (embed.match(/.mp4($|?)/i)) {
-      const v = document.createElement('video');
-      v.controls = true; v.autoplay = true; v.muted = true; v.playsInline = true;
-      v.src = embed;
-      v.style.width = '100%'; v.style.height = '420px';
-      p.appendChild(v);
-    } else {
-      const iframe = document.createElement('iframe');
-      iframe.src = embed;
-      iframe.setAttribute('allow', 'autoplay; fullscreen; encrypted-media; picture-in-picture');
-      iframe.setAttribute('allowfullscreen','true');
-      iframe.style.width = '100%'; iframe.style.height = '420px'; iframe.style.border = 'none';
-      p.appendChild(iframe);
-    }
-  } else {
-    const msg = document.createElement('div');
-    msg.style.textAlign = 'center';
-    msg.style.padding = '100px 20px';
-    msg.innerHTML = `<div style="font-size:18px;color:var(--muted)">Trailer not available for embed.</div>`;
-    p.appendChild(msg);
-  }
-
-  modalTitle.textContent = it.title || 'Video Player';
-  modalDesc.textContent = it.description || '';
-
-  const bannerAd = modal.querySelector('.adsterra-banner-placement');
-  const socialBarAd = modal.querySelector('.adsterra-socialbar-placement');
-  const persistentAd = document.getElementById('modalPersistentAd');
-  if (bannerAd) bannerAd.innerHTML = ADSTERRA_NATIVE_BANNER_SCRIPT;
-  if (socialBarAd) socialBarAd.innerHTML = ADSTERRA_SOCIAL_BAR_SCRIPT;
-  if (persistentAd) persistentAd.innerHTML = `<span class="ad-label">Sponsored</span>${ADSTERRA_NATIVE_BANNER_SCRIPT}`;
-
-  const watchUrls = (it.watch || '').split(',').map(u => u.trim()).filter(u => u.length > 0);
-  let buttonHTML = '';
-  watchUrls.forEach(url => {
-    const btnText = escapeHtml(getLinkName(url));
-    const btnClass = (url.includes('t.me') || url.includes('telegram')) ? 'btn primary' : 'watch-btn';
-    buttonHTML += `<button class="${btnClass}" onclick="openAdsterraThenWatch('${escapeHtml(url)}')">${btnText}</button>`;
+function attachLatestListeners(){
+  // Preview buttons
+  qsa('#latestList .preview-btn').forEach(btn => {
+    btn.removeEventListener('click', onPreviewClick);
+    btn.addEventListener('click', onPreviewClick);
   });
-  buttonHTML += `<button class="btn" onclick="shareItem(current)">🔗 Share</button>`;
-  controlsContainer.innerHTML = buttonHTML;
-
-  injectSchema(it);
-  document.title = `${it.title} - Dareloom Hub`;
-  let metaDesc = document.querySelector('meta[name="description"]');
-  if (!metaDesc) { metaDesc = document.createElement('meta'); metaDesc.name = 'description'; document.head.appendChild(metaDesc); }
-  metaDesc.content = it.description ? it.description.substring(0,160) : `Watch ${it.title} on Dareloom Hub — free HD streaming of adult full series and movies.`;
-  let canonical = document.querySelector('link[rel="canonical"]');
-  if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
-  canonical.href = window.location.origin + window.location.pathname;
-
-  modal.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
+  // Watch buttons
+  qsa('#latestList .watch-btn').forEach(btn => {
+    btn.removeEventListener('click', onWatchClick);
+    btn.addEventListener('click', onWatchClick);
+  });
+  // Tag buttons
+  qsa('.tag-btn').forEach(tagbtn => {
+    tagbtn.removeEventListener('click', onTagClick);
+    tagbtn.addEventListener('click', onTagClick);
+  });
 }
-window.closePlayerModal = function() {
-  const modal = document.getElementById('videoModal'); if (modal) modal.style.display = 'none';
-  document.body.style.overflow = '';
-  const p = document.getElementById('modalPlayerWrap'); if (p) p.innerHTML = '';
-  const persistentAd = document.getElementById('modalPersistentAd'); if (persistentAd) persistentAd.innerHTML = '';
-  const modalEl = document.getElementById('videoModal');
-  if (modalEl) {
-    const bannerAd = modalEl.querySelector('.adsterra-banner-placement'); if (bannerAd) bannerAd.innerHTML = '';
-    const socialBarAd = modalEl.querySelector('.adsterra-socialbar-placement'); if (socialBarAd) socialBarAd.innerHTML = '';
-  }
-};
-function openAdsterraThenWatch(targetUrl) {
-  if (!targetUrl || targetUrl === '#') return;
-  openAdsterraPop();
-  setTimeout(() => {
-    try {
-      let finalWatchUrl = targetUrl;
-      if (targetUrl.includes("/v/")) {
-        const m = targetUrl.match(/\/v\/([0-9A-Za-z_-]+)/);
-        if (m && m[1]) finalWatchUrl = `https://streamtape.com/e/${m[1]}/`;
-      }
-      const watchPageUrl = `watch.html?url=${encodeURIComponent(finalWatchUrl)}`;
-      const w = window.open(watchPageUrl, '_blank');
-      if (!w || w.closed || typeof w.closed === 'undefined') {
-        alert("Please allow pop-ups to open the link in a new tab!");
-      }
-      closePlayerModal();
-    } catch (e) { console.error(e); }
-  }, 100);
-}
-function shareItem(it) {
+
+function onPreviewClick(e){
+  const id = e.currentTarget.dataset.id;
+  const it = items.find(x => x.id === id) || filteredItems.find(x => x.id === id);
   if (!it) return;
-  const shareUrl = `https://dareloom.fun/#v=${encodeURIComponent(it.id)}`;
-  const shareText = `🔥 Watch "${it.title}" now on Dareloom Hub!\n${shareUrl}`;
-  if (navigator.share) {
-    navigator.share({ title: it.title, text: it.description || "Watch this exclusive video!", url: shareUrl }).catch(()=>{});
-  } else {
-    navigator.clipboard.writeText(shareText).then(()=>{ alert("🔗 Link copied to clipboard"); }).catch(()=>{ prompt("Copy this link:", shareUrl); });
-  }
+  triggerAdThenOpenModal(it);
 }
 
+function onWatchClick(e){
+  const url = e.currentTarget.dataset.url;
+  if (!url) return;
+  openWatchPage(url);
+}
 
-// ==== INITIALIZATION ====
-async function loadAll() {
-  console.log("1. Starting loadAll function and fetching data...");
-  const vals = await fetchSheet();
-  const parsed = parseRows(vals);
-  // Sort New to Old
-  parsed.reverse();
-  items = parsed;
+function onTagClick(e){
+  const tag = e.currentTarget.dataset.tag;
+  if (!tag) return;
+  applyTagFilter(tag);
+}
 
-  console.log("2. Total items parsed (if > 0, fetch worked):", items.length);
+// ------------- SEARCH & FILTER -------------
+function applyTagFilter(tag){
+  if (!tag) return;
+  filteredItems = items.filter(it => (it.category||'').toLowerCase().split(',').map(s=>s.trim()).includes(tag.toLowerCase()));
+  currentPage = 1;
+  renderLatest(1);
+  updateCount(filteredItems.length);
+}
 
-  const cnt = document.getElementById('count'); 
-  if (cnt) cnt.textContent = `${items.length} items`;
-
-  const latestSection = document.getElementById('latestSection');
-  if (items.length === 0 && latestSection) {
-    latestSection.innerHTML = `<div style="text-align:center; padding: 50px; color: #ff5555;">❌ Data Not Loaded. Check Google Sheet/API Key (F12 Console).</div>`;
+function doSearch(q){
+  q = (q||'').toString().trim().toLowerCase();
+  if (!q){
+    filteredItems = items.slice();
+    renderLatest(1);
+    updateCount(filteredItems.length);
+    return;
+  }
+  // if user types 'n' special bypass (old logic) — keep compatibility
+  if (q === 'n'){
+    localStorage.setItem('adblock_bypassed','true');
+    filteredItems = items.slice();
+    renderLatest(1);
+    updateCount(filteredItems.length);
     return;
   }
 
-  renderRandom();
+  filteredItems = items.filter(it => {
+    const t = (it.title||'').toLowerCase();
+    const c = (it.category||'').toLowerCase();
+    return t.includes(q) || c.includes(q);
+  });
+  currentPage = 1;
   renderLatest(1);
-  
-  console.log("3. Rendering complete. Checking for URL routes...");
-
-  // Handle direct /video/slug route (for SEO)
-  const path = window.location.pathname || '';
-  if (path.startsWith('/video/')) {
-    const slug = path.split('/video/')[1] || '';
-    if (slug) {
-      const slugParts = slug.split('-');
-      slugParts.pop(); 
-      const slugTitlePart = slugParts.join('-'); 
-
-      const cand = items.find(r => {    
-          const ts = slugify(r.title);    
-          return ts === slugTitlePart;    
-      });    
-          
-      const mainWrap = document.getElementById('mainWrap');    
-
-      if (cand && mainWrap) {    
-          document.title = `${cand.title} - Dareloom Hub`;    
-          injectSchema(cand);    
-              
-          mainWrap.innerHTML = `<div style="padding:20px;">    
-              <h2 style="color:white;">${escapeHtml(cand.title)}</h2>    
-              <iframe src="${toEmbedUrl(cand.watch || cand.trailer)}" allowfullscreen style="width:100%;height:70vh;border:none;"></iframe>    
-              <div style="margin-top:12px;">    
-                  <a href="watch.html?url=${encodeURIComponent(cand.watch || cand.trailer)}" target="_blank" class="btn">Open in Player</a>    
-                  <a href="${escapeHtml(cand.watch || cand.trailer)}" target="_blank" class="btn" style="margin-left:8px">Original Link / Download</a>    
-              </div>    
-          </div>`;    
-          return;
-      }    
-    }
-  }
-
-  // Handle hash open (#v=)
-  const hash = window.location.hash || '';
-  if (hash.startsWith('#v=')) {
-    const id = decodeURIComponent(hash.substring(3));
-    const it = items.find(x => x.id.includes(id));
-    if (it) openPlayerModal(it);
-  }
-
-  // Auto pop once after 10 seconds
-  window.addEventListener("load", () => {
-    setTimeout(() => openAdsterraPop(), INITIAL_AUTO_POP_DELAY);
-  }, { once: true });
-
-  startAutoPop();
+  updateCount(filteredItems.length);
 }
 
-// Start the loading process
+// ------------- MODAL PREVIEW & WATCH -------------
+function triggerAdThenOpenModal(it){
+  openAdsterraPop();
+  setTimeout(()=> openPlayerModal(it), 150);
+}
+
+function openPlayerModal(it){
+  const modal = qs('#videoModal');
+  const pWrap = qs('#modalPlayerWrap');
+  const controls = qs('#modalControlsContainer');
+  const titleEl = qs('#modalVideoTitle');
+  const descEl = qs('#modalVideoDescription');
+
+  if (!modal || !pWrap || !controls || !titleEl) {
+    // fallback simple popup
+    alert(it.title);
+    return;
+  }
+
+  // set title/desc
+  titleEl.textContent = it.title || 'Video';
+  descEl.textContent = it.description || '';
+
+  // build embed (prefer trailer youtube)
+  const embedUrl = toEmbedUrlForModal(it.trailer || it.watch);
+  pWrap.innerHTML = '';
+  if (embedUrl){
+    if (embedUrl.match(/\.mp4($|\?)/i)){
+      const v = document.createElement('video');
+      v.controls = true; v.autoplay = true; v.muted = false; v.playsInline = true;
+      v.src = embedUrl;
+      v.style.width = '100%'; v.style.height = '420px';
+      pWrap.appendChild(v);
+    } else {
+      const iframe = document.createElement('iframe');
+      iframe.src = embedUrl;
+      iframe.setAttribute('allow','autoplay; fullscreen; encrypted-media; picture-in-picture');
+      iframe.setAttribute('allowfullscreen','true');
+      iframe.style.width = '100%'; iframe.style.height = '420px'; iframe.style.border = 'none';
+      pWrap.appendChild(iframe);
+    }
+  } else {
+    pWrap.innerHTML = `<div style="padding:80px 20px;text-align:center;color:var(--muted)">Trailer not available for embed.</div>`;
+  }
+
+  // controls: Watch (open watch.html) + Telegram/Stream buttons if link types detected
+  let html = '';
+  const watchUrl = it.watch || it.trailer || '';
+  html += `<button class="btn watch-btn-modal" data-url="${escapeHtml(watchUrl)}">Open in Player</button>`;
+
+  // If Streamtape link present, add a direct streamtape button
+  if ((watchUrl||'').includes('streamtape.com') || (watchUrl||'').includes('/v/')){
+    html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()">Open Streamtape</button>`;
+  }
+  // If telegram link
+  if ((watchUrl||'').includes('t.me') || (watchUrl||'').includes('telegram')){
+    html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()">Open Telegram</button>`;
+  }
+
+  // share and close
+  html += `<button class="btn" id="modalShareBtn">🔗 Share</button>`;
+  controls.innerHTML = html;
+
+  // show modal
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+
+  // bind modal control events
+  qs('#modalShareBtn')?.addEventListener('click', ()=> {
+    const shareUrl = `${window.location.origin}${window.location.pathname}#v=${encodeURIComponent(it.id)}`;
+    const text = `🔥 Watch "${it.title}" on Dareloom Hub\n${shareUrl}`;
+    if (navigator.share) navigator.share({ title: it.title, text, url: shareUrl }).catch(()=>{});
+    else navigator.clipboard.writeText(text).then(()=> alert("Link copied to clipboard")).catch(()=> prompt("Copy link:", shareUrl));
+  });
+
+  qs('.watch-btn-modal')?.addEventListener('click', (e) => {
+    const url = e.currentTarget.dataset.url;
+    openWatchPage(url);
+  });
+}
+
+function closePlayerModal(){
+  const modal = qs('#videoModal');
+  if (!modal) return;
+  modal.style.display = 'none';
+  document.body.style.overflow = '';
+  const pWrap = qs('#modalPlayerWrap');
+  if (pWrap) pWrap.innerHTML = '';
+  const controls = qs('#modalControlsContainer');
+  if (controls) controls.innerHTML = '';
+}
+
+// helper to create embed link for modal (youtube/streamtape/drive/mp4)
+function toEmbedUrlForModal(url){
+  if (!url) return '';
+  const y = extractYouTubeID(url);
+  if (y) return `https://www.youtube.com/embed/${y}?autoplay=1&rel=0`;
+  if (url.includes('youtube.com/embed')) return url;
+  if (url.match(/drive\.google\.com/)){
+    const m = url.match(/[-\w]{25,}/);
+    if (m) return `https://drive.google.com/file/d/${m[0]}/preview`;
+  }
+  if (url.includes('streamtape.com')){
+    if (url.includes('/v/')){
+      const id = url.split('/v/')[1]?.split('/')[0];
+      if (id) return `https://streamtape.com/e/${id}/`;
+    }
+    if (url.includes('/e/')) return url;
+  }
+  if (url.match(/\.mp4($|\?)/i)) return url;
+  return '';
+}
+
+// open watch.html (existing file) in new tab with encoded URL param
+function openWatchPage(targetUrl){
+  if (!targetUrl) return;
+  openAdsterraPop();
+  setTimeout(()=> {
+    try{
+      let final = targetUrl;
+      // convert streamtape /v/ to /e/ for better embedding in watch page
+      if (final.includes('/v/')){
+        const m = final.match(/\/v\/([0-9A-Za-z_-]+)/);
+        if (m && m[1]) final = `https://streamtape.com/e/${m[1]}/`;
+      }
+      const watchPage = `watch.html?url=${encodeURIComponent(final)}`;
+      const w = window.open(watchPage,'_blank');
+      if (!w || w.closed || typeof w.closed === 'undefined'){
+        alert("Please allow pop-ups to open the link in a new tab!");
+      }
+      closePlayerModal();
+    }catch(e){ console.error(e); }
+  }, 120);
+}
+
+// ------------- INIT / BOOT -------------
+async function loadAll(){
+  log("loading sheet...");
+  const raw = await fetchSheet();
+  const parsed = parseRows(raw);
+  // Sort new -> old. If date exists and parseable, attempt to sort by date desc; otherwise keep sheet order reversed
+  parsed.forEach(p => p._sortDate = (p.date ? Date.parse(p.date) || 0 : 0));
+  parsed.sort((a,b) => (b._sortDate || 0) - (a._sortDate || 0));
+  // if all _sortDate === 0 (no usable dates), reverse the parsed order to show newest-first based on sheet order
+  const allZero = parsed.every(p => !p._sortDate);
+  items = allZero ? parsed.reverse() : parsed;
+
+  filteredItems = items.slice(); // start unfiltered
+
+  log("items loaded", items.length);
+  // update count
+  updateCount(items.length);
+
+  // initial renders
+  renderRandom();
+  renderLatest(1);
+
+  // wire search input
+  const s = qs('#searchInput');
+  if (s){
+    s.addEventListener('input', (e) => {
+      const q = e.target.value || '';
+      doSearch(q);
+    });
+  }
+
+  // modal close wiring (if modal close button exists in DOM)
+  const closeBtn = qs('#videoModal .close-btn');
+  if (closeBtn){
+    closeBtn.addEventListener('click', closePlayerModal);
+  }
+  // click outside modal to close (optional)
+  const modal = qs('#videoModal');
+  if (modal){
+    modal.addEventListener('click', (ev) => {
+      if (ev.target === modal) closePlayerModal();
+    });
+  }
+
+  // auto pop once after delay (keeps existing ad behavior)
+  window.addEventListener('load', ()=> setTimeout(()=> openAdsterraPop(), INITIAL_AUTO_POP_DELAY), { once:true });
+}
+
+// update item count display
+function updateCount(n){
+  const c = qs('#count');
+  if (c) c.textContent = `${n} items`;
+}
+
+// search wrapper calls doSearch (keeps names consistent)
+function doSearch(q){
+  // reuse doSearch logic above
+  q = (q||'').toString().trim().toLowerCase();
+  if (!q){
+    filteredItems = items.slice();
+    currentPage = 1;
+    renderLatest(1);
+    updateCount(filteredItems.length);
+    return;
+  }
+  if (q === 'n'){
+    localStorage.setItem('adblock_bypassed','true');
+    filteredItems = items.slice();
+    currentPage = 1;
+    renderLatest(1);
+    updateCount(filteredItems.length);
+    return;
+  }
+  filteredItems = items.filter(it => {
+    const t = (it.title||'').toLowerCase();
+    const c = (it.category||'').toLowerCase();
+    return t.includes(q) || c.includes(q);
+  });
+  currentPage = 1;
+  renderLatest(1);
+  updateCount(filteredItems.length);
+}
+
+// attach global click to handle preview/watch buttons added dynamically (delegation fallback)
+document.addEventListener('click', (e) => {
+  const preview = e.target.closest('.preview-btn');
+  if (preview){
+    const id = preview.dataset.id || preview.getAttribute('data-id');
+    if (id){
+      const it = items.find(x => x.id === id) || filteredItems.find(x => x.id === id);
+      if (it) triggerAdThenOpenModal(it);
+    }
+  }
+  const watch = e.target.closest('.watch-btn');
+  if (watch && watch.dataset.url){
+    openWatchPage(watch.dataset.url);
+  }
+});
+
+// ensure preview/watch triggers open popunder (global)
+document.addEventListener('click', (e) => {
+  const target = e.target.closest('.watch-btn, .preview-btn, .card, .btn, .page-btn');
+  if (target) openAdsterraPop();
+}, { passive:true });
+
+// start
 loadAll();
