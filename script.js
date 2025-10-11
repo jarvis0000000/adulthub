@@ -1,9 +1,7 @@
 //script.js
 // FINAL DARELOOM HUB SCRIPT - CLEAN, FIXED, & ANTI-POPUP CONTROL
-// Uses Google Sheets API (same URL you provided)
 
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
-// 🛠️ UPDATED: Using the new Anti-Popunder URL provided by the user.
 const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
 let items = [], current = null, currentPage = 1;
@@ -495,7 +493,6 @@ async function loadAll() {
     console.log("2. Total items parsed (if > 0, fetch worked):", items.length); // 💡 Debug Log
 
     const cnt = document.getElementById('count'); 
-    // 🛠️ FIX: Added backticks
     if (cnt) cnt.textContent = `${items.length} items`;
 
     // ⚠️ Optional: Add an error message if no items load (for debugging)
@@ -516,18 +513,18 @@ async function loadAll() {
     if (path.startsWith('/video/')) {
         const slug = path.split('/video/')[1] || '';
         if (slug) {
-            // Find the candidate video based on slug and ID heuristic
+            // *** CRITICAL FIX: Removed the Buffer dependency that caused the ReferenceError. ***
+            // Simplified the search logic to rely only on the slugified title, which is browser safe.
+            const slugParts = slug.split('-');
+            slugParts.pop(); // Remove the ID part
+            const slugTitlePart = slugParts.join('-'); // The rest is the slugified title
+            
             const cand = items.find(r => {
                 const ts = slugify(r.title);
-                // Corrected Buffer usage/fallback to prevent browser crash
-                let uid = slug.split('-').pop(); 
-                if (typeof Buffer !== 'undefined') {
-                    uid = Buffer.from(r.watch || '').toString('base64').slice(0,8).replace(/[^a-zA-Z0-9]/g,'');
-                }
-                return `${ts}-${uid}` === slug;
+                // Check if the video's slugified title matches the slugified title part from the URL
+                return ts === slugTitlePart;
             });
             
-            // 🛑 CRITICAL FIX: The HTML injection was moved OUT of the 'find' loop.
             const mainWrap = document.getElementById('mainWrap');
 
             if (cand && mainWrap) {
@@ -535,7 +532,6 @@ async function loadAll() {
                 document.title = `${cand.title} - Dareloom Hub`;
                 injectSchema(cand);
                 
-                // 🛠️ FIX: Added backticks
                 mainWrap.innerHTML = `<div style="padding:20px;">
                     <h2 style="color:white;">${escapeHtml(cand.title)}</h2>
                     <iframe src="${toEmbedUrl(cand.watch || cand.trailer)}" allowfullscreen style="width:100%;height:70vh;border:none;"></iframe>
@@ -568,3 +564,4 @@ async function loadAll() {
 
 // Start
 loadAll();
+    
