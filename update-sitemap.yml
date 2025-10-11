@@ -23,15 +23,15 @@ jobs:
       - name: 🗺️ Generate Sitemap
         env:
           SHEET_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }}
-        run: npm run generate
+        run: npm run build
 
       - name: 💾 Commit & Push Sitemap Updates
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add -f public/sitemap.xml public/_headers public/robots.txt || true
+          git add -f sitemap.xml sitemap.xml.gz robots.txt seo-meta.json _headers indexnow-key.txt || true
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          git commit -m "Auto-update sitemap: ${TIMESTAMP}" || echo "No changes"
+          git commit -m "Auto-update sitemap: ${TIMESTAMP}" || echo "No changes to commit"
           git push origin main || echo "No push needed"
 
       - name: 🚀 Trigger Cloudflare Pages Deployment
@@ -40,6 +40,7 @@ jobs:
           CF_ACCOUNT_ID: "1de9700c63c35247d84a4caaf3700f6b"
           CF_PAGES_PROJECT: "Adulthub"
         run: |
+          echo "🚀 Triggering Cloudflare Pages Deployment..."
           curl -X POST "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PAGES_PROJECT}/deployments" \
           -H "Authorization: Bearer ${CLOUDFLARE_TOKEN}" \
           -H "Content-Type: application/json" \
