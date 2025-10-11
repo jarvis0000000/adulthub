@@ -1,7 +1,7 @@
 /**
- * 🗺️ Dareloom.fun — Ultimate Sitemap + Robots.txt + SEO Meta JSON + IndexNow
+ * 🗺️ Dareloom.fun — Unified Sitemap + Robots.txt + SEO Meta + IndexNow (Movies + SEO)
  * ✅ Works perfectly with Cloudflare Pages (no /public folder)
- * Author: Namo ⚡
+ * Author: Namo ⚡ Updated with Movies Integration
  */
 
 import fs from "fs";
@@ -13,14 +13,14 @@ import { fileURLToPath } from "url";
 // --- CONFIG ---
 const BASE_URL = "https://dareloom.fun";
 const API_KEY = process.env.SHEET_KEY || "";
-const INDEXNOW_KEY = "c5b6124b5f8744fbb1a44a96266b9aa7"; // keep this key same for IndexNow
-const SHEET_URL = `https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1!A:T?alt=json&key=${API_KEY}`;
+const INDEXNOW_KEY = "c5b6124b5f8744fbb1a44a96266b9aa7";
+const SHEET_URL = `https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet2!A:T?alt=json&key=${API_KEY}`;
 
 // Handle __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const ROOT_DIR = __dirname; // no "public" folder
+const ROOT_DIR = __dirname; // Cloudflare root
 const SITEMAP_PATH = path.join(ROOT_DIR, "sitemap.xml");
 const SITEMAP_GZ_PATH = path.join(ROOT_DIR, "sitemap.xml.gz");
 const ROBOTS_PATH = path.join(ROOT_DIR, "robots.txt");
@@ -53,7 +53,7 @@ function parseRows(values) {
     if (title && watch) {
       const slug = slugify(title);
       const uniqueId = Buffer.from(watch).toString("base64").slice(0, 8).replace(/[^a-zA-Z0-9]/g, "");
-      const url = `${BASE_URL}/video/${slug}-${uniqueId}`;
+      const url = `${BASE_URL}/movies/${slug}-${uniqueId}`;
       out.push({ url, title, date: dateStr });
     }
   }
@@ -88,7 +88,7 @@ async function pingSearchEngines(urls) {
 
 // --- MAIN FUNCTION ---
 async function generate() {
-  console.log("⚙️ Generating Dareloom SEO assets...");
+  console.log("⚙️ Generating Dareloom SEO + Movies sitemap...");
 
   try {
     // --- Fetch Google Sheet Data ---
@@ -96,10 +96,10 @@ async function generate() {
     if (!res.ok) throw new Error(`HTTP error ${res.status}`);
     const json = await res.json();
     const items = parseRows(json.values || []);
-    console.log(`✅ Parsed ${items.length} entries from Google Sheets.`);
+    console.log(`✅ Parsed ${items.length} movie entries from Google Sheets.`);
 
     // --- Static Pages ---
-    const staticPages = ["/", "/watch.html", "/seo/main.html", "/seo/global.html", "/seo/categories.html"];
+    const staticPages = ["/", "/watch.html", "/seo/main.html", "/seo/global.html", "/seo/categories.html", "/movies/"];
 
     // --- SEO Category Pages ---
     const seoCategories = [
@@ -145,7 +145,7 @@ async function generate() {
     const metaData = items.map(item => ({
       title: item.title,
       url: item.url,
-      description: `${item.title} — Watch now on Dareloom.fun in HD.`,
+      description: `${item.title} — Watch full HD movie on Dareloom.fun for free.`,
       keywords: item.title.split(" ").join(", "),
       lastModified: item.date || latestMod,
     }));
@@ -174,7 +174,7 @@ async function generate() {
     // --- Ping Search Engines ---
     await pingSearchEngines(items.map(i => i.url));
 
-    console.log("🎉 All SEO files + IndexNow ping completed successfully!");
+    console.log("🎉 All SEO + Movies sitemap generated successfully!");
   } catch (err) {
     console.error("❌ Error:", err.message);
     fs.writeFileSync(SITEMAP_PATH, '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
