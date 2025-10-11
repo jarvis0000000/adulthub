@@ -5,14 +5,6 @@
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 // ✅ UPDATED POPUNDER URL: New anti-block script
 const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
-
-// === NEW POPUNDER LOGIC CONSTANTS ===
-const POP_COOLDOWN_MS = 7000;
-const POP_DELAY_MS = 2000;
-const AUTO_POP_DELAY = 10000;
-let lastPop = 0;
-// ====================================
-
 const PER_PAGE = 5;
 let items = [], current = null, currentPage = 1;
 
@@ -20,39 +12,37 @@ let items = [], current = null, currentPage = 1;
 const ADSTERRA_NATIVE_BANNER_SCRIPT = '<script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>';
 const ADSTERRA_SOCIAL_BAR_SCRIPT = '<script type="text/javascript" src="//pl27654958.revenuecpmgate.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js"></script>';
 
-// REMOVED OLD AUTO-POP LOGIC (startAutoPop, stopAutoPop, etc.)
+// Auto-pop settings
+const AUTO_POP_INTERVAL_MS = 30000;
+let autoPopTimer = null;
+let autoPopEnabled = (localStorage.getItem('auto_pop_enabled') !== 'false');
 
-// Pop-under ad: Now incorporates Cooldown and Delay logic
-function openAdsterraPop() {
-    const now = Date.now();
-    if (now - lastPop < POP_COOLDOWN_MS) return;
-    lastPop = now;
-
-    setTimeout(() => {
-        try {
-            const s = document.createElement('script');
-            s.src = AD_POP;
-            s.async = true;
-            document.body.appendChild(s);
-            setTimeout(() => { try { s.remove(); } catch(e){} }, 4000);
-        } catch(e) { console.warn("Ad pop failed:", e); }
-    }, POP_DELAY_MS);
+function startAutoPop() {
+stopAutoPop();
+if (!autoPopEnabled || document.hidden) return;
+autoPopTimer = setInterval(openAdsterraPop, AUTO_POP_INTERVAL_MS);
 }
+function stopAutoPop() {
+if (autoPopTimer) { clearInterval(autoPopTimer); autoPopTimer = null; }
+}
+document.addEventListener('visibilitychange', () => (document.hidden ? stopAutoPop() : startAutoPop()));
+window.addEventListener('beforeunload', stopAutoPop);
+window.toggleAutoPop = function(val) {
+autoPopEnabled = typeof val === 'boolean' ? val : !autoPopEnabled;
+localStorage.setItem('auto_pop_enabled', autoPopEnabled ? 'true' : 'false');
+autoPopEnabled ? startAutoPop() : stopAutoPop();
+};
 
-// === NEW POPUNDER LISTENERS (Replacing old auto-pop/click triggers) ===
-
-// 1. Click-Pop: Trigger on actions (cards, buttons, pages)
-document.addEventListener("click", (e) => {
-    // Targeting all clickable elements that lead to an action
-    const t = e.target.closest(".watch-btn, .btn, .preview-btn, .page-btn, .card, .latest-item, .tag-btn, .nav-button, .watch-movies-btn");
-    if (t) openAdsterraPop();
-}, { passive: true });
-
-// 2. Auto-Pop: Trigger once after a delay on load
-window.addEventListener("load", () => {
-    setTimeout(() => openAdsterraPop(), AUTO_POP_DELAY);
-});
-// ======================================================================
+// Pop-under ad
+function openAdsterraPop() {
+try {
+const s = document.createElement('script');
+s.src = AD_POP;
+s.async = true;
+document.body.appendChild(s);
+setTimeout(() => { try { s.remove(); } catch(e){} }, 2000);
+} catch(e) { console.warn("Ad pop failed:", e); }
+}
 
 // Helpers
 function slugify(text) {
@@ -60,7 +50,7 @@ return text.toString().toLowerCase().trim()
 .replace(/[^a-z0-9]+/g, '-')
 .replace(/^-+|-+$/g, '');
 }
-// 🐞 CRITICAL FIX: Corrected HTML escaping function (fixes syntax error)
+// 🐞 CRITICAL FIX: Corrected HTML escaping function syntax
 function escapeHtml(s) {
 return (s||'').toString()
 .replace(/&/g,'&amp;')
@@ -192,7 +182,7 @@ document.head.appendChild(s);
 // UI actions
 function triggerAdThenOpenModal(item) {
 if (!item) return;
-// openAdsterraPop() is now handled by the global click listener
+openAdsterraPop();
 setTimeout(() => openPlayerModal(item), 150);
 }
 window.triggerAdThenOpenModalById = function(id) {
@@ -202,7 +192,7 @@ if (it) triggerAdThenOpenModal(it);
 
 // Random pick
 window.showRandomPick = function() {
-// openAdsterraPop() is now handled by the global click listener
+openAdsterraPop();
 setTimeout(() => {
 if (items.length === 0) return;
 const i = Math.floor(Math.random()*items.length);
@@ -330,7 +320,6 @@ if (currentPage < totalPages) pager.appendChild(createPageButton('Next »', curr
 function createPageButton(text, pageNum) {
 const btn = document.createElement('button'); btn.className = 'page-btn';
 btn.textContent = text; btn.setAttribute('data-page', pageNum);
-// openAdAndChangePage will be triggered by the global click listener
 btn.onclick = function() { openAdAndChangePage(pageNum); };
 return btn;
 }
@@ -338,7 +327,7 @@ function openAdAndChangePage(page) {
 currentPage = page; renderLatest(page);
 const latestSection = document.getElementById('latestSection');
 if (latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' });
-// openAdsterraPop() is now handled by the global click listener
+openAdsterraPop();
 }
 
 // Modal player
@@ -495,6 +484,12 @@ const uid = Buffer ? Buffer.from(r.watch || '').toString('base64').slice(0,8).re
 return `${ts}-${uid}` === slug;
 });
 if (cand) {
+// Show player inline on page (useful if Cloudflare Pages rewrites to index)
+// 🐞 CRITICAL FIX: Added backticks (`)
+document.title = `${cand.title} - Dareloom Hub`;
+injectSchema(cand);
+const mainWrap = document.getElementById('mainWrap');
+if (mainWrap) {
 // 🐞 CRITICAL FIX: Added backticks (`)
 mainWrap.innerHTML = `<div style="padding:20px;"><h2 style="color:white;">${escapeHtml(cand.title)}</h2><iframe src="${toEmbedUrl(cand.watch || cand.trailer)}" allowfullscreen style="width:100%;height:70vh;border:none;"></iframe><div style="margin-top:12px;"><a href="watch.html?url=${encodeURIComponent(cand.watch || cand.trailer)}" target="_blank" class="btn">Open in Player</a><a href="${escapeHtml(cand.watch || cand.trailer)}" target="_blank" class="btn" style="margin-left:8px">Original Link / Download</a></div></div>`;
 }
@@ -511,8 +506,7 @@ const it = items.find(x => x.id.includes(id));
 if (it) openPlayerModal(it);
 }
 
-// Removed old startAutoPop() call
-
+startAutoPop();
 }
 
 // Start
