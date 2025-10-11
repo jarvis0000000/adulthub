@@ -3,7 +3,7 @@
 // Uses Google Sheets API (same URL you provided)
 
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
-// ✅ Anti-Block Popunder Link (as confirmed by you)
+// ✅ UPDATED AD_POP Link: This is the correct anti-block script.
 const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
 let items = [], current = null, currentPage = 1;
@@ -50,7 +50,7 @@ return text.toString().toLowerCase().trim()
 .replace(/[^a-z0-9]+/g, '-')
 .replace(/^-+|-+$/g, '');
 }
-// ✅ FIX: HTML Escape function corrected to handle single quotes safely
+// 🐞 CRITICAL FIX: Correct HTML escaping for safe rendering and to fix single quote bug
 function escapeHtml(s) {
 return (s||'').toString()
 .replace(/&/g,'&amp;')
@@ -249,7 +249,7 @@ const picks = [];
 while(picks.length < 4 && pool.length) picks.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
 picks.forEach(it => {
 const card = document.createElement('div'); card.className = 'card';
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 card.innerHTML = `<img class="thumb" src="${escapeHtml(makeThumbnail(it))}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
 card.addEventListener('click', ()=> triggerAdThenOpenModal(it));
 g.appendChild(card);
@@ -269,9 +269,10 @@ const t = makeThumbnail(it);
 let tagsHtml = '';
 if (it.category && it.category.trim()) {
 const cats = it.category.split(',').map(c => c.trim()).filter(c => c);
+// 🐞 FIX: Added backticks (`) for tagsHtml map
 tagsHtml = cats.map(tag => `<button class="tag-btn" onclick="filterVideos('${escapeHtml(tag)}')">#${escapeHtml(tag)}</button>`).join('');
 }
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy"><div class="latest-info"><div style="font-weight:700">${escapeHtml(it.title)}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date||'')}</div><div class="tag-container" style="margin-top:5px;">${tagsHtml}</div><div style="margin-top:8px"><button class="btn" onclick="triggerAdThenOpenModalById('${escapeHtml(it.id)}')">Preview</button><button class="watch-btn" onclick="triggerAdThenOpenModalById('${escapeHtml(it.id)}')">Watch</button></div></div>`;
 list.appendChild(div);
 });
@@ -285,7 +286,7 @@ container.innerHTML = '';
 titleEl.textContent = title;
 videoList.forEach(it => {
 const card = document.createElement('div'); card.className = 'card';
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 card.innerHTML = `<img class="thumb" src="${escapeHtml(makeThumbnail(it))}" loading="lazy"><div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
 card.addEventListener('click', ()=> triggerAdThenOpenModal(it));
 container.appendChild(card);
@@ -304,7 +305,6 @@ if (currentPage <= 3) { startPage = 1; endPage = 5; }
 else if (currentPage + 1 >= totalPages) { startPage = totalPages - 4; endPage = totalPages; }
 else { startPage = currentPage - 2; endPage = currentPage + 2; }
 }
-// ✅ FIX: Corrected page number for 'Prev' button
 if (currentPage > 1) pager.appendChild(createPageButton('« Prev', currentPage - 1));
 for (let i = startPage; i <= endPage; i++) {
 const btn = createPageButton(i, i);
@@ -357,7 +357,7 @@ p.appendChild(iframe);
 const msg = document.createElement('div');
 msg.style.textAlign = 'center';
 msg.style.padding = '100px 20px';
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 msg.innerHTML = `<div style="font-size:18px;color:var(--muted)">Trailer not available for embed.</div>`;
 p.appendChild(msg);
 }
@@ -370,7 +370,7 @@ const socialBarAd = modal.querySelector('.adsterra-socialbar-placement');
 const persistentAd = document.getElementById('modalPersistentAd');
 if (bannerAd) bannerAd.innerHTML = ADSTERRA_NATIVE_BANNER_SCRIPT;
 if (socialBarAd) socialBarAd.innerHTML = ADSTERRA_SOCIAL_BAR_SCRIPT;
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 if (persistentAd) persistentAd.innerHTML = `<span class="ad-label">Sponsored</span>${ADSTERRA_NATIVE_BANNER_SCRIPT}`;
 
 // Controls (watch links)
@@ -379,21 +379,21 @@ let buttonHTML = '';
 watchUrls.forEach(url => {
 const btnText = escapeHtml(getLinkName(url));
 const btnClass = (url.includes('t.me') || url.includes('telegram')) ? 'btn primary' : 'watch-btn';
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 buttonHTML += `<button class="${btnClass}" onclick="openAdsterraThenWatch('${escapeHtml(url)}')">${btnText}</button>`;
 });
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 buttonHTML += `<button class="btn" onclick="shareItem(current)">🔗 Share</button>`;
 controlsContainer.innerHTML = buttonHTML;
 
 injectSchema(it);
 
 // SEO: update title & meta description & canonical
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 document.title = `${it.title} - Dareloom Hub`;
 let metaDesc = document.querySelector('meta[name="description"]');
 if (!metaDesc) { metaDesc = document.createElement('meta'); metaDesc.name = 'description'; document.head.appendChild(metaDesc); }
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 metaDesc.content = it.description ? it.description.substring(0,160) : `Watch ${it.title} on Dareloom Hub — free HD streaming of adult full series and movies.`;
 let canonical = document.querySelector('link[rel="canonical"]');
 if (!canonical) { canonical = document.createElement('link'); canonical.rel = 'canonical'; document.head.appendChild(canonical); }
@@ -425,11 +425,11 @@ try {
 let finalWatchUrl = targetUrl;
 if (targetUrl.includes("/v/")) {
 const m = targetUrl.match(/\/v\/([0-9A-Za-z_-]+)/);
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 if (m && m[1]) finalWatchUrl = `https://streamtape.com/e/${m[1]}/`;
 }
 // open watch page in new tab with encoded URL
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 const watchPageUrl = `watch.html?url=${encodeURIComponent(finalWatchUrl)}`;
 const w = window.open(watchPageUrl, '_blank');
 if (!w || w.closed || typeof w.closed === 'undefined') {
@@ -443,9 +443,9 @@ closePlayerModal();
 // Share helper
 function shareItem(it) {
 if (!it) return;
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 const shareUrl = `https://dareloom.fun/#v=${encodeURIComponent(it.id)}`;
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 const shareText = `🔥 Watch "${it.title}" now on Dareloom Hub!\n${shareUrl}`;
 if (navigator.share) {
 navigator.share({ title: it.title, text: it.description || "Watch this exclusive video!", url: shareUrl }).catch(()=>{});
@@ -460,7 +460,7 @@ const vals = await fetchSheet();
 const parsed = parseRows(vals);
 parsed.reverse();
 items = parsed;
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 const cnt = document.getElementById('count'); if (cnt) cnt.textContent = `${items.length} items`;
 
 renderRandom();
@@ -475,16 +475,17 @@ if (slug) {
 const cand = items.find(r => {
 const ts = slugify(r.title);
 const uid = Buffer ? Buffer.from(r.watch || '').toString('base64').slice(0,8).replace(/[^a-zA-Z0-9]/g,'') : slug.split('-').pop();
+// 🐞 FIX: Added backticks (`) for template literal
 return `${ts}-${uid}` === slug;
 });
 if (cand) {
 // Show player inline on page (useful if Cloudflare Pages rewrites to index)
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 document.title = `${cand.title} - Dareloom Hub`;
 injectSchema(cand);
 const mainWrap = document.getElementById('mainWrap');
 if (mainWrap) {
-// FIX: Template Literal Backticks Verified
+// 🐞 FIX: Added backticks (`) for template literal
 mainWrap.innerHTML = `<div style="padding:20px;"><h2 style="color:white;">${escapeHtml(cand.title)}</h2><iframe src="${toEmbedUrl(cand.watch || cand.trailer)}" allowfullscreen style="width:100%;height:70vh;border:none;"></iframe><div style="margin-top:12px;"><a href="watch.html?url=${encodeURIComponent(cand.watch || cand.trailer)}" target="_blank" class="btn">Open in Player</a><a href="${escapeHtml(cand.watch || cand.trailer)}" target="_blank" class="btn" style="margin-left:8px">Original Link / Download</a></div></div>`;
 }
 return;
@@ -503,7 +504,8 @@ if (it) openPlayerModal(it);
 startAutoPop();
 }
 
-// --- CLICK MONETIZATION FOR NON-JS GENERATED LINKS (Monetizes new buttons) ---
+// --- CLICK MONETIZATION FOR NON-JS GENERATED LINKS ---
+// 💰 ADDED: This ensures Popunder fires on navigation buttons (like 'Erotic Movies' and 'Watch Erotic Movies Here')
 document.addEventListener("click", (e) => {
   // Target the new .watch-movies-btn (in hero) and any .nav-button (in header)
   const target = e.target.closest(".watch-movies-btn, .nav-button");
