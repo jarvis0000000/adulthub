@@ -486,63 +486,84 @@ navigator.clipboard.writeText(shareText).then(()=>{ alert("🔗 Link copied to c
 
 // Initialization
 async function loadAll() {
-const vals = await fetchSheet();
-const parsed = parseRows(vals);
-parsed.reverse();
-items = parsed;
+    console.log("1. Starting loadAll function and fetching data..."); // 💡 Debug Log
+    const vals = await fetchSheet();
+    const parsed = parseRows(vals);
+    parsed.reverse();
+    items = parsed;
 
-const cnt = document.getElementById('count'); 
-// 🛠️ FIX: Added backticks
-if (cnt) cnt.textContent = `${items.length} items`;
+    console.log("2. Total items parsed (if > 0, fetch worked):", items.length); // 💡 Debug Log
 
-// ⚠️ Optional: Add an error message if no items load (for debugging)
-const latestSection = document.getElementById('latestSection');
-if (items.length === 0 && latestSection) {
-    latestSection.innerHTML = `<div style="text-align:center; padding: 50px; color: #ff5555;">❌ Data Not Loaded. Check Google Sheet/API Key (F12 Console).</div>`;
-    return;
-}
+    const cnt = document.getElementById('count'); 
+    // 🛠️ FIX: Added backticks
+    if (cnt) cnt.textContent = `${items.length} items`;
 
-renderRandom();
-renderLatest(1);
+    // ⚠️ Optional: Add an error message if no items load (for debugging)
+    const latestSection = document.getElementById('latestSection');
+    if (items.length === 0 && latestSection) {
+        latestSection.innerHTML = `<div style="text-align:center; padding: 50px; color: #ff5555;">❌ Data Not Loaded. Check Google Sheet/API Key (F12 Console).</div>`;
+        return;
+    }
 
-// Handle direct /video/slug route if you want to support it:
-const path = window.location.pathname || '';
-if (path.startsWith('/video/')) {
-const slug = path.split('/video/')[1] || '';
-if (slug) {
-// find candidate by slug + id heuristic
-const cand = items.find(r => {
-const ts = slugify(r.title);
-const uid = Buffer ? Buffer.from(r.watch || '').toString('base64').slice(0,8).replace(/[^a-zA-Z0-9]/g,'') : slug.split('-').pop();
-// 🛠️ FIX: Added backticks
-mainWrap.innerHTML = `<div style="padding:20px;">
-<h2 style="color:white;">${escapeHtml(cand.title)}</h2>
-<iframe src="${toEmbedUrl(cand.watch || cand.trailer)}" allowfullscreen style="width:100%;height:70vh;border:none;"></iframe>
-<div style="margin-top:12px;">
-<a href="watch.html?url=${encodeURIComponent(cand.watch || cand.trailer)}" target="_blank" class="btn">Open in Player</a>
-<a href="${escapeHtml(cand.watch || cand.trailer)}" target="_blank" class="btn" style="margin-left:8px">Original Link / Download</a>
-</div>
-</div>`;
-}
-return;
-}
-}
-}
+    renderRandom();
+    renderLatest(1);
+    
+    console.log("3. Rendering complete. Checking for URL routes..."); // 💡 Debug Log
 
-// hash open (#v=)
-const hash = window.location.hash || '';
-if (hash.startsWith('#v=')) {
-const id = decodeURIComponent(hash.substring(3));
-const it = items.find(x => x.id.includes(id));
-if (it) openPlayerModal(it);
-}
 
-// Auto pop once after 10 seconds (from your old script)
-window.addEventListener("load", () => {
-    setTimeout(() => openAdsterraPop(), INITIAL_AUTO_POP_DELAY);
-}, { once: true });
+        // Handle direct /video/slug route if you want to support it:
+    const path = window.location.pathname || '';
+    if (path.startsWith('/video/')) {
+        const slug = path.split('/video/')[1] || '';
+        if (slug) {
+            // Find the candidate video based on slug and ID heuristic
+            const cand = items.find(r => {
+                const ts = slugify(r.title);
+                // Corrected Buffer usage/fallback to prevent browser crash
+                let uid = slug.split('-').pop(); 
+                if (typeof Buffer !== 'undefined') {
+                    uid = Buffer.from(r.watch || '').toString('base64').slice(0,8).replace(/[^a-zA-Z0-9]/g,'');
+                }
+                return `${ts}-${uid}` === slug;
+            });
+            
+            // 🛑 CRITICAL FIX: The HTML injection was moved OUT of the 'find' loop.
+            const mainWrap = document.getElementById('mainWrap');
 
-startAutoPop();
+            if (cand && mainWrap) {
+                // Show player inline on page 
+                document.title = `${cand.title} - Dareloom Hub`;
+                injectSchema(cand);
+                
+                // 🛠️ FIX: Added backticks
+                mainWrap.innerHTML = `<div style="padding:20px;">
+                    <h2 style="color:white;">${escapeHtml(cand.title)}</h2>
+                    <iframe src="${toEmbedUrl(cand.watch || cand.trailer)}" allowfullscreen style="width:100%;height:70vh;border:none;"></iframe>
+                    <div style="margin-top:12px;">
+                        <a href="watch.html?url=${encodeURIComponent(cand.watch || cand.trailer)}" target="_blank" class="btn">Open in Player</a>
+                        <a href="${escapeHtml(cand.watch || cand.trailer)}" target="_blank" class="btn" style="margin-left:8px">Original Link / Download</a>
+                    </div>
+                </div>`;
+                return; // Stop processing the rest of the index page content
+            }
+        }
+    }
+
+
+    // hash open (#v=)
+    const hash = window.location.hash || '';
+    if (hash.startsWith('#v=')) {
+        const id = decodeURIComponent(hash.substring(3));
+        const it = items.find(x => x.id.includes(id));
+        if (it) openPlayerModal(it);
+    }
+
+    // Auto pop once after 10 seconds (from your old script)
+    window.addEventListener("load", () => {
+        setTimeout(() => openAdsterraPop(), INITIAL_AUTO_POP_DELAY);
+    }, { once: true });
+
+    startAutoPop();
 }
 
 // Start
