@@ -2,6 +2,7 @@
 // FINAL DARELOOM HUB SCRIPT - CLEAN, FIXED, & ANTI-POPUP CONTROL
 
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
+// 🛠️ UPDATED: Using the new Anti-Popunder URL provided by the user.
 const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
 let items = [], current = null, currentPage = 1;
@@ -143,36 +144,60 @@ return [];
 
 function norm(s){ return (s||'').toString().trim().toLowerCase(); }
 
-// Parse rows (indexes based on your sheet)
+// Parse rows - FIXED TO USE COLUMN NAMES (AND NEW DEFAULTS)
 function parseRows(values) {
-if (!values || values.length < 2) return [];
-const TI = 0, TR = 2, WA = 6, TH = 17, DT = 19, CA = 20;
-const headers = (values[0]||[]).map(h => (h||'').toString());
-const DE = headers.findIndex(h => norm(h) === 'description' || norm(h) === 'desc');
-const rows = values.slice(1);
-const out = [];
-for (let r of rows) {
-const title = r[TI] || '';
-const trailer = r[TR] || '';
-const watch = r[WA] || '';
-const poster = r[TH] || '';
-const date = r[DT] || '';
-const category = r[CA] || '';
-const description = DE !== -1 ? (r[DE] || '') : '';
-if ((trailer && trailer.trim()) || (watch && watch.trim())) {
-out.push({
-id: (title||'') + '|' + (watch||''), // unique-ish id
-title: title || 'Untitled',
-trailer: trailer || '',
-watch: watch || '',
-poster: poster || '',
-date: date || '',
-description: description || '',
-category: category || ''
-});
-}
-}
-return out;
+    if (!values || values.length < 2) return [];
+
+    // --- Map headers to their index (case-insensitive) ---
+    const rawHeaders = values[0] || [];
+    const headers = rawHeaders.map(h => norm(h));
+
+    // Helper to find the index by header name
+    const getIndex = (name, defaultIndex) => {
+        const index = headers.findIndex(h => h.includes(name));
+        return index !== -1 ? index : defaultIndex;
+    };
+
+    // Use header names first. If header not found, use the default index based on the user's screenshot.
+    // Screenshot: Title=A(0), Trailer=C(2), Watch Link=D(3).
+    const TI = getIndex('title', 0);
+    const TR = getIndex('trailer', 2);
+    const WA = getIndex('watch', 3); // <<<--- CRITICAL FIX: Changed default from 6 to 3
+    const TH = getIndex('poster', 17); 
+    const DT = getIndex('date', 19); 
+    const CA = getIndex('category', 20); 
+    const DE = getIndex('description', getIndex('desc', -1));
+    
+    // -----------------------------------------------------------
+
+    const rows = values.slice(1);
+    const out = [];
+
+    for (let r of rows) {
+        // These fields pull data even if empty, respecting the user's wish to not make them compulsory.
+        const title = r[TI] || '';
+        const trailer = r[TR] || '';
+        const watch = r[WA] || '';
+        const poster = r[TH] || '';
+        const date = r[DT] || ''; // Will be empty string if r[DT] is undefined or empty
+        const category = r[CA] || ''; // Will be empty string if r[CA] is undefined or empty
+        const description = DE !== -1 ? (r[DE] || '') : '';
+        
+        // The ONLY compulsory check: must have at least one link to show the item.
+        if ((trailer && trailer.trim()) || (watch && watch.trim())) {
+            out.push({
+                id: (title||'') + '|' + (watch||''), 
+                title: title || 'Untitled',
+                trailer: trailer || '',
+                watch: watch || '',
+                poster: poster || '',
+                date: date || '',
+                description: description || '',
+                category: category || ''
+            });
+        }
+    }
+    return out;
 }
 
 // JSON-LD injection for SEO (VideoObject)
@@ -471,8 +496,7 @@ closePlayerModal();
 // Share helper
 function shareItem(it) {
 if (!it) return;
-// 🛠️ FIX: Added backticks
-const shareUrl = `https://dareloom.fun/#v=${encodeURIComponent(it.id)}`;
+const shareUrl = window.location.origin + window.location.pathname + `#v=${encodeURIComponent(it.id)}`; 
 // 🛠️ FIX: Added backticks
 const shareText = `🔥 Watch "${it.title}" now on Dareloom Hub!\n${shareUrl}`;
 if (navigator.share) {
@@ -493,6 +517,7 @@ async function loadAll() {
     console.log("2. Total items parsed (if > 0, fetch worked):", items.length); // 💡 Debug Log
 
     const cnt = document.getElementById('count'); 
+    // 🛠️ FIX: Added backticks
     if (cnt) cnt.textContent = `${items.length} items`;
 
     // ⚠️ Optional: Add an error message if no items load (for debugging)
@@ -508,6 +533,7 @@ async function loadAll() {
     console.log("3. Rendering complete. Checking for URL routes..."); // 💡 Debug Log
 
 
+    
         // Handle direct /video/slug route if you want to support it:
     const path = window.location.pathname || '';
     if (path.startsWith('/video/')) {
@@ -564,4 +590,3 @@ async function loadAll() {
 
 // Start
 loadAll();
-    
