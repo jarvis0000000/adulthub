@@ -1,11 +1,11 @@
-// ✅ FINAL DARELOOM HUB SCRIPT (V6 – ROBUST DYNAMIC INDEXING)
+// ✅ FINAL DARELOOM HUB SCRIPT (V7 – ALL FEATURES MERGED & ROBUST PARSING)
 
-const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCW2WoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
+const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const PER_PAGE = 5;
 let items = [], current = null, currentPage = 1;
 
-// ====== POPUNDER CONTROL CONSTANTS & STATE ======
+// ====== AD & POPUNDER CONTROL CONSTANTS & STATE ======
 const POP_COOLDOWN_MS = 7000;
 const POP_DELAY_MS = 2000;
 const INITIAL_AUTO_POP_DELAY = 10000;
@@ -15,7 +15,7 @@ const ADSTERRA_NATIVE_BANNER_SCRIPT = '<script type="text/javascript" src="//www
 const ADSTERRA_SOCIAL_BAR_SCRIPT = '<script type="text/javascript" src="//pl27654958.revenuecpmgate.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js"></script>';
 // ====================================================
 
-// ==== AUTO POP LOGIC & POP FUNCTION (Kept unchanged) ====
+// ==== AUTO POP LOGIC & POP FUNCTION ====
 const AUTO_POP_INTERVAL_MS = 30000;
 let autoPopTimer = null;
 let autoPopEnabled = (localStorage.getItem('auto_pop_enabled') !== 'false');
@@ -58,7 +58,7 @@ document.addEventListener("click", (e) => {
 }, { passive: true });
 
 
-// ==== HELPERS (Kept unchanged) ====
+// ==== HELPERS (FULL VERSION) ====
 function slugify(text) {
   return text.toString().toLowerCase().trim()
     .replace(/[^a-z0-9]+/g, '-')
@@ -117,8 +117,26 @@ function toEmbedUrl(url) {
   if (url.match(/.mp4($|?)/i)) return url;
   return '';
 }
+function injectSchema(it) {
+  const old = document.getElementById('video-schema'); if (old) old.remove();
+  const s = document.createElement('script'); s.type = 'application/ld+json'; s.id = 'video-schema';
+  const schema = {
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    "name": it.title,
+    "description": (it.description && it.description.trim()) ? it.description : it.title,
+    "thumbnailUrl": makeThumbnail(it),
+    "uploadDate": it.date || new Date().toISOString().split('T')[0],
+    "publisher": { "@type": "Organization", "name": "Dareloom Hub", "url": "https://dareloom.fun" },
+    "contentUrl": it.watch,
+    "embedUrl": toEmbedUrl(it.trailer || it.watch)
+  };
+  s.text = JSON.stringify(schema);
+  document.head.appendChild(s);
+}
 
-// ==== FETCH & PARSE SHEET (Dynamic & Robust) ====
+
+// ==== FETCH & PARSE SHEET (ROBUST LOGIC FROM V6) ====
 async function fetchSheet() {
   try {
     const res = await fetch(SHEET_API);
@@ -126,7 +144,7 @@ async function fetchSheet() {
     const j = await res.json();
     return j.values || [];
   } catch (e) {
-    console.error("Fetch error:", e);
+    console.error("❌ Sheet Fetch Error:", e);
     return [];
   }
 }
@@ -134,34 +152,27 @@ async function fetchSheet() {
 function parseRows(values) {
   if (!values || values.length < 2) return [];
   
-  // 🛠️ FINAL FIX: Dynamic indexing based on header names from the screenshot.
+  // 💡 Dynamic indexing based on header names (Priority 1)
   const headers = values[0].map(h => (h||'').toString().toLowerCase().trim());
   
   const idx = {
-    // 💡 Priority 1: Match headers by name (most robust)
     title: headers.indexOf("title"),
     trailer: headers.indexOf("trailer"),
     watch: headers.indexOf("watch"),
+    poster: headers.indexOf("poster"),
     date: headers.indexOf("date"),
     category: headers.indexOf("category"),
     description: headers.indexOf("description") !== -1 ? headers.indexOf("description") : headers.indexOf("desc"),
-    poster: headers.indexOf("poster") // Assuming "Poster" is the header for thumbnail link
   };
   
-  // 💡 Priority 2: Fallback to exact column indexes from the screenshot if header not found
-  if(idx.title === -1) idx.title = 0;
-  if(idx.trailer === -1) idx.trailer = 2; 
-  if(idx.watch === -1) idx.watch = 6;
+  // 💡 Fallback to screenshot/fixed column indexes (Priority 2)
+  if(idx.title === -1) idx.title = 0;   // Column A
+  if(idx.trailer === -1) idx.trailer = 2; // Column C
+  if(idx.watch === -1) idx.watch = 6;   // Column G
   if(idx.poster === -1) idx.poster = 17; // Column R
   if(idx.date === -1) idx.date = 19;     // Column T
   if(idx.category === -1) idx.category = 20; // Column U
   
-  // Fallback for Description if it's not found by name and we need a guess.
-  if(idx.description === -1) {
-    // Description is often near the watch links, but we'll stick to dynamic for this.
-    console.warn("Description column header not found. Description will be empty.");
-  }
-
   const rows = values.slice(1);
   const out = [];
 
@@ -191,27 +202,8 @@ function parseRows(values) {
   return out;
 }
 
-// JSON-LD injection (Kept unchanged)
-function injectSchema(it) {
-  const old = document.getElementById('video-schema'); if (old) old.remove();
-  const s = document.createElement('script'); s.type = 'application/ld+json'; s.id = 'video-schema';
-  const schema = {
-    "@context": "https://schema.org",
-    "@type": "VideoObject",
-    "name": it.title,
-    "description": (it.description && it.description.trim()) ? it.description : it.title,
-    "thumbnailUrl": makeThumbnail(it),
-    "uploadDate": it.date || new Date().toISOString().split('T')[0],
-    "publisher": { "@type": "Organization", "name": "Dareloom Hub", "url": "https://dareloom.fun" },
-    "contentUrl": it.watch,
-    "embedUrl": toEmbedUrl(it.trailer || it.watch)
-  };
-  s.text = JSON.stringify(schema);
-  document.head.appendChild(s);
-}
 
-
-// ==== UI & Action Functions (Kept unchanged) ====
+// ==== UI & ACTION FUNCTIONS (FULL VERSION) ====
 function triggerAdThenOpenModal(item) {
   if (!item) return;
   openAdsterraPop();
@@ -231,9 +223,11 @@ window.showRandomPick = function() {
     if (mainWrap) window.scrollTo({ top: mainWrap.offsetTop, behavior: 'smooth' });
   }, 150);
 };
+
+// Search and Tag Filtering Functionality
 window.filterVideos = function(query) {
   query = (query||'').trim().toLowerCase();
-  if (query.toLowerCase() === 'n') {
+  if (query.toLowerCase() === 'n') { // Anti-Adblock bypass key
     localStorage.setItem('adblock_bypassed','true');
     const s = document.getElementById('searchInput'); if (s) s.value = '';
     const modal = document.getElementById('adBlockerModal'); if (modal) modal.style.display = 'none';
@@ -270,6 +264,8 @@ function showCategoryView(title, videoList) {
   if (categorySection) categorySection.style.display = 'block';
   renderCategoryGrid(videoList, title);
 }
+
+// Rendering Functions
 function renderRandom() {
   const g = document.getElementById('randomGrid'); if (!g) return; g.innerHTML = '';
   const pool = items.slice();
@@ -295,6 +291,7 @@ function renderLatest(page = currentPage) {
     let tagsHtml = '';
     if (it.category && it.category.trim()) {
       const cats = it.category.split(',').map(c => c.trim()).filter(c => c);
+      // Tag filter added here
       tagsHtml = cats.map(tag => `<button class="tag-btn" onclick="filterVideos('${escapeHtml(tag)}')">#${escapeHtml(tag)}</button>`).join('');
     }
     div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(t)}" loading="lazy">
@@ -324,6 +321,8 @@ function renderCategoryGrid(videoList, title) {
     container.appendChild(card);
   });
 }
+
+// Pagination Logic
 function displayPagination(totalPages, currentPage) {
   const pager = document.getElementById('pager'); if (!pager) return;
   pager.innerHTML = '';
@@ -355,6 +354,8 @@ function openAdAndChangePage(page) {
   if (latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' });
   openAdsterraPop();
 }
+
+// Modal Player Logic (Full Version)
 function openPlayerModal(it) {
   current = it;
   const embed = toEmbedUrl(it.trailer || it.watch || '');
@@ -463,11 +464,12 @@ function shareItem(it) {
 }
 
 
-// ==== INITIALIZATION (Kept unchanged) ====
+// ==== INITIALIZATION ====
 async function loadAll() {
   console.log("1. Starting loadAll function and fetching data...");
   const vals = await fetchSheet();
   const parsed = parseRows(vals);
+  // Sort New to Old
   parsed.reverse();
   items = parsed;
 
@@ -487,6 +489,7 @@ async function loadAll() {
   
   console.log("3. Rendering complete. Checking for URL routes...");
 
+  // Handle direct /video/slug route (for SEO)
   const path = window.location.pathname || '';
   if (path.startsWith('/video/')) {
     const slug = path.split('/video/')[1] || '';
@@ -519,6 +522,7 @@ async function loadAll() {
     }
   }
 
+  // Handle hash open (#v=)
   const hash = window.location.hash || '';
   if (hash.startsWith('#v=')) {
     const id = decodeURIComponent(hash.substring(3));
@@ -526,6 +530,7 @@ async function loadAll() {
     if (it) openPlayerModal(it);
   }
 
+  // Auto pop once after 10 seconds
   window.addEventListener("load", () => {
     setTimeout(() => openAdsterraPop(), INITIAL_AUTO_POP_DELAY);
   }, { once: true });
@@ -533,5 +538,5 @@ async function loadAll() {
   startAutoPop();
 }
 
-// Start
+// Start the loading process
 loadAll();
