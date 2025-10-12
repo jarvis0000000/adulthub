@@ -1,5 +1,5 @@
-// Dareloom Hub – Category Clickable + Smooth Routing + Hidden Category List
-// Updated: 2025-10-12 (Fixed syntax + working routing + sheet fetch)
+// Dareloom Hub – Final Build (Category Clickable + Hidden List + Working Pagination)
+// Updated: 2025-10-12
 
 const SHEET_ID = "1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o";
 const API_KEY = "AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
@@ -56,8 +56,10 @@ function renderPagination(totalItems, currentPage, cat = "all", searchQuery = ""
   let baseHash = "";
   if (searchQuery)
     baseHash = `#/search/${encodeURIComponent(searchQuery)}/page/`;
-  else if (cat !== "all") baseHash = `#/category/${cat}/page/`;
+  else if (cat !== "all")
+    baseHash = `#/category/${encodeURIComponent(cat)}/page/`;
   else baseHash = "#/page/";
+
   let html = "";
   for (let i = 1; i <= pages; i++) {
     html += `<a href="javascript:void(0)" class="page-btn ${
@@ -77,16 +79,18 @@ function movieCardHtml(item) {
       )}/page/1')">${category}</span>`
     : "";
   return `
-  <div class="card" onclick="navigateTo('#/item/${encodeURIComponent(item._id)}')">
-    <div class="poster-wrap">
-      <img src="${item.Poster || ""}" alt="${item.Title}">
-      ${catLabel}
-    </div>
-    <div class="card-body">
-      <h3>${item.Title}</h3>
-      <p>⭐ ${rating}</p>
-    </div>
-  </div>`;
+    <div class="card" onclick="navigateTo('#/item/${encodeURIComponent(
+      item._id
+    )}')">
+      <div class="poster-wrap">
+        <img src="${item.Poster || ""}" alt="${item.Title}">
+        ${catLabel}
+      </div>
+      <div class="card-body">
+        <h3>${item.Title}</h3>
+        <p>⭐ ${rating}</p>
+      </div>
+    </div>`;
 }
 
 // 🟢 Category List (hidden)
@@ -100,11 +104,15 @@ async function renderHome(page = 1) {
   const data = await fetchAllRows();
   const { pageItems, total } = paginate(data, page, PAGE_SIZE);
   app.innerHTML = `
-  <div class="container">
-    <div class="header-title-style"><h2 class="category-heading">All Titles</h2></div>
-    <div id="list" class="grid">${pageItems.map(movieCardHtml).join("")}</div>
-    <div id="pagination" class="pagination">${renderPagination(total, page, "all")}</div>
-  </div>`;
+    <div class="container">
+      <div class="header-title-style"><h2 class="category-heading">All Titles</h2></div>
+      <div id="list" class="grid">${pageItems.map(movieCardHtml).join("")}</div>
+      <div id="pagination" class="pagination">${renderPagination(
+        total,
+        page,
+        "all"
+      )}</div>
+    </div>`;
 }
 
 // 🟢 Category Page
@@ -112,11 +120,11 @@ async function renderCategory(cat, page = 1) {
   const app = qs("#app");
   const decodedCat = decodeURIComponent(cat);
   app.innerHTML = `
-  <div class="container">
-    <div class="header-title-style"><h2 class="category-heading">${decodedCat.toUpperCase()}</h2></div>
-    <div id="list" class="grid"></div>
-    <div id="pagination" class="pagination"></div>
-  </div>`;
+    <div class="container">
+      <div class="header-title-style"><h2 class="category-heading">${decodedCat.toUpperCase()}</h2></div>
+      <div id="list" class="grid"></div>
+      <div id="pagination" class="pagination"></div>
+    </div>`;
   const data = await fetchAllRows();
   const lowerCat = decodedCat.toLowerCase();
   const filtered = data.filter(
@@ -133,14 +141,16 @@ async function renderCategory(cat, page = 1) {
 async function renderSearch(query, page = 1) {
   const app = qs("#app");
   app.innerHTML = `
-  <div class="container">
-    <div class="header-title-style"><h2 class="category-heading">Search Results for: "${query}"</h2></div>
-    <div id="list" class="grid"></div>
-    <div id="pagination" class="pagination"></div>
-  </div>`;
+    <div class="container">
+      <div class="header-title-style"><h2 class="category-heading">Search Results for: "${query}"</h2></div>
+      <div id="list" class="grid"></div>
+      <div id="pagination" class="pagination"></div>
+    </div>`;
   const data = await fetchAllRows();
   const lowerQuery = query.toLowerCase();
-  const filtered = data.filter((d) => d.Title?.toLowerCase().includes(lowerQuery));
+  const filtered = data.filter((d) =>
+    d.Title?.toLowerCase().includes(lowerQuery)
+  );
   const { pageItems, total } = paginate(filtered, page, PAGE_SIZE);
   qs("#list").innerHTML = pageItems.length
     ? pageItems.map(movieCardHtml).join("")
@@ -167,25 +177,25 @@ async function renderItemDetail(id) {
   const date = item.Date || "N/A";
 
   app.innerHTML = `
-  <div class="container detail-container">
-    <div class="detail-card">
-      <img src="${poster}" alt="${title}" class="detail-poster">
-      <div class="detail-meta">
-        <h1 class="detail-title">${title}</h1>
-        <div class="detail-info-row">
-          <span class="info-tag category-tag" onclick="navigateTo('#/category/${encodeURIComponent(
-            category.toLowerCase()
-          )}/page/1')">${category}</span>
-          <span class="info-tag rating-tag">⭐ ${rating}</span>
-          <span class="info-tag runtime-tag">🕒 ${runtime}</span>
-          <span class="info-tag date-tag">📅 ${date}</span>
+    <div class="container detail-container">
+      <div class="detail-card">
+        <img src="${poster}" alt="${title}" class="detail-poster">
+        <div class="detail-meta">
+          <h1 class="detail-title">${title}</h1>
+          <div class="detail-info-row">
+            <span class="info-tag category-tag" onclick="navigateTo('#/category/${encodeURIComponent(
+              category.toLowerCase()
+            )}/page/1')">${category}</span>
+            <span class="info-tag rating-tag">⭐ ${rating}</span>
+            <span class="info-tag runtime-tag">🕒 ${runtime}</span>
+            <span class="info-tag date-tag">📅 ${date}</span>
+          </div>
+          <p class="detail-description">${desc}</p>
+          ${createWatchLinksHtml(item)}
+          ${createScreenshotsHtml(item)}
         </div>
-        <p class="detail-description">${desc}</p>
-        ${createWatchLinksHtml(item)}
-        ${createScreenshotsHtml(item)}
       </div>
-    </div>
-  </div>`;
+    </div>`;
 }
 
 // 🟢 Watch Links
@@ -213,16 +223,16 @@ function createScreenshotsHtml(item) {
   const shots = ssData.split("|").map((s) => s.trim()).filter(Boolean);
   if (!shots.length) return "";
   return `
-  <div class="screenshot-section">
-    <h3>Screenshots:</h3>
-    <div class="screenshots-grid">
-      ${shots
-        .map(
-          (url) => `<img src="${url}" class="screenshot-img" alt="Screenshot">`
-        )
-        .join("")}
-    </div>
-  </div>`;
+    <div class="screenshot-section">
+      <h3>Screenshots:</h3>
+      <div class="screenshots-grid">
+        ${shots
+          .map(
+            (url) => `<img src="${url}" class="screenshot-img" alt="Screenshot">`
+          )
+          .join("")}
+      </div>
+    </div>`;
 }
 
 // 🟢 Router
