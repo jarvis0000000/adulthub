@@ -363,9 +363,8 @@ function openPlayerModal(it){
   titleEl.textContent = it.title || 'Video';
   descEl.textContent = it.description || '';
 
-  // FIX: Prioritize 'watch' over 'trailer' for the embedded player
-  // to ensure consistency with the 'Open in Player' button.
-  const embedUrl = toEmbedUrlForModal(it.watch || it.trailer);
+  // build embed (prefer trailer youtube)
+  const embedUrl = toEmbedUrlForModal(it.trailer || it.watch);
   pWrap.innerHTML = '';
   if (embedUrl){
     if (embedUrl.match(/\.mp4($|\?)/i)){
@@ -383,26 +382,31 @@ function openPlayerModal(it){
       pWrap.appendChild(iframe);
     }
   } else {
-    pWrap.innerHTML = `<div style="padding:80px 20px;text-align:center;color:var(--muted)">Content not available for embed.</div>`;
+    pWrap.innerHTML = `<div style="padding:80px 20px;text-align:center;color:var(--muted)">Trailer not available for embed.</div>`;
   }
 
   // controls: Watch (open watch.html) + Telegram/Stream buttons if link types detected
-  let html = '';
+  // Applying button separation (flex container and spacing)
+  let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">';
   const watchUrl = it.watch || it.trailer || '';
-  // This button already uses the correct watchUrl, which prioritizes it.watch
-  html += `<button class="btn watch-btn-modal" data-url="${escapeHtml(watchUrl)}">Open in Player</button>`;
+  
+  // Open in Player button (main action)
+  html += `<button class="btn watch-btn-modal" data-url="${escapeHtml(watchUrl)}" style="min-width: 150px;">Open in Player</button>`;
 
   // If Streamtape link present, add a direct streamtape button
   if ((watchUrl||'').includes('streamtape.com') || (watchUrl||'').includes('/v/')){
-    html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()">Open Streamtape</button>`;
+    html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()" style="min-width: 150px;">Open Streamtape</button>`;
   }
+  
   // If telegram link
   if ((watchUrl||'').includes('t.me') || (watchUrl||'').includes('telegram')){
-    html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()">Open Telegram</button>`;
+    html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()" style="min-width: 150px;">Open Telegram</button>`;
   }
 
-  // share and close
-  html += `<button class="btn" id="modalShareBtn">🔗 Share</button>`;
+  // share button
+  html += `<button class="btn" id="modalShareBtn" style="min-width: 150px;">🔗 Share</button>`;
+  
+  html += '</div>'; // Close the flex container
   controls.innerHTML = html;
 
   // show modal
