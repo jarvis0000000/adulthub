@@ -363,8 +363,9 @@ function openPlayerModal(it){
   titleEl.textContent = it.title || 'Video';
   descEl.textContent = it.description || '';
 
-  // build embed (prefer trailer youtube)
-  const embedUrl = toEmbedUrlForModal(it.trailer || it.watch);
+  // FIX: Prioritize 'watch' over 'trailer' for the embedded player
+  // to ensure consistency with the 'Open in Player' button.
+  const embedUrl = toEmbedUrlForModal(it.watch || it.trailer);
   pWrap.innerHTML = '';
   if (embedUrl){
     if (embedUrl.match(/\.mp4($|\?)/i)){
@@ -382,12 +383,13 @@ function openPlayerModal(it){
       pWrap.appendChild(iframe);
     }
   } else {
-    pWrap.innerHTML = `<div style="padding:80px 20px;text-align:center;color:var(--muted)">Trailer not available for embed.</div>`;
+    pWrap.innerHTML = `<div style="padding:80px 20px;text-align:center;color:var(--muted)">Content not available for embed.</div>`;
   }
 
   // controls: Watch (open watch.html) + Telegram/Stream buttons if link types detected
   let html = '';
   const watchUrl = it.watch || it.trailer || '';
+  // This button already uses the correct watchUrl, which prioritizes it.watch
   html += `<button class="btn watch-btn-modal" data-url="${escapeHtml(watchUrl)}">Open in Player</button>`;
 
   // If Streamtape link present, add a direct streamtape button
