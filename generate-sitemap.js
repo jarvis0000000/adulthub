@@ -155,8 +155,6 @@ async function generate() {
     // --- Headers ---
     const headers = `/sitemap.xml
   Content-Type: application/xml; charset=utf-8
-/sitemap.xml.gz
-  Content-Type: application/gzip
 /robots.txt
   Content-Type: text/plain; charset=utf-8
 /seo-meta.json
