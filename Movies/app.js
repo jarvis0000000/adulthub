@@ -195,3 +195,25 @@ window.addEventListener('load', () => {
   router();
   loadPopunderAds();
 });
+
+/* --- FIX: Floating Telegram Buttons not covering pagination --- */
+.telegram-buttons {
+  position: fixed;
+  right: 25px;
+  bottom: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  z-index: 50; /* lower than modal layers, higher than content */
+}
+
+/* Ensure pagination and floating buttons don't overlap */
+body {
+  padding-bottom: 120px; /* Adds breathing space for floating buttons */
+}
+
+/* Optional: Make pagination always visible above footer */
+.pagination {
+  position: relative;
+  z-index: 5;
+}
