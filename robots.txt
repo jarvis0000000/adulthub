@@ -1,12 +1,6 @@
-// --- Robots.txt Generation Script ---
-const fs = require('fs'); // Make sure you have this line if it's a Node.js script
-
-const BASE_URL = "https://dareloom.fun"; // <<<--- YAHAN APNI WEBSITE KA URL DAALEIN
-const ROBOTS_PATH = "adulthub/robots.txt"; // <<<--- YAHAN FILE KA SAHI PATH DAALEIN
-
+// --- Robots.txt ---
 const robots = `# ===============================
 # Dareloom Hub - robots.txt (SEO + AI Protection)
-# Generated on: ${new Date().toISOString()}
 # ===============================
 # Place this file at: https://dareloom.fun/robots.txt
 
@@ -31,10 +25,16 @@ Disallow: /
 User-agent: anthropic-ai
 Disallow: /
 
-User-agent: ChatGPT-User
+User-agent: ChatGPT
+Disallow: /
+
+User-agent: FacebookBot
 Disallow: /
 
 User-agent: Google-Extended
+Disallow: /
+
+User-agent: meta-externalagent
 Disallow: /
 
 # -------------------------------
@@ -47,13 +47,9 @@ Disallow: /private/
 
 User-agent: Bingbot
 Allow: /
-Disallow: /admin/
-Disallow: /private/
 
 User-agent: Yandex
 Allow: /
-Disallow: /admin/
-Disallow: /private/
 
 # -------------------------------
 # 3) Default Rules (for all other bots)
@@ -72,9 +68,8 @@ Disallow: /*?*session=*
 Disallow: /*?*ref=*
 Disallow: /*?*utm_*
 
-# Crawl-delay is not respected by Google, but useful for others.
-# Value is in seconds. A moderate value is better.
-Crawl-delay: 2
+# Optional crawl rate limiter
+Crawl-delay: 5
 
 # -------------------------------
 # Sitemap Location
@@ -86,7 +81,5 @@ Sitemap: ${BASE_URL}/sitemap-seo.xml
 # End of File
 # ===============================`;
 
-// This will write the file to the specified path
-fs.writeFileSync(ROBOTS_PATH, robots.trim());
-
-console.log(`✅ robots.txt created successfully at ${ROBOTS_PATH}`);
+fs.writeFileSync(ROBOTS_PATH, robots);
+console.log("✅ robots.txt created (AI-block + SEO rules)");
