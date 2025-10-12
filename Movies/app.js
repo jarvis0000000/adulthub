@@ -55,14 +55,10 @@ function renderPagination(totalItems, currentPage, cat = "all", searchQuery = ""
   for (let i = 1; i <= pages; i++) {
     html += `<a href="javascript:void(0)" class="page-btn ${i === currentPage ? 'active' : ''}" onclick="navigateTo('${baseHash}${i}')">${i}</a>`;
   }
-  // Returning only pagination numbers. The Request Movie button must be placed
-  // *after* the #pagination div in the main HTML to be separate.
   return html;
 }
 
 function movieCardHtml(item) {
-  // Removed the line 'const genre = item.Genre?.split(',')[0] || item.Category || '';' 
-  // and the <div> with class 'card-meta' to hide the genre/category tag on the poster.
   const rating = item.Rating || 'N/A';
   return `
   <div class="card" onclick="navigateTo('#/item/${encodeURIComponent(item._id)}')">
@@ -247,5 +243,18 @@ qs('#searchInput')?.addEventListener('keyup', (e) => {
 });
 
 window.addEventListener('hashchange', router);
-window.addEventListener('load', router);
-                                     
+
+// --- Popunder Anti-Block Ads Integration ---
+function loadPopunderAds() {
+  const adScript = document.createElement('script');
+  adScript.src = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
+  adScript.type = "text/javascript";
+  adScript.async = true;
+  document.body.appendChild(adScript);
+}
+
+// Load router and ads together after window load
+window.addEventListener('load', () => {
+  router();
+  loadPopunderAds();
+});
