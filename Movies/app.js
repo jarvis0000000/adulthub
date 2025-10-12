@@ -55,20 +55,18 @@ function renderPagination(totalItems, currentPage, cat = "all", searchQuery = ""
   for (let i = 1; i <= pages; i++) {
     html += `<a href="javascript:void(0)" class="page-btn ${i === currentPage ? 'active' : ''}" onclick="navigateTo('${baseHash}${i}')">${i}</a>`;
   }
-  // Wrapping pagination numbers in a dedicated div for separation
-  return `<div class="pagination-numbers">${html}</div>`;
+  // Returning only pagination numbers. The Request Movie button must be placed
+  // *after* the #pagination div in the main HTML to be separate.
+  return html;
 }
 
 function movieCardHtml(item) {
-  // Use the first part of Genre or Category, trim it, and set a default
-  const genre = item.Genre?.split(',')[0].trim() || item.Category?.trim() || '';
+  // Removed the line 'const genre = item.Genre?.split(',')[0] || item.Category || '';' 
+  // and the <div> with class 'card-meta' to hide the genre/category tag on the poster.
   const rating = item.Rating || 'N/A';
-  
-  // Added 'card-genre-tag' class for specific styling (like a blue background)
   return `
   <div class="card" onclick="navigateTo('#/item/${encodeURIComponent(item._id)}')">
     <img src="${item.Poster || ''}" alt="${item.Title}">
-    <div class="card-genre-tag">${genre}</div> 
     <div class="card-body">
       <h3>${item.Title}</h3>
       <p>⭐ ${rating}</p>
@@ -133,7 +131,6 @@ async function renderCategory(cat, page = 1) {
   );
   const { pageItems, total } = paginate(filtered, page, PAGE_SIZE);
   qs('#list').innerHTML = pageItems.map(movieCardHtml).join('');
-  // Note: Pagination is rendered here and will now have a dedicated sub-div for numbers
   qs('#pagination').innerHTML = renderPagination(total, page, cat);
 }
 
@@ -154,7 +151,6 @@ async function renderSearch(query, page = 1) {
   qs('#list').innerHTML = pageItems.length > 0
     ? pageItems.map(movieCardHtml).join('')
     : `<p class="not-found" style="text-align:center;padding:40px;">No results for "${query}".</p>`;
-  // Note: Pagination is rendered here and will now have a dedicated sub-div for numbers
   qs('#pagination').innerHTML = renderPagination(total, page, null, query);
 }
 
@@ -252,4 +248,4 @@ qs('#searchInput')?.addEventListener('keyup', (e) => {
 
 window.addEventListener('hashchange', router);
 window.addEventListener('load', router);
-      
+                                     
