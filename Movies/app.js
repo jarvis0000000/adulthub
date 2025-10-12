@@ -1,30 +1,43 @@
+// Dareloom Hub – Category Clickable + Smooth Routing + Hidden Category List
+// Updated: 2025-10-12
+
 const SHEET_ID = "1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o";
 const API_KEY = "AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
-const SHEET_NAME = "Sheet2";   
+const SHEET_NAME = "Sheet2";
 const PAGE_SIZE = 6;
 
 function qs(sel) { return document.querySelector(sel); }
 
+// 🟢 Fetch Google Sheet data
 async function fetchAllRows() {
   try {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
     const res = await fetch(url);
     const json = await res.json();
     if (!json.values) return [];
+
     const rows = json.values;
+    if (rows.length < 2) return [];
+
     const headers = rows[0].map(h => h.trim());
-    return rows.slice(1).map((r, i) => {
+    const data = rows.slice(1).map(r => {
       const obj = {};
-      headers.forEach((h, j) => obj[h] = r[j] ?? "");
-      obj._id = (obj.id || obj.Title || (i + 1).toString()).trim();
+      headers.forEach((h, i) => obj[h] = r[i] ?? "");
       return obj;
     });
-  } catch (e) {
-    console.error("Fetch Error:", e);
+
+    data.forEach((d, i) => {
+      d._id = (d.id || d.Title || (i + 1).toString()).trim();
+    });
+
+    return data;
+  } catch (err) {
+    console.error("❌ Fetch Error:", err);
     return [];
   }
 }
 
+// 🟢 Pagination helper
 function paginate(items, page = 1, pageSize = PAGE_SIZE) {
   const total = items.length;
   const pages = Math.max(1, Math.ceil(total / pageSize));
@@ -32,28 +45,33 @@ function paginate(items, page = 1, pageSize = PAGE_SIZE) {
   return { pageItems: items.slice(start, start + pageSize), total, pages };
 }
 
-function renderPagination(total, current, cat = "all", searchQuery = "") {
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+// 🟢 Render pagination buttons
+function renderPagination(totalItems, currentPage, cat = "all", searchQuery = "") {
+  const pages = Math.max(1, Math.ceil(totalItems / PAGE_SIZE));
   if (pages <= 1) return '';
-  let base = searchQuery ? `#/search/${encodeURIComponent(searchQuery)}/page/` :
-              cat !== "all" ? `#/category/${cat}/page/` : "#/page/";
-  return Array.from({ length: pages }, (_, i) => i + 1)
-    .map(i => `<a href="javascript:void(0)" class="page-btn ${i===current?'active':''}" onclick="navigateTo('${base}${i}')">${i}</a>`)
-    .join('');
+  let baseHash = '';
+  if (searchQuery) baseHash = `#/search/${encodeURIComponent(searchQuery)}/page/`;
+  else if (cat !== 'all') baseHash = `#/category/${cat}/page/`;
+  else baseHash = '#/page/';
+  let html = '';
+  for (let i = 1; i <= pages; i++) {
+    html += `<a href="javascript:void(0)" class="page-btn ${i === currentPage ? 'active' : ''}" onclick="navigateTo('${baseHash}${i}')">${i}</a>`;
+  }
+  return html;
 }
 
-// ✅ Category badge clickable
+// 🟢 Movie Card (Clickable Category Badge)
 function movieCardHtml(item) {
   const rating = item.Rating || 'N/A';
   const category = item.Category || item.Genre || '';
-  const catBadge = category 
-    ? `<span class="card-category" onclick="navigateTo('#/category/${encodeURIComponent(category)}/page/1'); event.stopPropagation();">${category}</span>`
+  const catLabel = category
+    ? `<span class="card-category" onclick="event.stopPropagation(); navigateTo('#/category/${encodeURIComponent(category.toLowerCase())}/page/1')">${category}</span>`
     : '';
   return `
   <div class="card" onclick="navigateTo('#/item/${encodeURIComponent(item._id)}')">
     <div class="poster-wrap">
       <img src="${item.Poster || ''}" alt="${item.Title}">
-      ${catBadge}
+      ${catLabel}
     </div>
     <div class="card-body">
       <h3>${item.Title}</h3>
@@ -62,96 +80,90 @@ function movieCardHtml(item) {
   </div>`;
 }
 
-// Hidden top category list
+// 🟢 Category List (hidden)
 function renderCategoryList() { return ''; }
 
+// 🟢 Home Page
 async function renderHome(page = 1) {
   const app = qs('#app');
   const data = await fetchAllRows();
-  const { pageItems, total } = paginate(data, page);
+  const { pageItems, total } = paginate(data, page, PAGE_SIZE);
   app.innerHTML = `
   <div class="container">
     <div class="header-title-style"><h2 class="category-heading">All Titles</h2></div>
     <div id="list" class="grid">${pageItems.map(movieCardHtml).join('')}</div>
-    <div id="pagination" class="pagination">${renderPagination(total, page)}</div>
+    <div id="pagination" class="pagination">${renderPagination(total, page, 'all')}</div>
   </div>`;
 }
 
+// 🟢 Category Page
 async function renderCategory(cat, page = 1) {
   const app = qs('#app');
+  const decodedCat = decodeURIComponent(cat);
   app.innerHTML = `
   <div class="container">
-    <div class="header-title-style"><h2 class="category-heading">${decodeURIComponent(cat).toUpperCase()}</h2></div>
+    <div class="header-title-style"><h2 class="category-heading">${decodedCat.toUpperCase()}</h2></div>
     <div id="list" class="grid"></div>
     <div id="pagination" class="pagination"></div>
   </div>`;
   const data = await fetchAllRows();
+  const lowerCat = decodedCat.toLowerCase();
   const filtered = data.filter(d =>
-    d.Category?.toLowerCase().includes(cat.toLowerCase()) ||
-    d.Genre?.toLowerCase().includes(cat.toLowerCase())
+    d.Category?.toLowerCase().includes(lowerCat) ||
+    d.Genre?.toLowerCase().includes(lowerCat)
   );
-  const { pageItems, total } = paginate(filtered, page);
+  const { pageItems, total } = paginate(filtered, page, PAGE_SIZE);
   qs('#list').innerHTML = pageItems.map(movieCardHtml).join('');
   qs('#pagination').innerHTML = renderPagination(total, page, cat);
 }
 
+// 🟢 Search Page
 async function renderSearch(query, page = 1) {
   const app = qs('#app');
   app.innerHTML = `
   <div class="container">
-    <div class="header-title-style"><h2 class="category-heading">Search: "${query}"</h2></div>
+    <div class="header-title-style"><h2 class="category-heading">Search Results for: "${query}"</h2></div>
     <div id="list" class="grid"></div>
     <div id="pagination" class="pagination"></div>
   </div>`;
   const data = await fetchAllRows();
-  const filtered = data.filter(d => d.Title?.toLowerCase().includes(query.toLowerCase()));
-  const { pageItems, total } = paginate(filtered, page);
-  qs('#list').innerHTML = pageItems.length ? 
-    pageItems.map(movieCardHtml).join('') :
-    `<p style="text-align:center;padding:40px;">No results for "${query}".</p>`;
+  const lowerQuery = query.toLowerCase();
+  const filtered = data.filter(d => d.Title?.toLowerCase().includes(lowerQuery));
+  const { pageItems, total } = paginate(filtered, page, PAGE_SIZE);
+  qs('#list').innerHTML = pageItems.length
+    ? pageItems.map(movieCardHtml).join('')
+    : `<p style="text-align:center;padding:40px;">No results for "${query}".</p>`;
   qs('#pagination').innerHTML = renderPagination(total, page, null, query);
 }
 
-function createWatchLinksHtml(item) {
-  const watchData = item["Watch Link"] || item.WatchLink || '';
-  if (!watchData) return '';
-  const parts = watchData.split('|').map(s => s.trim()).filter(Boolean);
-  let html = '<div class="watch-links-section"><h3>Watch Links:</h3><div class="watch-links">';
-  for (let i = 0; i < parts.length; i += 2) {
-    const label = parts[i], url = parts[i + 1];
-    if (label && url) html += `<a class="btn btn-watch-dynamic" href="${url}" target="_blank">${label}</a>`;
-  }
-  return html + '</div></div>';
-}
-
-function createScreenshotsHtml(item) {
-  const ssData = item.Screenshot || '';
-  if (!ssData) return '';
-  const shots = ssData.split('|').map(s => s.trim()).filter(Boolean);
-  return shots.length ? `<div class="screenshot-section"><h3>Screenshots:</h3>
-    <div class="screenshots-grid">${shots.map(u=>`<img src="${u}" class="screenshot-img">`).join('')}</div></div>` : '';
-}
-
+// 🟢 Detail Page (Category Click)
 async function renderItemDetail(id) {
   const app = qs('#app');
   const data = await fetchAllRows();
   const item = data.find(d => d._id === decodeURIComponent(id));
-  if (!item) return app.innerHTML = "<p class='not-found'>Item not found</p>";
+  if (!item) { app.innerHTML = "<p class='not-found'>Item not found</p>"; return; }
 
-  const { Title, Poster, Description, Category, Rating, Runtime, Date } = item;
+  const title = item.Title || 'Untitled';
+  const desc = item.Description || 'No description available.';
+  const poster = item.Poster || '';
+  const category = item.Category || 'Unknown';
+  const rating = item.Rating || 'N/A';
+  const runtime = item.Runtime || 'N/A';
+  const date = item.Date || 'N/A';
+
   app.innerHTML = `
   <div class="container detail-container">
     <div class="detail-card">
-      <img src="${Poster}" alt="${Title}" class="detail-poster">
+      <img src="${poster}" alt="${title}" class="detail-poster">
       <div class="detail-meta">
-        <h1>${Title}</h1>
+        <h1 class="detail-title">${title}</h1>
         <div class="detail-info-row">
-          <span class="info-tag category-tag" onclick="navigateTo('#/category/${encodeURIComponent(Category)}/page/1')">${Category}</span>
-          <span class="info-tag rating-tag">⭐ ${Rating}</span>
-          <span class="info-tag runtime-tag">🕒 ${Runtime}</span>
-          <span class="info-tag date-tag">📅 ${Date}</span>
+          <span class="info-tag category-tag" onclick="navigateTo('#/category/${encodeURIComponent(category.toLowerCase())}/page/1')">${category}</span>
+          <span class="info-tag rating-tag">⭐ ${rating}</span>
+          <span class="info-tag runtime-tag">🕒 ${runtime}</span>
+          <span class="info-tag date-tag">📅 ${date}</span>
         </div>
-        <p class="detail-description">${Description}</p>
+        <p class="detail-description">${desc}</p>
         ${createWatchLinksHtml(item)}
         ${createScreenshotsHtml(item)}
       </div>
@@ -159,6 +171,37 @@ async function renderItemDetail(id) {
   </div>`;
 }
 
+// 🟢 Watch Links
+function createWatchLinksHtml(item) {
+  const watchData = item["Watch Link"] || item.WatchLink || '';
+  if (!watchData) return '';
+  const parts = watchData.split('|').map(s => s.trim()).filter(Boolean);
+  if (parts.length < 2) return '';
+  let html = '<div class="watch-links-section"><h3>Watch Links:</h3><div class="watch-links">';
+  for (let i = 0; i < parts.length; i += 2) {
+    const label = parts[i], url = parts[i + 1];
+    if (label && url) html += `<a class="btn btn-watch-dynamic" href="${url}" target="_blank">${label}</a>`;
+  }
+  html += '</div></div>';
+  return html;
+}
+
+// 🟢 Screenshots
+function createScreenshotsHtml(item) {
+  const ssData = item.Screenshot || '';
+  if (!ssData) return '';
+  const shots = ssData.split('|').map(s => s.trim()).filter(Boolean);
+  if (!shots.length) return '';
+  return `
+  <div class="screenshot-section">
+    <h3>Screenshots:</h3>
+    <div class="screenshots-grid">
+      ${shots.map(url => `<img src="${url}" class="screenshot-img" alt="Screenshot">`).join('')}
+    </div>
+  </div>`;
+}
+
+// 🟢 Router
 function navigateTo(hash) { window.location.hash = hash; }
 function getRoute() { return location.hash.replace(/^#\/?/, '').split('/'); }
 
@@ -168,21 +211,21 @@ async function router() {
   document.body.classList.toggle('detail-page', isDetail);
 
   if (parts[0] === '' || parts[0] === 'page') return renderHome(Number(parts[1]) || 1);
-  if (parts[0] === 'category') return renderCategory(parts[1], Number(parts[3]) || 1);
-  if (parts[0] === 'search') return renderSearch(decodeURIComponent(parts[1]||''), Number(parts[3])||1);
-  if (isDetail) return renderItemDetail(parts[1]);
+  if (parts[0] === 'category') return renderCategory(parts[1] || 'all', Number(parts[3]) || 1);
+  if (parts[0] === 'search') return renderSearch(decodeURIComponent(parts[1] || ''), Number(parts[3]) || 1);
+  if (isDetail) return renderItemDetail(parts[1] || '');
   renderHome(1);
 }
 
-qs('#searchInput')?.addEventListener('keyup', e => {
+// 🟢 Search Box
+qs('#searchInput')?.addEventListener('keyup', (e) => {
   if (e.key === 'Enter') {
     const q = e.target.value.trim();
-    if (q) window.location.hash = `#/search/${encodeURIComponent(q)}/page/1`;
+    if (q) navigateTo(`#/search/${encodeURIComponent(q)}/page/1`);
   }
 });
 
-window.addEventListener('hashchange', router);
-
+// 🟢 Popunder Ads
 function loadPopunderAds() {
   const adScript = document.createElement('script');
   adScript.src = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
@@ -191,29 +234,9 @@ function loadPopunderAds() {
   document.body.appendChild(adScript);
 }
 
+// 🟢 Initialize
+window.addEventListener('hashchange', router);
 window.addEventListener('load', () => {
   router();
   loadPopunderAds();
 });
-
-/* --- FIX: Floating Telegram Buttons not covering pagination --- */
-.telegram-buttons {
-  position: fixed;
-  right: 25px;
-  bottom: 25px;
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  z-index: 50; /* lower than modal layers, higher than content */
-}
-
-/* Ensure pagination and floating buttons don't overlap */
-body {
-  padding-bottom: 120px; /* Adds breathing space for floating buttons */
-}
-
-/* Optional: Make pagination always visible above footer */
-.pagination {
-  position: relative;
-  z-index: 5;
-}
