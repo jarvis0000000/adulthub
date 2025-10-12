@@ -1,8 +1,8 @@
 /* --- Professional Reset & Base --- */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --primary-color: #ff4b91; /* Pink */
-  --secondary-color: #0d8ce0; /* Blue for Telegram/Accents */
+  --primary-color: #ff4b91;
+  --secondary-color: #0d8ce0;
   --bg-dark: #0a0a0c;
   --bg-mid: #151518;
   --bg-light: #202025;
@@ -21,8 +21,8 @@ body {
 .site-header {
   display: flex;
   align-items: center;
-  gap: 15px; /* Reduced gap */
-  padding: 10px 30px; /* Reduced vertical padding */
+  gap: 15px;
+  padding: 10px 30px;
   background: var(--bg-mid);
   position: sticky;
   top: 0;
@@ -31,28 +31,25 @@ body {
   box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
 
-/* Logo */
 .logo-link { text-decoration: none; display: flex; align-items: center; }
 .logo-img { height: 30px; width: auto; margin-right: 6px; transition: transform 0.2s; }
 .logo-text { font-weight: 900; font-size: 22px; color: var(--primary-color); letter-spacing: 1px; }
 .logo-link:hover .logo-img { transform: scale(1.05); }
 
-/* Main Navigation Links (made more compact) */
 .main-nav { display: flex; gap: 4px; flex-wrap: wrap; font-size: 14px; } 
 .main-nav a {
   color: var(--text-mid);
   text-decoration: none;
-  padding: 5px 9px; /* Reduced padding */
+  padding: 5px 9px;
   border-radius: 4px;
   transition: 0.3s;
   font-weight: 500;
 }
 .main-nav a:hover { background: var(--primary-color); color: var(--text-light); }
 
-/* Search */
 .search-wrap { margin-left: auto; }
 #searchInput {
-  padding: 6px 14px; /* Reduced padding */
+  padding: 6px 14px;
   border-radius: 20px;
   border: 1px solid var(--bg-light);
   background: var(--bg-dark);
@@ -67,65 +64,56 @@ body {
 .container { padding: 30px; max-width: 1400px; margin: 0 auto; }
 .grid {
   display: grid;
-  /* Adjusting to fit 6 items well on larger screens, but responsive */
   grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
   gap: 25px;
 }
 
 /* --- Stylish Category Header --- */
 .header-title-style {
-    margin-bottom: 30px;
-    padding: 10px 0;
-    border-left: 5px solid var(--primary-color);
-    padding-left: 15px;
+  margin-bottom: 30px;
+  padding: 10px 0;
+  border-left: 5px solid var(--primary-color);
+  padding-left: 15px;
 }
 
 .category-heading {
-    font-size: 32px;
-    font-weight: 900;
-    color: var(--text-light);
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    margin: 0;
+  font-size: 32px;
+  font-weight: 900;
+  color: var(--text-light);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin: 0;
 }
 
 /* --- Dynamic Sub-Category Sections --- */
-.category-section {
-    margin-top: 50px;
-}
-
+.category-section { margin-top: 50px; }
 .sub-category-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-left: none; /* Override the main category style */
-    border-bottom: 2px solid var(--bg-light); 
-    padding-left: 0;
-    margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-left: none;
+  border-bottom: 2px solid var(--bg-light); 
+  margin-bottom: 20px;
 }
-
 .sub-category-header .category-heading {
-    font-size: 24px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-shadow: none;
-    color: var(--text-light);
-    padding-bottom: 10px;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-light);
+  padding-bottom: 10px;
 }
-
 .view-all-btn {
-    color: var(--primary-color);
-    text-decoration: none;
-    font-weight: 500;
-    padding: 6px 12px;
-    border: 1px solid var(--primary-color);
-    border-radius: 4px;
-    transition: 0.2s;
-    font-size: 14px;
+  color: var(--primary-color);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 6px 12px;
+  border: 1px solid var(--primary-color);
+  border-radius: 4px;
+  transition: 0.2s;
+  font-size: 14px;
 }
 .view-all-btn:hover {
-    background: var(--primary-color);
-    color: var(--bg-dark);
+  background: var(--primary-color);
+  color: var(--bg-dark);
 }
 
 /* --- Card Styles (Professional) --- */
@@ -150,16 +138,27 @@ body {
   display: block;
 }
 
-.card-meta {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: rgba(0, 0, 0, 0.7);
-    color: var(--primary-color);
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 700;
+/* ✅ Category Badge on Poster */
+.poster-wrap {
+  position: relative;
+}
+.card-category {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background: var(--primary-color);
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+  text-transform: capitalize;
+}
+.card-category:hover {
+  background: #ff74b0;
+  transform: scale(1.05);
 }
 
 .card-body {
@@ -169,7 +168,6 @@ body {
   gap: 5px;
 }
 .card h3 {
-  margin: 0;
   font-size: 18px;
   font-weight: 700;
   color: var(--text-light);
@@ -183,7 +181,7 @@ body {
   margin: 0;
 }
 
-/* --- Detail Page (Professional) --- */
+/* --- Detail Page --- */
 .detail-container { padding: 50px 30px; }
 .detail-card { 
   display: flex; 
@@ -206,12 +204,6 @@ body {
   flex-direction: column; 
   gap: 15px; 
 }
-.detail-title { 
-  font-size: 42px; 
-  font-weight: 900; 
-  color: var(--primary-color); 
-  margin-bottom: 10px; 
-}
 .detail-info-row { 
   display: flex; 
   gap: 15px; 
@@ -226,31 +218,24 @@ body {
   font-weight: 500; 
   color: var(--text-light); 
 }
-.category-tag { border: 1px solid var(--primary-color); }
+.category-tag { border: 1px solid var(--primary-color); cursor: pointer; }
+.category-tag:hover { background: var(--primary-color); color: var(--bg-dark); }
 .rating-tag { color: gold; }
-.detail-description { 
-  font-size: 16px; 
-  color: var(--text-mid); 
-  line-height: 1.8; 
-}
 
-/* --- NEW: Dynamic Watch Links Section --- */
+/* --- Dynamic Watch Links Section --- */
 .watch-links-section h3 {
-    font-size: 20px;
-    color: var(--text-light);
-    margin-bottom: 10px;
-    border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 5px;
-    align-self: flex-start;
+  font-size: 20px;
+  color: var(--text-light);
+  margin-bottom: 10px;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 5px;
 }
-
 .watch-links {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 15px;
-    margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
 }
-
 .btn-watch-dynamic {
   padding: 12px 20px;
   border-radius: 8px;
@@ -258,64 +243,45 @@ body {
   text-decoration: none;
   font-weight: 700;
   transition: 0.3s;
-  color: var(--bg-dark); /* Text color for buttons */
+  color: var(--bg-dark);
   box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  /* Default Gradient, will be customized for specific links later if needed */
   background: linear-gradient(90deg, var(--primary-color) 0%, #ff85c1 100%);
 }
 .btn-watch-dynamic:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(255,75,145,0.6);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(255,75,145,0.6);
 }
-
-/* You can define specific styles for different link types here, 
-   e.g., based on the link text or a custom data attribute if you add one */
 .btn-watch-dynamic[href*="telegram"] {
-    background: var(--secondary-color); /* Blue for Telegram */
-    color: #fff;
+  background: var(--secondary-color);
+  color: #fff;
 }
 .btn-watch-dynamic[href*="telegram"]:hover {
-    background: #007bff;
+  background: #007bff;
 }
 
-/* --- NEW: Screenshots Section --- */
-.screenshot-section {
-    margin-top: 20px;
-}
-
+/* --- Screenshots --- */
+.screenshot-section { margin-top: 20px; }
 .screenshot-section h3 {
-    font-size: 20px;
-    color: var(--text-light);
-    margin-bottom: 15px;
-    border-bottom: 2px solid var(--primary-color);
-    padding-bottom: 5px;
-    align-self: flex-start;
+  font-size: 20px;
+  color: var(--text-light);
+  margin-bottom: 15px;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 5px;
 }
-
 .screenshots-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
 }
-
 .screenshot-img {
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-    transition: transform 0.3s;
+  width: 100%;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+  transition: transform 0.3s;
 }
-.screenshot-img:hover {
-    transform: scale(1.02);
-}
+.screenshot-img:hover { transform: scale(1.02); }
 
-/* REMOVING the old single .btn-watch since the new dynamic links replace it */
-/* .btn-watch { ... } */ 
-/* --- End of Detail Page Updates --- */
-
-
-/* --- Pagination - Styles remain the same --- */
+/* --- Pagination --- */
 .pagination { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 30px; }
 .page-btn {
   padding: 8px 14px;
@@ -329,7 +295,7 @@ body {
 .page-btn:hover { background: var(--primary-color); }
 .page-btn.active { background: var(--primary-color); font-weight: 700; }
 
-/* --- Telegram Floating Buttons - Styles remain the same --- */
+/* --- Telegram Floating Buttons --- */
 .telegram-buttons { position: fixed; right: 25px; bottom: 25px; display: flex; flex-direction: column; gap: 15px; z-index: 100; }
 .telegram-btn {
   background: var(--secondary-color);
@@ -345,44 +311,29 @@ body {
 }
 .telegram-btn:hover { background: #007bff; transform: scale(1.05); }
 
-/* --- Hide elements on detail page (Crucial Fix) --- */
+/* --- Hide Header on Detail Page --- */
 body.detail-page .site-header .main-nav,
 body.detail-page .site-header .search-wrap,
-body.detail-page .telegram-buttons {
-  display: none;
-}
+body.detail-page .telegram-buttons { display: none; }
 body.detail-page .site-header { justify-content: center; }
 body.detail-page .logo { margin-left: auto; margin-right: auto; }
 
-/* --- Footer - Styles remain the same --- */
+/* --- Footer --- */
 .site-footer { padding: 15px; text-align: center; font-size: 14px; color: var(--text-mid); background: var(--bg-mid); margin-top: 40px; }
 
-/* --- Responsive Design - Styles remain the same --- */
-@media(max-width: 1200px){
-    .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+/* --- Responsive --- */
+@media(max-width:1200px){ .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}}
+@media(max-width:850px){
+  .site-header {flex-direction: column; align-items: flex-start;}
+  .search-wrap {margin-left: 0; width: 100%; order: 3;}
+  #searchInput {width: 100%;}
+  .detail-card {flex-direction: column; gap: 20px; padding: 20px;}
+  .detail-poster {width: 100%; height: auto;}
+  .detail-container {padding: 20px;}
 }
-@media(max-width: 850px){
-    .site-header {flex-direction: column; align-items: flex-start;}
-    .search-wrap {margin-left: 0; width: 100%; order: 3;}
-    #searchInput {width: 100%;}
-    .detail-card {flex-direction: column; gap: 20px; padding: 20px;}
-    .detail-poster {width: 100%; height: auto;}
-    .detail-title {font-size: 32px;}
-    .detail-container {padding: 20px;}
-    
-    /* Responsive adjustment for screenshots */
-    .screenshots-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    }
-}
-@media(max-width: 600px){
-    .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
-    .card img {height: 220px;}
-    .category-heading {font-size: 24px;}
-    .main-nav {justify-content: center; margin-top: 10px;}
-
-    /* Smaller screenshot size on small screens */
-    .screenshots-grid {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    }
-}
+@media(max-width:600px){
+  .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .card img {height: 220px;}
+  .category-heading {font-size: 24px;}
+  .main-nav {justify-content: center; margin-top: 10px;}
+  }
