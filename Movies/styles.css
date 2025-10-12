@@ -15,9 +15,10 @@ body {
   background: var(--bg-dark); 
   color: var(--text-light); 
   line-height: 1.6; 
+  padding-bottom: 120px; /* ✅ Prevent overlap with Telegram buttons */
 }
 
-/* --- Header & Navigation (COMPACT) --- */
+/* --- Header & Navigation --- */
 .site-header {
   display: flex;
   align-items: center;
@@ -30,7 +31,6 @@ body {
   flex-wrap: wrap;
   box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
-
 .logo-link { text-decoration: none; display: flex; align-items: center; }
 .logo-img { height: 30px; width: auto; margin-right: 6px; transition: transform 0.2s; }
 .logo-text { font-weight: 900; font-size: 22px; color: var(--primary-color); letter-spacing: 1px; }
@@ -75,7 +75,6 @@ body {
   border-left: 5px solid var(--primary-color);
   padding-left: 15px;
 }
-
 .category-heading {
   font-size: 32px;
   font-weight: 900;
@@ -138,7 +137,7 @@ body {
   display: block;
 }
 
-/* ✅ Category Badge on Poster */
+/* ✅ Category Badge on Poster (Clickable Filter) */
 .poster-wrap {
   position: relative;
 }
@@ -155,6 +154,7 @@ body {
   cursor: pointer;
   transition: background 0.3s, transform 0.2s;
   text-transform: capitalize;
+  z-index: 10;
 }
 .card-category:hover {
   background: #ff74b0;
@@ -282,7 +282,15 @@ body {
 .screenshot-img:hover { transform: scale(1.02); }
 
 /* --- Pagination --- */
-.pagination { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 30px; }
+.pagination { 
+  display: flex; 
+  justify-content: center; 
+  gap: 10px; 
+  flex-wrap: wrap; 
+  margin-top: 30px; 
+  position: relative; 
+  z-index: 5; 
+}
 .page-btn {
   padding: 8px 14px;
   background: var(--bg-light);
@@ -295,8 +303,16 @@ body {
 .page-btn:hover { background: var(--primary-color); }
 .page-btn.active { background: var(--primary-color); font-weight: 700; }
 
-/* --- Telegram Floating Buttons --- */
-.telegram-buttons { position: fixed; right: 25px; bottom: 25px; display: flex; flex-direction: column; gap: 15px; z-index: 100; }
+/* ✅ Telegram Floating Buttons (Fixed Cleanly) */
+.telegram-buttons { 
+  position: fixed; 
+  right: 25px; 
+  bottom: 25px; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 15px; 
+  z-index: 50; 
+}
 .telegram-btn {
   background: var(--secondary-color);
   color: #fff;
@@ -319,7 +335,14 @@ body.detail-page .site-header { justify-content: center; }
 body.detail-page .logo { margin-left: auto; margin-right: auto; }
 
 /* --- Footer --- */
-.site-footer { padding: 15px; text-align: center; font-size: 14px; color: var(--text-mid); background: var(--bg-mid); margin-top: 40px; }
+.site-footer { 
+  padding: 15px; 
+  text-align: center; 
+  font-size: 14px; 
+  color: var(--text-mid); 
+  background: var(--bg-mid); 
+  margin-top: 40px; 
+}
 
 /* --- Responsive --- */
 @media(max-width:1200px){ .grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}}
@@ -336,4 +359,4 @@ body.detail-page .logo { margin-left: auto; margin-right: auto; }
   .card img {height: 220px;}
   .category-heading {font-size: 24px;}
   .main-nav {justify-content: center; margin-top: 10px;}
-  }
+    }
