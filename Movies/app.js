@@ -58,11 +58,17 @@ function renderPagination(totalItems, currentPage, cat = "all", searchQuery = ""
   return html;
 }
 
+// ✅ Card with visible category tag on poster
 function movieCardHtml(item) {
   const rating = item.Rating || 'N/A';
+  const category = item.Category || item.Genre || '';
+  const catLabel = category ? `<span class="card-category">${category}</span>` : '';
   return `
   <div class="card" onclick="navigateTo('#/item/${encodeURIComponent(item._id)}')">
-    <img src="${item.Poster || ''}" alt="${item.Title}">
+    <div class="poster-wrap">
+      <img src="${item.Poster || ''}" alt="${item.Title}">
+      ${catLabel}
+    </div>
     <div class="card-body">
       <h3>${item.Title}</h3>
       <p>⭐ ${rating}</p>
@@ -82,28 +88,20 @@ async function getUniqueCategories(data) {
   return Array.from(categories);
 }
 
-function renderCategoryList(categories) {
-  let html = '<div class="category-list-wrap">';
-  categories.forEach(cat => {
-    const hash = `#/category/${encodeURIComponent(cat)}`;
-    html += `<a href="javascript:void(0)" class="category-list-btn" onclick="navigateTo('${hash}')">${cat}</a>`;
-  });
-  html += '</div>';
-  return html;
+// 🚫 Hidden Category List (was causing blue text)
+function renderCategoryList() {
+  return ''; // intentionally empty
 }
 
 async function renderHome(page = 1) {
   const app = qs('#app');
   const data = await fetchAllRows();
-  const categories = await getUniqueCategories(data);
-  const categoryListHtml = renderCategoryList(categories);
   const { pageItems, total } = paginate(data, page, PAGE_SIZE);
   app.innerHTML = `
   <div class="container">
     <div class="header-title-style">
       <h2 class="category-heading">All Titles</h2>
     </div>
-    ${categoryListHtml}
     <div id="list" class="grid">${pageItems.map(movieCardHtml).join('')}</div>
     <div id="pagination" class="pagination">${renderPagination(total, page, 'all')}</div>
   </div>`;
@@ -244,7 +242,6 @@ qs('#searchInput')?.addEventListener('keyup', (e) => {
 
 window.addEventListener('hashchange', router);
 
-// --- Popunder Anti-Block Ads Integration ---
 function loadPopunderAds() {
   const adScript = document.createElement('script');
   adScript.src = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
@@ -253,7 +250,6 @@ function loadPopunderAds() {
   document.body.appendChild(adScript);
 }
 
-// Load router and ads together after window load
 window.addEventListener('load', () => {
   router();
   loadPopunderAds();
