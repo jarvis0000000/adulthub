@@ -1,16 +1,16 @@
-// script.js — Final optimized Dareloom Hub script
-// 2025-10-13 (final update)
+// script.js — Dareloom Hub (Complete, auto-thumbnail enabled)
+// 2025-10-13 (final ready-to-use)
 // Features:
 // - Flexible Google Sheets parsing (any column order)
-// - Auto-detect video links (Streamtape, YouTube, Filemoon, Doodstream, Mixdrop, Vidhide, Telegram, MP4)
-// - Auto-thumbnail generation (YouTube / fallback images)
+// - Auto-detect video links (Streamtape /v/ , YouTube, Drive, MP4)
+// - Auto-thumbnail generation (YouTube & Streamtape get priority)
 // - Caching (localStorage) with TTL
-// - Pagination, search, tags, category filter
+// - Pagination (new -> old), search, tags, category filter
 // - Modal preview & watch page handling
 // - Injects VideoObject JSON-LD for each open video
 // - Non-blocking ad popunder with cooldown
 // - Lazy image loading (IntersectionObserver)
-// - Analytics hook & reload function
+// - Debug hooks & reload
 
 (() => {
   'use strict';
@@ -20,43 +20,35 @@
   const PER_PAGE = 6;
   const RANDOM_COUNT = 4;
 
-  // Pop / ad script (easy to swap)
+  // Pop / ad script (swap if needed)
   let AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
   const POP_COOLDOWN_MS = 9000;
-  const POP_DELAY_MS = 1000;
+  const POP_DELAY_MS = 1200;
   const INITIAL_AUTO_POP_DELAY = 11000;
 
   // Cache
-  const CACHE_KEY = 'dareloom_sheet_cache_v2';
+  const CACHE_KEY = 'dareloom_sheet_cache_v3';
   const CACHE_TTL = 1000 * 60 * 60; // 1 hour
 
   // ---------------- STATE ----------------
-  let items = []; // normalized items
-  let filteredItems = [];
+  let items = [];         // normalized items
+  let filteredItems = []; // after search / tag
   let currentPage = 1;
   let lastPop = 0;
   let _lazyObserver = null;
 
   // ---------------- HELPERS ----------------
-  const qs = s => document.querySelector(s);
-  const qsa = s => Array.from(document.querySelectorAll(s));
-  const log = (...args) => { if (location.search.indexOf('debug') !== -1) console.log('[dareloom]', ...args); };
+  const qs = sel => document.querySelector(sel);
+  const qsa = sel => Array.from(document.querySelectorAll(sel));
+  const log = (...a) => { if (location.search.indexOf('debug') !== -1) console.log('[dareloom]', ...a); };
 
   function now(){ return Date.now(); }
-  function setCache(data){ try{ localStorage.setItem(CACHE_KEY, JSON.stringify({ts: now(), data})); } catch(e){} }
-  function getCache(){ try{ const raw = localStorage.getItem(CACHE_KEY); if(!raw) return null; const p = JSON.parse(raw); if(!p.ts || (now()-p.ts)>CACHE_TTL) return null; return p.data; } catch(e){ return null; } }
+  function setCache(data){ try{ localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: now(), data })); } catch(e){} }
+  function getCache(){ try{ const raw = localStorage.getItem(CACHE_KEY); if (!raw) return null; const p = JSON.parse(raw); if (!p.ts || (now() - p.ts) > CACHE_TTL) return null; return p.data; } catch(e){ return null; } }
 
-  function slugify(text){
-    return (text||'').toString().toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
-  }
-  function escapeHtml(s){
-    return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-  }
-
-  function debounce(fn, ms=250){
-    let t;
-    return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a), ms); };
-  }
+  function slugify(text){ return (text||'').toString().toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
+  function escapeHtml(s){ return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+  function debounce(fn, ms=250){ let t; return (...a)=>{ clearTimeout(t); t = setTimeout(()=>fn(...a), ms); }; }
 
   // ---------------- URL / ID helpers ----------------
   function extractYouTubeID(url){
@@ -66,44 +58,57 @@
   }
 
   function normalizeLinkList(maybe){
-    // Input may be string with many links separated by comma or newline
     if(!maybe) return [];
-    if(Array.isArray(maybe)) return maybe.map(s => s.toString().trim()).filter(Boolean);
-    // split on comma or newline or space if url contains no comma
-    const parts = maybe.toString().split(/\s*,\s*|\n+/).map(s=>s.trim()).filter(Boolean);
-    return parts;
-  }
-
-  function makeThumbnail(item){
-    // prefer poster/thumb field
-    if (item.poster && item.poster.toString().trim()) return item.poster.trim();
-    // try youtube id from any link
-    const links = item.links || [];
-    for (let l of links){
-      const y = extractYouTubeID(l);
-      if (y) return `https://img.youtube.com/vi/${y}/hqdefault.jpg`;
-    }
-    // fallback streamtape generic or site default
-    return item.fallbackThumb || 'https://i.ibb.co/p3RfpQz/default-thumb.jpg';
+    if (Array.isArray(maybe)) return maybe.map(s => s.toString().trim()).filter(Boolean);
+    return maybe.toString().split(/\s*,\s*|\n+/).map(s => s.trim()).filter(Boolean);
   }
 
   function isPlayableLink(url){
     if(!url) return false;
-    return /(streamtape\.com|filemoon|filemoon\.sx|dood\.so|dood\.(?:pm|to|watch)|mixdrop|vidhide|youtube\.com|youtu\.be|drive\.google\.com|\.mp4)/i.test(url);
+    return /(streamtape\.com|filemoon|dood\.|mixdrop|vidhide|youtube\.com|youtu\.be|drive\.google\.com|\.mp4)/i.test(url);
   }
 
-  function toEmbedUrl(url){
-    if(!url) return '';
-    // YouTube
+  // ---------------- AUTO THUMBNAIL (YouTube + Streamtape /v/) ----------------
+  // Streamtape: source format used: https://streamtape.com/v/ABCDEF1234/...
+  // For streamtape thumbnail we attempt a public-ish pattern. Some hosts block hotlinking; fallback used.
+  function makeThumbnail(item){
+    // 1) explicit poster / thumbnail column (user-provided)
+    if (item.poster && item.poster.toString().trim()) return item.poster.toString().trim();
+
+    // 2) look through links for YouTube first, then Streamtape
+    const links = item.links || [];
+    for (const l of links){
+      const y = extractYouTubeID(l);
+      if (y) return `https://img.youtube.com/vi/${y}/hqdefault.jpg`;
+    }
+
+    for (const l of links){
+      const m = l.match(/streamtape\.com\/[ve]\/([^/?#]+)/i);
+      if (m && m[1]){
+        const id = m[1];
+        // streamtape thumbnail approach: try known endpoints — sometimes hosts change behavior.
+        // Primary attempt:
+        return `https://i.streamtape.to/vi/${id}.jpg`;
+        // If that doesn't work you can change to `https://streamtape.com/get_image/${id}?headers=1`
+      }
+    }
+
+    // 3) fallback - site default
+    return item.fallbackThumb || 'https://i.ibb.co/p3RfpQz/default-thumb.jpg';
+  }
+
+  // ---------------- EMBED URL builder ----------------
+  function toEmbedUrlForModal(url){
+    if (!url) return '';
     const y = extractYouTubeID(url);
     if (y) return `https://www.youtube.com/embed/${y}?autoplay=1&rel=0`;
     if (url.includes('youtube.com/embed')) return url;
-    // Drive
-    if (url.match(/drive\.google\.com/)){
-      const m = url.match(/[-\w]{25,}/);
-      if (m) return `https://drive.google.com/file/d/${m[0]}/preview`;
+    // google drive
+    if (/drive\.google\.com/.test(url)){
+      const match = url.match(/[-\w]{25,}/);
+      if (match) return `https://drive.google.com/file/d/${match[0]}/preview`;
     }
-    // Streamtape: convert /v/ to /e/ if needed
+    // streamtape convert /v/ -> /e/
     if (url.includes('streamtape.com')){
       if (url.includes('/v/')){
         const id = url.split('/v/')[1]?.split('/')[0];
@@ -111,14 +116,13 @@
       }
       if (url.includes('/e/')) return url;
     }
-    // Doodstream / Filemoon / Mixdrop / Vidhide often provide embed links already; return as-is
-    if (/dood\.|filemoon|mixdrop|vidhide/i.test(url)) return url;
     // direct mp4
     if (url.match(/\.mp4($|\?)/i)) return url;
-    return '';
+    // otherwise return original (some hosts provide embed urls)
+    return url;
   }
 
-  // ---------------- AD POP (non-blocking) ----------------
+  // ---------------- AD / POP HANDLING ----------------
   function openPopUnder(){
     const nowTs = now();
     if (nowTs - lastPop < POP_COOLDOWN_MS) return;
@@ -130,8 +134,7 @@
         s.async = true;
         s.setAttribute('data-dareloom-pop','1');
         document.body.appendChild(s);
-        // auto remove after a few seconds
-        setTimeout(()=> { try{ s.remove(); }catch(e){} }, 4000);
+        setTimeout(()=> { try{ s.remove(); } catch(e){} }, 3800);
       }catch(e){ log('pop error', e); }
     }, POP_DELAY_MS);
   }
@@ -162,77 +165,67 @@
 
   function parseRows(values){
     if (!values || values.length < 2) return [];
-    // Normalize headers -> lowercased
     const headers = (values[0]||[]).map(h => (h||'').toString().toLowerCase().trim());
-    // Helper: find index for any candidate header name
-    const findIndex = (candidates) => {
-      for (let name of candidates){
-        const i = headers.indexOf(name);
+    const findIndex = (cands) => {
+      for (const c of cands){
+        const i = headers.indexOf(c);
         if (i !== -1) return i;
       }
       return -1;
     };
 
-    // Detect columns (flexible)
-    const idxTitle = findIndex(['title','name','video title','series','movie']) !== -1 ? findIndex(['title','name','video title','series','movie']) : 0;
-    const idxLinks = findIndex(['links','link','url','watch','watch link','video links','video']);
+    // detect common columns (flexible)
+    const idxTitle = findIndex(['title','name','video title','series','movie']); // if -1 we'll fallback to first textual
+    const idxTrailer = findIndex(['trailer','youtube','trailer link','trailer url']);
+    const idxWatch = findIndex(['watch','watch link','link','url','video url']);
     const idxPoster = findIndex(['poster','thumbnail','thumb','image','thumbnail url','poster url']);
     const idxDate = findIndex(['date','upload date','published','uploaded']);
     const idxTags = findIndex(['tags','tag','category','categories','genre']);
     const idxDesc = findIndex(['description','desc','summary','details']);
 
-    // If links column not found, try to detect any column containing typical URL patterns
     const rows = values.slice(1);
     const out = [];
     for (let r of rows){
       r = Array.isArray(r) ? r : [];
-      // build an object mapping header->value for convenience
-      const rowObj = {};
-      headers.forEach((h, i) => { rowObj[h || `c${i}`] = (r[i] || '').toString().trim(); });
-
-      // Title detection: first non-empty textual column if index 0 falsy
-      let title = (r[idxTitle] || '').toString().trim();
+      // find title
+      let title = '';
+      if (idxTitle !== -1) title = (r[idxTitle]||'').toString().trim();
       if (!title) {
-        // find first long text cell
+        // fallback: first non-url long text cell
         for (let i=0;i<r.length;i++){
-          const val = (r[i]||'').toString().trim();
-          if (val && val.length>3 && !val.includes('http')) { title = val; break; }
+          const cell = (r[i]||'').toString().trim();
+          if (cell && cell.length > 2 && !/https?:\/\//i.test(cell)) { title = cell; break; }
         }
       }
-      // Links: prefer the explicit links column else collect any URL-like cells
-      let links = [];
-      if (idxLinks !== -1 && r[idxLinks]) links = normalizeLinkList(r[idxLinks]);
-      else {
-        // scan row for any cell that looks like a link
-        for (let cell of r){
-          if (typeof cell === 'string' && /https?:\/\//i.test(cell)) {
-            const candidateLinks = normalizeLinkList(cell);
-            candidateLinks.forEach(l => { if(isPlayableLink(l)) links.push(l); });
+      // links: prefer trailer/watch combined columns
+      let combinedLinks = [];
+      if (idxTrailer !== -1 && r[idxTrailer]) combinedLinks = combinedLinks.concat(normalizeLinkList(r[idxTrailer]));
+      if (idxWatch !== -1 && r[idxWatch]) combinedLinks = combinedLinks.concat(normalizeLinkList(r[idxWatch]));
+      // else scan entire row for any URLs
+      if (!combinedLinks.length){
+        for (const cell of r){
+          if (typeof cell === 'string' && /https?:\/\//i.test(cell)){
+            normalizeLinkList(cell).forEach(l => { if (isPlayableLink(l)) combinedLinks.push(l); });
           }
         }
       }
-      // Remove duplicates
-      links = Array.from(new Set(links));
+      // dedupe
+      combinedLinks = Array.from(new Set(combinedLinks));
 
-      // Poster detection
-      let poster = (idxPoster !== -1 && r[idxPoster]) ? r[idxPoster].toString().trim() : '';
-      // tags/date/desc
-      const tags = (idxTags !== -1 && r[idxTags]) ? r[idxTags].toString().trim() : '';
+      // poster (manual)
+      const poster = (idxPoster !== -1 && r[idxPoster]) ? r[idxPoster].toString().trim() : '';
       const date = (idxDate !== -1 && r[idxDate]) ? r[idxDate].toString().trim() : '';
+      const tags = (idxTags !== -1 && r[idxTags]) ? r[idxTags].toString().trim() : '';
       const desc = (idxDesc !== -1 && r[idxDesc]) ? r[idxDesc].toString().trim() : '';
 
-      // If no playable link, skip row
-      if (!links.length) continue;
+      if (!combinedLinks.length) continue; // skip rows without playable link
 
-      // Create normalized id
-      const idBase = title ? slugify(title) : 'untitled';
-      const id = `${idBase}|${encodeURIComponent(links[0]||Math.random().toString(36).slice(2,8))}`;
-
+      const id = `${slugify(title || 'untitled')}-${encodeURIComponent(combinedLinks[0]||Math.random().toString(36).slice(2,8))}`;
       out.push({
         id,
         title: title || 'Untitled',
-        links,
-        poster,
+        links: combinedLinks,
+        poster: poster || '',
         date,
         tags,
         description: desc || ''
@@ -241,7 +234,7 @@
     return out;
   }
 
-  // ---------------- RENDERING ----------------
+  // ---------------- RENDER / UI ----------------
   function renderRandom(){
     const g = qs('#randomGrid');
     if (!g) return;
@@ -249,45 +242,45 @@
     const pool = items.slice();
     const picks = [];
     while (picks.length < RANDOM_COUNT && pool.length) picks.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
-    for (const it of picks){
-      const card = document.createElement('article');
-      card.className = 'card';
-      card.dataset.id = it.id;
-      card.dataset.watch = it.links[0] || '';
+    picks.forEach(it => {
       const thumb = makeThumbnail(it);
-      card.innerHTML = `
-        <a href="watch.html?url=${encodeURIComponent(it.links.join(','))}" class="card-link" rel="noopener">
-          <img class="thumb loading-lazy" data-src="${escapeHtml(thumb)}" alt="${escapeHtml(it.title)}">
-          <div class="meta"><div class="video-title">${escapeHtml(it.title)}</div></div>
-        </a>
+      const a = document.createElement('a');
+      a.href = `watch.html?url=${encodeURIComponent(it.links.join(','))}`;
+      a.rel = 'noopener';
+      a.className = 'card card-random';
+      a.innerHTML = `
+        <img class="thumb loading-lazy" data-src="${escapeHtml(thumb)}" alt="${escapeHtml(it.title)}">
+        <div class="meta"><div class="video-title">${escapeHtml(it.title)}</div></div>
       `;
-      card.addEventListener('click', (e) => {
+      a.addEventListener('click', (e)=>{
         if (!e.ctrlKey && !e.metaKey && !e.shiftKey){ e.preventDefault(); triggerAdThenOpenModal(it); }
       });
-      g.appendChild(card);
-    }
+      g.appendChild(a);
+    });
     lazyInit();
   }
 
-  function renderLatest(page=1){
+  function renderLatest(page = 1){
     const list = qs('#latestList');
     if (!list) return;
     list.innerHTML = '';
 
     const total = filteredItems.length;
     const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
-    page = Math.min(Math.max(1, page), totalPages);
+    if (page < 1) page = 1;
+    if (page > totalPages) page = totalPages;
     currentPage = page;
 
     const start = (page - 1) * PER_PAGE;
     const slice = filteredItems.slice(start, start + PER_PAGE);
-    for (const it of slice){
+
+    slice.forEach(it => {
+      const thumb = makeThumbnail(it);
       const div = document.createElement('div');
       div.className = 'card latest-card';
       div.dataset.id = it.id;
       div.dataset.watch = it.links[0] || '';
       div.dataset.title = it.title || '';
-      const thumb = makeThumbnail(it);
       div.innerHTML = `
         <a class="card-link" href="watch.html?url=${encodeURIComponent(it.links.join(','))}" rel="noopener">
           <img class="thumb loading-lazy" data-src="${escapeHtml(thumb)}" alt="${escapeHtml(it.title)}">
@@ -303,7 +296,7 @@
         </a>
       `;
       list.appendChild(div);
-    }
+    });
 
     renderPagination(totalPages, page);
     lazyInit();
@@ -324,51 +317,62 @@
     if (totalPages <= 1) return;
 
     const createBtn = (txt, cb, cls='page-btn') => {
-      const b = document.createElement('button'); b.className = cls; b.textContent = txt;
-      b.addEventListener('click', cb); return b;
+      const b = document.createElement('button');
+      b.className = cls;
+      b.textContent = txt;
+      b.addEventListener('click', cb);
+      return b;
     };
 
-    if (page > 1) pager.appendChild(createBtn('« Prev', () => changePage(page-1)));
+    if (page > 1) pager.appendChild(createBtn('« Prev', () => changePage(page - 1)));
     const windowSize = 5;
     const half = Math.floor(windowSize/2);
     let start = Math.max(1, page - half);
     let end = Math.min(totalPages, start + windowSize - 1);
     if (end - start + 1 < windowSize) start = Math.max(1, end - windowSize + 1);
     for (let i = start; i <= end; i++){
-      const b = createBtn(i, () => changePage(i), 'page-num page-btn' + (i===page ? ' active' : ''));
-      pager.appendChild(b);
+      const cls = 'page-num page-btn' + (i === page ? ' active' : '');
+      pager.appendChild(createBtn(i, () => changePage(i), cls));
     }
-    if (page < totalPages) pager.appendChild(createBtn('Next »', () => changePage(page+1)));
+    if (page < totalPages) pager.appendChild(createBtn('Next »', () => changePage(page + 1)));
   }
 
   function changePage(page){
     renderLatest(page);
-    const sec = qs('#latestSection');
-    if (sec) window.scrollTo({ top: sec.offsetTop-20, behavior:'smooth' });
+    const latestSection = qs('#latestSection');
+    if (latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' });
     openPopUnder();
   }
 
   function attachLatestListeners(){
-    qsa('.preview-btn').forEach(btn => { btn.removeEventListener('click', onPreviewClick); btn.addEventListener('click', onPreviewClick); });
-    qsa('.watch-btn').forEach(btn => { btn.removeEventListener('click', onWatchClick); btn.addEventListener('click', onWatchClick); });
-    qsa('.tag-btn').forEach(t => { t.removeEventListener('click', onTagClick); t.addEventListener('click', onTagClick); });
+    qsa('#latestList .preview-btn').forEach(btn => {
+      btn.removeEventListener('click', onPreviewClick);
+      btn.addEventListener('click', onPreviewClick);
+    });
+    qsa('#latestList .watch-btn').forEach(btn => {
+      btn.removeEventListener('click', onWatchClick);
+      btn.addEventListener('click', onWatchClick);
+    });
+    qsa('.tag-btn').forEach(tagbtn => {
+      tagbtn.removeEventListener('click', onTagClick);
+      tagbtn.addEventListener('click', onTagClick);
+    });
   }
 
   function onPreviewClick(e){
-    e.stopPropagation(); e.preventDefault();
     const id = e.currentTarget.dataset.id;
     const it = items.find(x => x.id === id) || filteredItems.find(x => x.id === id);
-    if (it) triggerAdThenOpenModal(it);
+    if (it) { e.stopPropagation(); e.preventDefault(); triggerAdThenOpenModal(it); }
   }
+
   function onWatchClick(e){
-    e.stopPropagation(); e.preventDefault();
     const url = e.currentTarget.dataset.url;
-    if (url) openWatchPage(url);
+    if (url){ e.stopPropagation(); e.preventDefault(); openWatchPage(url); }
   }
+
   function onTagClick(e){
-    e.stopPropagation(); e.preventDefault();
     const tag = e.currentTarget.dataset.tag;
-    applyTagFilter(tag);
+    if (tag){ e.stopPropagation(); e.preventDefault(); applyTagFilter(tag); }
   }
 
   // ---------------- SEARCH & FILTER ----------------
@@ -392,10 +396,10 @@
     renderLatest(1);
   }, 220);
 
-  // ---------------- MODAL & PLAYER ----------------
+  // ---------------- MODAL PREVIEW & WATCH ----------------
   function triggerAdThenOpenModal(it){
     openPopUnder();
-    setTimeout(()=> openPlayerModal(it), 160);
+    setTimeout(()=> openPlayerModal(it), 150);
   }
 
   function openPlayerModal(it){
@@ -403,22 +407,20 @@
     const pWrap = qs('#modalPlayerWrap');
     const titleEl = qs('#modalVideoTitle');
     const descEl = qs('#modalVideoDescription');
-    const controlsContainer = qs('#modalControlsContainer');
+    const controls = qs('#modalControlsContainer');
 
     if (!modal || !pWrap || !titleEl) {
-      openWatchPage(it.links[0]||'');
+      openWatchPage(it.links[0] || '');
       return;
     }
 
     titleEl.textContent = it.title || 'Video';
     if (descEl) descEl.textContent = it.description || '';
 
-    // inject schema
     injectVideoSchema(it);
 
-    // embed url detection (prefer first playable)
     const playable = it.links.find(l => isPlayableLink(l));
-    const embedUrl = toEmbedUrl(playable || '');
+    const embedUrl = toEmbedUrlForModal(playable || '');
     pWrap.innerHTML = '';
     if (embedUrl){
       if (embedUrl.match(/\.mp4($|\?)/i)){
@@ -438,23 +440,23 @@
       pWrap.innerHTML = `<div style="padding:60px 20px;text-align:center;color:#9aa4b2">Player not available for this source.</div>`;
     }
 
-    // controls: main watch + share
-    const watchUrl = encodeURIComponent(it.links.join(','));
-    if (controlsContainer) {
-      controlsContainer.innerHTML = `
+    // controls
+    const watchUrl = it.links.join(',');
+    if (controls){
+      controls.innerHTML = `
         <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">
-          <button class="btn watch-btn-modal" data-url="${watchUrl}">Open in Player</button>
-          <button class="btn" id="modalShareBtn">🔗 Share</button>
+          <button class="btn watch-btn-modal" data-url="${escapeHtml(encodeURIComponent(watchUrl))}" style="min-width:150px">Open in Player</button>
+          <button class="btn" id="modalShareBtn" style="min-width:150px">🔗 Share</button>
         </div>
       `;
-      qs('.watch-btn-modal')?.addEventListener('click', (e)=> {
-        const url = decodeURIComponent(e.currentTarget.dataset.url||'');
+      qs('.watch-btn-modal')?.addEventListener('click', (e) => {
+        const url = decodeURIComponent(e.currentTarget.dataset.url || '');
         openWatchPage(url);
       });
-      qs('#modalShareBtn')?.addEventListener('click', ()=> {
+      qs('#modalShareBtn')?.addEventListener('click', () => {
         const shareUrl = `${location.origin}${location.pathname}#v=${encodeURIComponent(it.id)}`;
         const text = `Watch "${it.title}" on Dareloom Hub\n${shareUrl}`;
-        if (navigator.share) navigator.share({title: it.title, text, url: shareUrl}).catch(()=>{});
+        if (navigator.share) navigator.share({ title: it.title, text, url: shareUrl }).catch(()=>{});
         else navigator.clipboard?.writeText(text).then(()=> alert('Link copied to clipboard')).catch(()=> prompt('Copy link:', shareUrl));
       });
     }
@@ -462,7 +464,7 @@
     modal.style.display = 'flex';
     modal.setAttribute('aria-hidden','false');
     document.body.style.overflow = 'hidden';
-    try{ history.pushState({dareloomModal: it.id}, '', '#'+encodeURIComponent(it.id)); } catch(e){}
+    try{ history.pushState({ dareloomModal: it.id }, '', '#'+encodeURIComponent(it.id)); } catch(e){}
   }
 
   function closePlayerModal(){
@@ -492,7 +494,9 @@
     setTimeout(()=> {
       try{
         let final = target;
-        // convert /v/ to /e/ for streamtape
+        // if we received multiple links comma-separated, use the first playable one
+        if (final.includes(',')) final = final.split(',')[0];
+        // convert /v/ -> /e/ for streamtape for better embedding
         if (final.includes('/v/')){
           const m = final.match(/\/v\/([0-9A-Za-z_-]+)/);
           if (m && m[1]) final = `https://streamtape.com/e/${m[1]}/`;
@@ -505,20 +509,20 @@
     }, 120);
   }
 
-  // ---------------- Schema injection ----------------
+  // ---------------- SCHEMA (VideoObject) ----------------
   function injectVideoSchema(it){
     try{
       const json = {
-        "@context":"https://schema.org",
-        "@type":"VideoObject",
+        "@context": "https://schema.org",
+        "@type": "VideoObject",
         "name": it.title || 'Video',
         "description": it.description || (it.title || '') + ' — Watch on Dareloom Hub',
         "thumbnailUrl": [ makeThumbnail(it) ],
         "uploadDate": it.date || undefined,
-        "contentUrl": it.links && it.links[0] ? it.links[0] : undefined,
+        "contentUrl": (it.links && it.links[0]) ? it.links[0] : undefined,
         "url": `${location.origin}${location.pathname}#v=${encodeURIComponent(it.id)}`
       };
-      const old = qs('script.application-ld-json.dareloom-video');
+      const old = qs('script[type="application/ld+json"].dareloom-video');
       if (old) old.remove();
       const s = document.createElement('script');
       s.type = 'application/ld+json';
@@ -533,7 +537,7 @@
     const imgs = Array.from(document.querySelectorAll('img[data-src], img.loading-lazy'));
     if (!imgs.length) return;
     if ('IntersectionObserver' in window){
-      if (!_lazyObserver) {
+      if (!_lazyObserver){
         _lazyObserver = new IntersectionObserver((entries, obs) => {
           entries.forEach(ent => {
             if (ent.isIntersecting){
@@ -553,9 +557,12 @@
   }
 
   // ---------------- UTIL ----------------
-  function updateCount(n){ const c = qs('#count'); if (c) c.textContent = `${n} items`; }
+  function updateCount(n){
+    const c = qs('#count');
+    if (c) c.textContent = `${n} items`;
+  }
 
-  // Global click delegation for preview/watch
+  // Delegated click handlers for dynamically created buttons
   document.addEventListener('click', (e) => {
     const preview = e.target.closest('.preview-btn');
     if (preview){
@@ -567,48 +574,49 @@
     }
     const watch = e.target.closest('.watch-btn');
     if (watch && watch.dataset.url){
-      openWatchPage(watch.dataset.url); e.preventDefault();
+      openWatchPage(watch.dataset.url);
+      e.preventDefault();
     }
   });
 
-  // extra: rate-limited pop for many interactions
+  // rate-limited pop trigger on many interactions
   document.addEventListener('click', (e) => {
     const t = e.target.closest('.watch-btn, .preview-btn, .card, .tag-btn, .page-btn, .page-num, .card-link');
     if (t) openPopUnder();
   }, { passive: true });
 
-  // ---------------- BOOT ----------------
-  async function loadAll(noCache=false){
-    const raw = await fetchSheet(noCache);
+  // ---------------- BOOT / INIT ----------------
+  async function loadAll(){
+    log('loading sheet...');
+    const raw = await fetchSheet();
     const parsed = parseRows(raw);
-    // sort: try by date else keep sheet order reversed so top rows are newest
+
+    // sort new -> old. If date exists try to parse it else keep sheet order reversed
     parsed.forEach(p => p._sortDate = p.date ? Date.parse(p.date) || 0 : 0);
     parsed.sort((a,b) => (b._sortDate || 0) - (a._sortDate || 0));
     const allZero = parsed.every(p => !p._sortDate);
     items = allZero ? parsed.reverse() : parsed.slice();
     filteredItems = items.slice();
 
+    log('items loaded', items.length);
     updateCount(items.length);
     renderRandom();
     renderLatest(1);
 
     const s = qs('#searchInput');
-    if (s) s.addEventListener('input', (ev)=> debouncedSearch(ev.target.value));
+    if (s) s.addEventListener('input', (ev) => { debouncedSearch(ev.target.value); });
 
-    // wire modal close button if exists
     qs('#modalCloseBtn')?.addEventListener('click', closePlayerModal);
 
-    // click outside modal to close
     const modal = qs('#videoModal');
-    if (modal) modal.addEventListener('click', (ev)=>{ if (ev.target === modal) closePlayerModal(); });
+    if (modal){
+      modal.addEventListener('click', (ev) => { if (ev.target === modal) closePlayerModal(); });
+    }
 
-    // lazy init first batch
     lazyInit();
-
-    // auto pop after a small delay (not immediate)
     window.addEventListener('load', ()=> setTimeout(()=> openPopUnder(), INITIAL_AUTO_POP_DELAY), { once:true });
 
-    // if URL hash references a video id, open modal
+    // open modal if hash points to a video
     const hash = decodeURIComponent(location.hash.replace('#',''));
     if (hash){
       const it = items.find(x => x.id === hash);
@@ -616,7 +624,7 @@
     }
   }
 
-  // expose functions for debugging & manual reload
+  // expose helpers for debugging & manual reload
   window._dareloom = window._dareloom || {};
   window._dareloom.openPlayer = (idOrObj) => {
     if (!idOrObj) return;
@@ -632,4 +640,3 @@
   loadAll().catch(err => console.error('boot error', err));
 
 })();
-    
