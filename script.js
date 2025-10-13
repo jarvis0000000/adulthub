@@ -174,9 +174,14 @@
     };
 
     // detect common columns (flexible)
-    const idxTitle = findIndex(['title','name','video title','series','movie']); // if -1 we'll fallback to first textual
+    let idxTitle = findIndex(['title','name','video title','series','movie']); // if -1 we'll fallback to first textual
+    let idxWatch = findIndex(['watch','watch link','link','url','video url']);
+    
+    // Fallback Fix: Agar headers nahi milte hain, toh assume karo ki Title Column A (index 0) hai aur Watch Column B (index 1) hai.
+    if (idxTitle === -1) idxTitle = 0;
+    if (idxWatch === -1) idxWatch = 1;
+
     const idxTrailer = findIndex(['trailer','youtube','trailer link','trailer url']);
-    const idxWatch = findIndex(['watch','watch link','link','url','video url']);
     const idxPoster = findIndex(['poster','thumbnail','thumb','image','thumbnail url','poster url']);
     const idxDate = findIndex(['date','upload date','published','uploaded']);
     const idxTags = findIndex(['tags','tag','category','categories','genre']);
@@ -491,7 +496,7 @@
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closePlayerModal(); });
   window.addEventListener('popstate', () => { const modal = qs('#videoModal'); if (modal && modal.style.display === 'flex') closePlayerModal(); });
 
-// ---------------- WATCH PAGE OPEN ----------------
+  // ---------------- WATCH PAGE OPEN ----------------
   function openWatchPage(target){
     if (!target) return;
     openPopUnder();
