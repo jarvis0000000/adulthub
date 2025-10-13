@@ -35,12 +35,12 @@ return (s||'').toString()
 .replace(/</g,'<')
 .replace(/>/g,'>')
 .replace(/"/g,'"')
-.replace(/'/g,''');
+.replace(/'/g,'\'');
 }
 
 function extractYouTubeID(url){
 if(!url) return null;
-const m = url.match(/(?:v=|youtu.be/|shorts/|embed/)([0-9A-Za-z_-]{11})/);
+const m = url.match(/(?:v=|youtu.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
 return m ? m[1] : null;
 }
 
@@ -48,7 +48,7 @@ function makeThumbnail(it){
 // prefer poster/thumbnail field, otherwise youtube from trailer/watch, otherwise placeholder
 if (it.poster && it.poster.trim()) return it.poster.trim();
 const y = extractYouTubeID(it.trailer || it.watch);
-if (y) return https://img.youtube.com/vi/${y}/hqdefault.jpg;
+if (y) return `https://img.youtube.com/vi/${y}/hqdefault.jpg`;
 return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
 
@@ -96,27 +96,23 @@ return -1;
 };
 
 // common header names to check
-const idxTitle = find(['title','name','video title']) !== -1 ? find(['title','name','video title']) : 0;
+const idxTitle = find(['title','name','video title']);
 const idxTrailer = find(['trailer','youtube','trailer link','trailer url']);
-const idxWatch = find(['watch','watch link','link','url','video url']) !== -1 ? find(['watch','watch link','link','url','video url']) : (find(['watch']) || 3);
+const idxWatch = find(['watch','watch link','link','url','video url']);
 const idxPoster = find(['poster','thumbnail','thumb','image','thumbnail url']);
 const idxDate = find(['date','upload date','published']);
 const idxCategory = find(['category','categories','tags','tag','genre']);
 const idxDesc = find(['description','desc','summary']);
 
 // If headers not found (or sparse), still treat row0 as header - fallback indices chosen conservatively (based on your sheet)
-// Based on earlier inspection we know Title at 0, Trailer at 2, Watch at 3 but we detect first if headers exist.
-// We'll use whichever index is sensible (if -1 use fallback)
-// Based on earlier inspection we know Title at 0, Trailer at 2, Watch at 3 but we detect first if headers exist.
-// We'll use whichever index is sensible (if -1 use fallback)
+// We use your custom indices here: Title=0 (A), Trailer=2 (C), Watch=6 (G), Category=20 (U)
 const TI = idxTitle !== -1 ? idxTitle : 0;
 const TR = idxTrailer !== -1 ? idxTrailer : 2;
-const WA = idxWatch !== -1 ? idxWatch : 6; // <-- Watch is now Index 6 (Column G)
+const WA = idxWatch !== -1 ? idxWatch : 6; // *** UPDATED for Column G
 const TH = idxPoster !== -1 ? idxPoster : -1;
 const DT = idxDate !== -1 ? idxDate : -1;
-const CA = idxCategory !== -1 ? idxCategory : 20; // <-- Category is now Index 20 (Column U)
+const CA = idxCategory !== -1 ? idxCategory : 20; // *** UPDATED for Column U
 const DE = idxDesc !== -1 ? idxDesc : -1;
-  
 
 const rows = values.slice(1);
 const out = [];
@@ -155,7 +151,7 @@ function renderTagsForItem(it){
 if (!it.category || !it.category.trim()) return '';
 // category may be comma-separated
 const parts = it.category.split(',').map(p => p.trim()).filter(Boolean);
-return parts.map(p => <button class="tag-btn" data-tag="${escapeHtml(p)}">#${escapeHtml(p)}</button>).join(' ');
+return parts.map(p => `<button class="tag-btn" data-tag="${escapeHtml(p)}">#${escapeHtml(p)}</button>`).join(' ');
 }
 
 function renderRandom(){
@@ -170,7 +166,7 @@ picks.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
 picks.forEach(it => {
 const card = document.createElement('div');
 card.className = 'card';
-card.innerHTML =   <img class="thumb" src="${escapeHtml(makeThumbnail(it))}" loading="lazy" alt="${escapeHtml(it.title)}">   <div class="meta"><h4>${escapeHtml(it.title)}</h4></div>  ;
+card.innerHTML = `<img class="thumb" src="${escapeHtml(makeThumbnail(it))}" loading="lazy" alt="${escapeHtml(it.title)}"> <div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
 card.addEventListener('click', ()=> triggerAdThenOpenModal(it));
 g.appendChild(card);
 });
@@ -194,7 +190,7 @@ slice.forEach(it => {
 const div = document.createElement('div');
 div.className = 'latest-item';
 const thumb = makeThumbnail(it);
-div.innerHTML =   <img class="latest-thumb" src="${escapeHtml(thumb)}" loading="lazy" alt="${escapeHtml(it.title)}">   <div class="latest-info">   <div style="font-weight:700">${escapeHtml(it.title)}</div>   <div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date || '')}</div>   <div class="tag-container" style="margin-top:6px">${renderTagsForItem(it)}</div>   <div style="margin-top:8px">   <button class="btn preview-btn" data-id="${escapeHtml(it.id)}">Preview</button>   <button class="watch-btn" data-url="${escapeHtml(it.watch || it.trailer)}">Watch</button>   </div>   </div>  ;
+div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(thumb)}" loading="lazy" alt="${escapeHtml(it.title)}"> <div class="latest-info"> <div style="font-weight:700">${escapeHtml(it.title)}</div> <div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date || '')}</div> <div class="tag-container" style="margin-top:6px">${renderTagsForItem(it)}</div> <div style="margin-top:8px"> <button class="btn preview-btn" data-id="${escapeHtml(it.id)}">Preview</button> <button class="watch-btn" data-url="${escapeHtml(it.watch || it.trailer)}">Watch</button> </div> </div>`;
 list.appendChild(div);
 });
 
@@ -357,7 +353,7 @@ descEl.textContent = it.description || '';
 const embedUrl = toEmbedUrlForModal(it.trailer || it.watch);
 pWrap.innerHTML = '';
 if (embedUrl){
-if (embedUrl.match(/.mp4($|?)/i)){
+if (embedUrl.match(/.mp4($|\?)/i)){
 const v = document.createElement('video');
 v.controls = true; v.autoplay = true; v.muted = false; v.playsInline = true;
 v.src = embedUrl;
@@ -372,7 +368,7 @@ iframe.style.width = '100%'; iframe.style.height = '420px'; iframe.style.border 
 pWrap.appendChild(iframe);
 }
 } else {
-pWrap.innerHTML = <div style="padding:80px 20px;text-align:center;color:var(--muted)">Trailer not available for embed.</div>;
+pWrap.innerHTML = `<div style="padding:80px 20px;text-align:center;color:var(--muted)">Trailer not available for embed.</div>`;
 }
 
 // controls: Watch (open watch.html) + Telegram/Stream buttons if link types detected
@@ -381,20 +377,20 @@ let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-conte
 const watchUrl = it.watch || it.trailer || '';
 
 // Open in Player button (main action)
-html += <button class="btn watch-btn-modal" data-url="${escapeHtml(watchUrl)}" style="min-width: 150px;">Open in Player</button>;
+html += `<button class="btn watch-btn-modal" data-url="${escapeHtml(watchUrl)}" style="min-width: 150px;">Open in Player</button>`;
 
 // If Streamtape link present, add a direct streamtape button
 if ((watchUrl||'').includes('streamtape.com') || (watchUrl||'').includes('/v/')){
-html += <button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()" style="min-width: 150px;">Open Streamtape</button>;
+html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()" style="min-width: 150px;">Open Streamtape</button>`;
 }
 
 // If telegram link
 if ((watchUrl||'').includes('t.me') || (watchUrl||'').includes('telegram')){
-html += <button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()" style="min-width: 150px;">Open Telegram</button>;
+html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()" style="min-width: 150px;">Open Telegram</button>`;
 }
 
 // share button
-html += <button class="btn" id="modalShareBtn" style="min-width: 150px;">🔗 Share</button>;
+html += `<button class="btn" id="modalShareBtn" style="min-width: 150px;">🔗 Share</button>`;
 
 html += '</div>'; // Close the flex container
 controls.innerHTML = html;
@@ -405,8 +401,8 @@ document.body.style.overflow = 'hidden';
 
 // bind modal control events
 qs('#modalShareBtn')?.addEventListener('click', ()=> {
-const shareUrl = ${window.location.origin}${window.location.pathname}#v=${encodeURIComponent(it.id)};
-const text = 🔥 Watch "${it.title}" on Dareloom Hub\n${shareUrl};
+const shareUrl = `${window.location.origin}${window.location.pathname}#v=${encodeURIComponent(it.id)}`;
+const text = `🔥 Watch "${it.title}" on Dareloom Hub\n${shareUrl}`;
 if (navigator.share) navigator.share({ title: it.title, text, url: shareUrl }).catch(()=>{});
 else navigator.clipboard.writeText(text).then(()=> alert("Link copied to clipboard")).catch(()=> prompt("Copy link:", shareUrl));
 });
@@ -432,20 +428,20 @@ if (controls) controls.innerHTML = '';
 function toEmbedUrlForModal(url){
 if (!url) return '';
 const y = extractYouTubeID(url);
-if (y) return https://www.youtube.com/embed/${y}?autoplay=1&rel=0;
+if (y) return `https://www.youtube.com/embed/${y}?autoplay=1&rel=0`;
 if (url.includes('youtube.com/embed')) return url;
 if (url.match(/drive.google.com/)){
 const m = url.match(/[-\w]{25,}/);
-if (m) return https://drive.google.com/file/d/${m[0]}/preview;
+if (m) return `https://drive.google.com/file/d/${m[0]}/preview`;
 }
 if (url.includes('streamtape.com')){
 if (url.includes('/v/')){
 const id = url.split('/v/')[1]?.split('/')[0];
-if (id) return https://streamtape.com/e/${id}/;
+if (id) return `https://streamtape.com/e/${id}/`;
 }
 if (url.includes('/e/')) return url;
 }
-if (url.match(/.mp4($|?)/i)) return url;
+if (url.match(/.mp4($|\?)/i)) return url;
 return '';
 }
 
@@ -458,10 +454,10 @@ try{
 let final = targetUrl;
 // convert streamtape /v/ to /e/ for better embedding in watch page
 if (final.includes('/v/')){
-const m = final.match(//v/([0-9A-Za-z_-]+)/);
-if (m && m[1]) final = https://streamtape.com/e/${m[1]}/;
+const m = final.match(/\/v\/([0-9A-Za-z_-]+)\//);
+if (m && m[1]) final = `https://streamtape.com/e/${m[1]}/`;
 }
-const watchPage = watch.html?url=${encodeURIComponent(final)};
+const watchPage = `watch.html?url=${encodeURIComponent(final)}`;
 const w = window.open(watchPage,'_blank');
 if (!w || w.closed || typeof w.closed === 'undefined'){
 alert("Please allow pop-ups to open the link in a new tab!");
@@ -522,7 +518,7 @@ window.addEventListener('load', ()=> setTimeout(()=> openAdsterraPop(), INITIAL_
 // update item count display
 function updateCount(n){
 const c = qs('#count');
-if (c) c.textContent = ${n} items;
+if (c) c.textContent = `${n} items`;
 }
 
 // search wrapper calls doSearch (keeps names consistent)
@@ -577,5 +573,4 @@ if (target) openAdsterraPop();
 
 // start
 loadAll();
-
   
