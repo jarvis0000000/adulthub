@@ -1,11 +1,23 @@
 // script.js — Dareloom Hub (Complete, auto-thumbnail enabled)
-// 2025-10-13 (updated: robust header detection, multiple-links support)
+// 2025-10-13 (final ready-to-use)
+// Features:
+// - Flexible Google Sheets parsing (any column order)
+// - Auto-detect video links (Streamtape /v/ , YouTube, Drive, MP4)
+// - Auto-thumbnail generation (YouTube & Streamtape get priority)
+// - Caching (localStorage) with TTL
+// - Pagination (new -> old), search, tags, category filter
+// - Modal preview & watch page handling
+// - Injects VideoObject JSON-LD for each open video
+// - Non-blocking ad popunder with cooldown
+// - Lazy image loading (IntersectionObserver)
+// - Debug hooks & reload
 
 (() => {
   'use strict';
 
   // ---------------- CONFIG ----------------
-  const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWzWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
+  // FIX 1: Sheet tab name 'Sheet1' ko 'Full%20Series' se badla gaya hai.
+  const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Full%20Series?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
   const PER_PAGE = 6;
   const RANDOM_COUNT = 4;
 
@@ -54,10 +66,13 @@
 
   function isPlayableLink(url){
     if(!url) return false;
+    // Note: Streamtape '/v/' is not directly playable in modal, but we include it to prioritize YouTube/MP4
     return /(streamtape\.com|filemoon|dood\.|mixdrop|vidhide|youtube\.com|youtu\.be|drive\.google\.com|\.mp4)/i.test(url);
   }
 
   // ---------------- AUTO THUMBNAIL (YouTube + Streamtape /v/) ----------------
+  // Streamtape: source format used: https://streamtape.com/v/ABCDEF1234/...
+  // For streamtape thumbnail we attempt a public-ish pattern. Some hosts block hotlinking; fallback used.
   function makeThumbnail(item){
     // 1) explicit poster / thumbnail column (user-provided)
     if (item.poster && item.poster.toString().trim()) return item.poster.toString().trim();
@@ -73,7 +88,7 @@
       const m = l.match(/streamtape\.com\/[ve]\/([^/?#]+)/i);
       if (m && m[1]){
         const id = m[1];
-        // try a commonly-used streamtape image endpoint (may be blocked on some hosts)
+        // streamtape thumbnail approach: try known endpoints
         return `https://i.streamtape.to/vi/${id}.jpg`;
       }
     }
@@ -88,6 +103,7 @@
     const y = extractYouTubeID(url);
     if (y) return `https://www.youtube.com/embed/${y}?autoplay=1&rel=0`;
     if (url.includes('youtube.com/embed')) return url;
+    // google drive
     if (/drive\.google\.com/.test(url)){
       const match = url.match(/[-\w]{25,}/);
       if (match) return `https://drive.google.com/file/d/${match[0]}/preview`;
@@ -100,7 +116,9 @@
       }
       if (url.includes('/e/')) return url;
     }
+    // direct mp4
     if (url.match(/\.mp4($|\?)/i)) return url;
+    // otherwise return original (some hosts provide embed urls)
     return url;
   }
 
@@ -145,28 +163,9 @@
     }
   }
 
-  // ---------------- SMART PARSE: header auto-detect or data-only sheet ----------------
   function parseRows(values){
-    if (!values || !values.length) return [];
-
-    // Heuristic: check first row for header-like strings
-    const firstRow = values[0].map(c => (c||'').toString().toLowerCase()).join(' ');
-    const headerWords = ['title','watch','link','url','trailer','thumbnail','poster','date','tags','description','video'];
-    const hasHeader = headerWords.some(w => firstRow.indexOf(w) !== -1);
-
-    let headers = [];
-    let rows = [];
-
-    if (hasHeader){
-      headers = (values[0]||[]).map(h => (h||'').toString().toLowerCase().trim());
-      rows = values.slice(1);
-    } else {
-      // treat sheet as data-only (no header row). Create synthetic headers c0,c1,...
-      const maxCols = Math.max(...values.map(r => (r || []).length));
-      headers = Array.from({length: maxCols}, (_,i) => `c${i}`);
-      rows = values.slice(0); // include first row as data
-    }
-
+    if (!values || values.length < 2) return [];
+    const headers = (values[0]||[]).map(h => (h||'').toString().toLowerCase().trim());
     const findIndex = (cands) => {
       for (const c of cands){
         const i = headers.indexOf(c);
@@ -176,36 +175,45 @@
     };
 
     // detect common columns (flexible)
-    let idxTitle = findIndex(['title','name','video title','series','movie', 'c0']);
-    let idxWatch = findIndex(['watch','watch link','link','url','video url','c1']);
-
-    // If detection returned -1, fall back to common positions:
-    if (idxTitle === -1) idxTitle = 0;
-    if (idxWatch === -1) idxWatch = 1;
-
-    const idxTrailer = findIndex(['trailer','youtube','trailer link','trailer url']);
+    let idxTitle = findIndex(['title','name','video title','series','movie']); // if -1 we'll fallback to first textual
+    let idxTrailer = findIndex(['trailer','youtube','trailer link','trailer url']);
+    let idxWatch = findIndex(['watch','watch link','link','url','video url']);
     const idxPoster = findIndex(['poster','thumbnail','thumb','image','thumbnail url','poster url']);
     const idxDate = findIndex(['date','upload date','published','uploaded']);
-    const idxTags = findIndex(['tags','tag','category','categories','genre']);
+    let idxTags = findIndex(['tags','tag','category','categories','genre']);
     const idxDesc = findIndex(['description','desc','summary','details']);
+    
+    // --- FIX 2: Strong Fallback for user's Sheet Structure (A=0, C=2, G=6, U=20) ---
+    // Agar header row mostly khaali hai (jaisa ki screenshot mein dikha tha), toh hardcoded indices use karo.
+    const hasHeaders = headers.some(h => h.length > 1 && !/^\d+$/.test(h)); // Check if any header is meaningful
+    if (!hasHeaders) {
+        if (idxTitle === -1) idxTitle = 0;   // Column A -> Title
+        if (idxTrailer === -1) idxTrailer = 2; // Column C -> Trailer
+        if (idxWatch === -1) idxWatch = 6;   // Column G -> Watch Link
+        if (idxTags === -1) idxTags = 20;    // Column U -> Tags
+    }
+    // --- End FIX 2 ---
 
+
+    const rows = values.slice(1);
     const out = [];
     for (let r of rows){
       r = Array.isArray(r) ? r : [];
-      // collect title (fallback to any textual cell)
-      let title = (r[idxTitle] || '')?.toString().trim() || '';
-      if (!title){
+      // find title
+      let title = '';
+      if (idxTitle !== -1) title = (r[idxTitle]||'').toString().trim();
+      if (!title) {
+        // fallback: first non-url long text cell
         for (let i=0;i<r.length;i++){
           const cell = (r[i]||'').toString().trim();
           if (cell && cell.length > 2 && !/https?:\/\//i.test(cell)) { title = cell; break; }
         }
       }
-
-      // gather links: trailer first, then watch column, then scan row
+      // links: prefer trailer/watch combined columns
       let combinedLinks = [];
       if (idxTrailer !== -1 && r[idxTrailer]) combinedLinks = combinedLinks.concat(normalizeLinkList(r[idxTrailer]));
       if (idxWatch !== -1 && r[idxWatch]) combinedLinks = combinedLinks.concat(normalizeLinkList(r[idxWatch]));
-
+      // else scan entire row for any URLs
       if (!combinedLinks.length){
         for (const cell of r){
           if (typeof cell === 'string' && /https?:\/\//i.test(cell)){
@@ -213,10 +221,10 @@
           }
         }
       }
+      // dedupe
+      combinedLinks = Array.from(new Set(combinedLinks));
 
-      // dedupe and trim
-      combinedLinks = Array.from(new Set((combinedLinks || []).map(x => (x||'').toString().trim()).filter(Boolean)));
-
+      // poster (manual)
       const poster = (idxPoster !== -1 && r[idxPoster]) ? r[idxPoster].toString().trim() : '';
       const date = (idxDate !== -1 && r[idxDate]) ? r[idxDate].toString().trim() : '';
       const tags = (idxTags !== -1 && r[idxTags]) ? r[idxTags].toString().trim() : '';
@@ -235,7 +243,6 @@
         description: desc || ''
       });
     }
-
     return out;
   }
 
@@ -281,11 +288,11 @@
 
     slice.forEach(it => {
       const thumb = makeThumbnail(it);
-      const allLinks = it.links.join(',');
+      const allLinks = it.links.join(','); // <--- FIX 2: Saari links yahan define ki
       const div = document.createElement('div');
       div.className = 'card latest-card';
       div.dataset.id = it.id;
-      div.dataset.watch = allLinks;
+      div.dataset.watch = allLinks; // <--- FIX 2: data-watch mein saari links
       div.dataset.title = it.title || '';
       div.innerHTML = `
         <a class="card-link" href="watch.html?url=${encodeURIComponent(allLinks)}" rel="noopener">
@@ -296,8 +303,7 @@
             <div class="tag-container" style="margin-top:6px">${renderTagsForItem(it)}</div>
             <div style="margin-top:8px">
               <button class="btn preview-btn" data-id="${escapeHtml(it.id)}">Preview</button>
-              <button class="btn watch-btn" data-url="${escapeHtml(allLinks)}">Watch</button>
-            </div>
+              <button class="btn watch-btn" data-url="${escapeHtml(allLinks)}">Watch</button> </div>
           </div>
         </a>
       `;
@@ -373,6 +379,7 @@
 
   function onWatchClick(e){
     const url = e.currentTarget.dataset.url;
+    // FIX 2: Watch button ab saari links (comma separated) bhej raha hai
     if (url){ e.stopPropagation(); e.preventDefault(); openWatchPage(url); }
   }
 
@@ -428,8 +435,8 @@
     // Trailer/Preview ke liye YouTube link ko prioritize karo (if available)
     const isYoutube = (l) => /(youtube\.com|youtu\.be)/i.test(l);
     const trailerLink = it.links.find(isYoutube);
-    const playable = trailerLink || it.links.find(l => isPlayableLink(l));
-
+    const playable = trailerLink || it.links.find(l => isPlayableLink(l)); // Agar YouTube nahi hai, toh first playable link use karo
+    
     const embedUrl = toEmbedUrlForModal(playable || '');
     pWrap.innerHTML = '';
     if (embedUrl){
@@ -490,155 +497,151 @@
     try{ if (history.state && history.state.dareloomModal) history.back(); } catch(e){}
   }
 
-  document.addEventListener('click', (ev) => {
-    const modal = qs('#videoModal');
-    if (modal && ev.target === modal) closePlayerModal();
-  });
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closePlayerModal(); });
-  window.addEventListener('popstate', () => { const modal = qs('#videoModal'); if (modal && modal.style.display === 'flex') closePlayerModal(); });
+window.addEventListener('popstate', () => { const modal = qs('#videoModal'); if (modal && modal.style.display === 'flex') closePlayerModal(); });
 
-  // ---------------- WATCH PAGE OPEN ----------------
-  function openWatchPage(target){
-    if (!target) return;
-    openPopUnder();
-    setTimeout(()=> {
-      try{
-        const watchPage = `watch.html?url=${encodeURIComponent(target)}`;
-        const w = window.open(watchPage, '_blank');
-        if (!w || w.closed || typeof w.closed === 'undefined') alert('Please allow pop-ups to open watch page');
-        closePlayerModal();
-      }catch(e){ console.error(e); }
-    }, 120);
-  }
+// ---------------- WATCH PAGE OPEN ----------------
+function openWatchPage(target){
+if (!target) return;
+openPopUnder();
+setTimeout(()=> {
+try{
+// FIX 1: Target (saari links) ko bina modify kiye watch.html ko bhej rahe hain.
+const watchPage = `watch.html?url=${encodeURIComponent(target)}`;
+const w = window.open(watchPage, '_blank');
+if (!w || w.closed || typeof w.closed === 'undefined') alert('Please allow pop-ups to open watch page');
+closePlayerModal();
+}catch(e){ console.error(e); }
+}, 120);
+}
 
-  // ---------------- SCHEMA (VideoObject) ----------------
-  function injectVideoSchema(it){
-    try{
-      const json = {
-        "@context": "https://schema.org",
-        "@type": "VideoObject",
-        "name": it.title || 'Video',
-        "description": it.description || (it.title || '') + ' — Watch on Dareloom Hub',
-        "thumbnailUrl": [ makeThumbnail(it) ],
-        "uploadDate": it.date || undefined,
-        "contentUrl": (it.links && it.links[0]) ? it.links[0] : undefined,
-        "url": `${location.origin}${location.pathname}#v=${encodeURIComponent(it.id)}`
-      };
-      const old = qs('script[type="application/ld+json"].dareloom-video');
-      if (old) old.remove();
-      const s = document.createElement('script');
-      s.type = 'application/ld+json';
-      s.className = 'dareloom-video';
-      s.text = JSON.stringify(json);
-      document.head.appendChild(s);
-    }catch(e){ log('schema inject failed', e); }
-  }
+// ---------------- SCHEMA (VideoObject) ----------------
+function injectVideoSchema(it){
+try{
+const json = {
+"@context": "https://schema.org",
+"@type": "VideoObject",
+"name": it.title || 'Video',
+"description": it.description || (it.title || '') + ' — Watch on Dareloom Hub',
+"thumbnailUrl": [ makeThumbnail(it) ],
+"uploadDate": it.date || undefined,
+"contentUrl": (it.links && it.links[0]) ? it.links[0] : undefined,
+"url": `${location.origin}${location.pathname}#v=${encodeURIComponent(it.id)}`
+};
+const old = qs('script[type="application/ld+json"].dareloom-video');
+if (old) old.remove();
+const s = document.createElement('script');
+s.type = 'application/ld+json';
+s.className = 'dareloom-video';
+s.text = JSON.stringify(json);
+document.head.appendChild(s);
+}catch(e){ log('schema inject failed', e); }
+}
 
-  // ---------------- LAZY LOADER ----------------
-  function lazyInit(){
-    const imgs = Array.from(document.querySelectorAll('img[data-src], img.loading-lazy'));
-    if (!imgs.length) return;
-    if ('IntersectionObserver' in window){
-      if (!_lazyObserver){
-        _lazyObserver = new IntersectionObserver((entries, obs) => {
-          entries.forEach(ent => {
-            if (ent.isIntersecting){
-              const img = ent.target;
-              const src = img.getAttribute('data-src') || img.getAttribute('data-original');
-              if (src){ img.src = src; img.removeAttribute('data-src'); }
-              img.classList.remove('loading-lazy');
-              obs.unobserve(img);
-            }
-          });
-        }, { rootMargin: '200px' });
-      }
-      imgs.forEach(i => _lazyObserver.observe(i));
-    } else {
-      imgs.forEach(i => { const src = i.getAttribute('data-src')||i.getAttribute('data-original'); if (src) i.src = src; i.classList.remove('loading-lazy'); });
-    }
-  }
+// ---------------- LAZY LOADER ----------------
+function lazyInit(){
+const imgs = Array.from(document.querySelectorAll('img[data-src], img.loading-lazy'));
+if (!imgs.length) return;
+if ('IntersectionObserver' in window){
+if (!_lazyObserver){
+_lazyObserver = new IntersectionObserver((entries, obs) => {
+entries.forEach(ent => {
+if (ent.isIntersecting){
+const img = ent.target;
+const src = img.getAttribute('data-src') || img.getAttribute('data-original');
+if (src){ img.src = src; img.removeAttribute('data-src'); }
+img.classList.remove('loading-lazy');
+obs.unobserve(img);
+}
+});
+}, { rootMargin: '200px' });
+}
+imgs.forEach(i => _lazyObserver.observe(i));
+} else {
+imgs.forEach(i => { const src = i.getAttribute('data-src')||i.getAttribute('data-original'); if (src) i.src = src; i.classList.remove('loading-lazy'); });
+}
+}
 
-  // ---------------- UTIL ----------------
-  function updateCount(n){
-    const c = qs('#count');
-    if (c) c.textContent = `${n} items`;
-  }
+// ---------------- UTIL ----------------
+function updateCount(n){
+const c = qs('#count');
+if (c) c.textContent = `${n} items`;
+}
 
-  // Delegated click handlers for dynamically created buttons
-  document.addEventListener('click', (e) => {
-    const preview = e.target.closest('.preview-btn');
-    if (preview){
-      const id = preview.dataset.id;
-      if (id){
-        const it = items.find(x => x.id === id) || filteredItems.find(x => x.id === id);
-        if (it){ triggerAdThenOpenModal(it); e.preventDefault(); }
-      }
-    }
-    const watch = e.target.closest('.watch-btn');
-    if (watch && watch.dataset.url){
-      openWatchPage(watch.dataset.url);
-      e.preventDefault();
-    }
-  });
+// Delegated click handlers for dynamically created buttons
+document.addEventListener('click', (e) => {
+const preview = e.target.closest('.preview-btn');
+if (preview){
+const id = preview.dataset.id;
+if (id){
+const it = items.find(x => x.id === id) || filteredItems.find(x => x.id === id);
+if (it){ triggerAdThenOpenModal(it); e.preventDefault(); }
+}
+}
+const watch = e.target.closest('.watch-btn');
+if (watch && watch.dataset.url){
+openWatchPage(watch.dataset.url);
+e.preventDefault();
+}
+});
 
-  // rate-limited pop trigger on many interactions
-  document.addEventListener('click', (e) => {
-    const t = e.target.closest('.watch-btn, .preview-btn, .card, .tag-btn, .page-btn, .page-num, .card-link');
-    if (t) openPopUnder();
-  }, { passive: true });
+// rate-limited pop trigger on many interactions
+document.addEventListener('click', (e) => {
+const t = e.target.closest('.watch-btn, .preview-btn, .card, .tag-btn, .page-btn, .page-num, .card-link');
+if (t) openPopUnder();
+}, { passive: true });
 
-  // ---------------- BOOT / INIT ----------------
-  async function loadAll(){
-    log('loading sheet...');
-    const raw = await fetchSheet();
-    const parsed = parseRows(raw);
+// ---------------- BOOT / INIT ----------------
+async function loadAll(){
+log('loading sheet...');
+const raw = await fetchSheet();
+const parsed = parseRows(raw);
 
-    // sort new -> old. If date exists try to parse it else keep sheet order reversed
-    parsed.forEach(p => p._sortDate = p.date ? Date.parse(p.date) || 0 : 0);
-    parsed.sort((a,b) => (b._sortDate || 0) - (a._sortDate || 0));
-    const allZero = parsed.every(p => !p._sortDate);
-    items = allZero ? parsed.reverse() : parsed.slice();
-    filteredItems = items.slice();
+// sort new -> old. If date exists try to parse it else keep sheet order reversed  
+parsed.forEach(p => p._sortDate = p.date ? Date.parse(p.date) || 0 : 0);  
+parsed.sort((a,b) => (b._sortDate || 0) - (a._sortDate || 0));  
+const allZero = parsed.every(p => !p._sortDate);  
+items = allZero ? parsed.reverse() : parsed.slice();  
+filteredItems = items.slice();  
 
-    log('items loaded', items.length);
-    updateCount(items.length);
-    renderRandom();
-    renderLatest(1);
+log('items loaded', items.length);  
+updateCount(items.length);  
+renderRandom();  
+renderLatest(1);  
 
-    const s = qs('#searchInput');
-    if (s) s.addEventListener('input', (ev) => { debouncedSearch(ev.target.value); });
+const s = qs('#searchInput');  
+if (s) s.addEventListener('input', (ev) => { debouncedSearch(ev.target.value); });  
 
-    qs('#modalCloseBtn')?.addEventListener('click', closePlayerModal);
+qs('#modalCloseBtn')?.addEventListener('click', closePlayerModal);  
 
-    const modal = qs('#videoModal');
-    if (modal){
-      modal.addEventListener('click', (ev) => { if (ev.target === modal) closePlayerModal(); });
-    }
+const modal = qs('#videoModal');  
+if (modal){  
+  modal.addEventListener('click', (ev) => { if (ev.target === modal) closePlayerModal(); });  
+}  
 
-    lazyInit();
-    window.addEventListener('load', ()=> setTimeout(()=> openPopUnder(), INITIAL_AUTO_POP_DELAY), { once:true });
+lazyInit();  
+window.addEventListener('load', ()=> setTimeout(()=> openPopUnder(), INITIAL_AUTO_POP_DELAY), { once:true });  
 
-    // open modal if hash points to a video
-    const hash = decodeURIComponent(location.hash.replace('#',''));
-    if (hash){
-      const it = items.find(x => x.id === hash);
-      if (it) setTimeout(()=> triggerAdThenOpenModal(it), 400);
-    }
-  }
+// open modal if hash points to a video  
+const hash = decodeURIComponent(location.hash.replace('#',''));  
+if (hash){  
+  const it = items.find(x => x.id === hash);  
+  if (it) setTimeout(()=> triggerAdThenOpenModal(it), 400);  
+}
 
-  // expose helpers for debugging & manual reload
-  window._dareloom = window._dareloom || {};
-  window._dareloom.openPlayer = (idOrObj) => {
-    if (!idOrObj) return;
-    if (typeof idOrObj === 'string'){
-      const it = items.find(x => x.id === idOrObj) || filteredItems.find(x => x.id === idOrObj);
-      if (it) triggerAdThenOpenModal(it);
-    } else if (typeof idOrObj === 'object' && idOrObj.links) triggerAdThenOpenModal(idOrObj);
-  };
-  window._dareloom.reloadSheet = async (noCache=false) => { try{ const rows = await fetchSheet(noCache); const p = parseRows(rows); items = p; filteredItems = items.slice(); renderRandom(); renderLatest(1); }catch(e){console.error(e);} };
-  window._dareloom.setAdPop = (url) => { AD_POP = url; };
+}
 
-  // start
-  loadAll().catch(err => console.error('boot error', err));
+// expose helpers for debugging & manual reload
+window._dareloom = window._dareloom || {};
+window._dareloom.openPlayer = (idOrObj) => {
+if (!idOrObj) return;
+if (typeof idOrObj === 'string'){
+const it = items.find(x => x.id === idOrObj) || filteredItems.find(x => x.id === idOrObj);
+if (it) triggerAdThenOpenModal(it);
+} else if (typeof idOrObj === 'object' && idOrObj.links) triggerAdThenOpenModal(idOrObj);
+};
+window._dareloom.reloadSheet = async (noCache=false) => { try{ const rows = await fetchSheet(noCache); const p = parseRows(rows); items = p; filteredItems = items.slice(); renderRandom(); renderLatest(1); }catch(e){console.error(e);} };
+window._dareloom.setAdPop = (url) => { AD_POP = url; };
 
-})();
+// start
+loadAll().catch(err => console.error('boot error', err));
