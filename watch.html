@@ -79,7 +79,7 @@ const tgBtnWrap = document.getElementById("tgBtnWrap");
 const sugWrap = document.getElementById("suggestedWrap");
 const sugBox = document.getElementById("suggestedBox");
 
-// ✅ Auto Detect Host & Streamtape V/ to E/ Converter (FIX 3)
+// ✅ Auto Detect Host & Streamtape V/ to E/ Converter
 function detectPlayer(link){
   if(!link) return null;
 
@@ -120,7 +120,7 @@ if(raw){
 }
 
 // ✅ Suggested Random Video (from Sheet1)
-fetch('https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWzWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw')
+fetch('https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw')
 .then(res=>res.json())
 .then(data=>{
   const rows = data.values || [];
