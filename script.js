@@ -107,13 +107,16 @@ const idxDesc = find(['description','desc','summary']);
 // If headers not found (or sparse), still treat row0 as header - fallback indices chosen conservatively (based on your sheet)
 // Based on earlier inspection we know Title at 0, Trailer at 2, Watch at 3 but we detect first if headers exist.
 // We'll use whichever index is sensible (if -1 use fallback)
+// Based on earlier inspection we know Title at 0, Trailer at 2, Watch at 3 but we detect first if headers exist.
+// We'll use whichever index is sensible (if -1 use fallback)
 const TI = idxTitle !== -1 ? idxTitle : 0;
 const TR = idxTrailer !== -1 ? idxTrailer : 2;
-const WA = idxWatch !== -1 ? idxWatch : 3;
+const WA = idxWatch !== -1 ? idxWatch : 6; // <-- Watch is now Index 6 (Column G)
 const TH = idxPoster !== -1 ? idxPoster : -1;
 const DT = idxDate !== -1 ? idxDate : -1;
-const CA = idxCategory !== -1 ? idxCategory : -1;
+const CA = idxCategory !== -1 ? idxCategory : 20; // <-- Category is now Index 20 (Column U)
 const DE = idxDesc !== -1 ? idxDesc : -1;
+  
 
 const rows = values.slice(1);
 const out = [];
