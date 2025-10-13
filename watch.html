@@ -1,73 +1,139 @@
-<!DOCTYPE html>  <html lang="en">  
-<head>  
-<meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width,initial-scale=1.0">  
-<title>Now Watching - Dareloom Hub</title>  
-<style>  
-body,html{  
-  margin:0;padding:0;height:100%;  
-  background:#000;color:#fff;font-family:sans-serif;  
-  display:flex;flex-direction:column;align-items:center;  
-}  
-header{  
-  background:#111;padding:12px 0;text-align:center;  
-  font-size:22px;font-weight:bold;width:100%;  
-  box-shadow:0 2px 6px rgba(0,0,0,0.5);  
-}  
-iframe{  
-  width:100%;height:75vh;border:none;margin-top:10px;  
-}  
-.ad-box{  
-  margin:8px 0;  
-  width:100%;text-align:center;  
-}  
-.btn{  
-  background:#e91e63;color:#fff;border:none;  
-  padding:10px 20px;border-radius:8px;  
-  cursor:pointer;font-weight:bold;margin:15px 0;  
-}  
-footer{text-align:center;padding:10px;color:#aaa;}  
-</style>  
-</head>  
-<body>  
-<header>🎥 Dareloom Hub</header>  <div id="videoWrap"></div>  <!-- 🔸 Ad placement -->  <div class="ad-box">  
-  <script type="text/javascript">  
-    atOptions = {  
-      'key' : 'd1be46ed95d3e2db572824c531da5082',  
-      'format' : 'iframe',  
-      'height' : 90,  
-      'width' : 728,  
-      'params' : {}  
-    };  
-  </script>  
-  <script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>  
-</div>  <div id="tgBtnWrap"></div>  <footer>© Dareloom Hub</footer>  <script>  
-const params = new URLSearchParams(window.location.search);  
-let raw = params.get("url");  
-const videoWrap = document.getElementById("videoWrap");  
-const tgBtnWrap = document.getElementById("tgBtnWrap");  
-  
-// Extract both links (split by comma if multiple)  
-if(raw){  
-  const parts = decodeURIComponent(raw).split(",");  
-  let streamtape = parts.find(l => l.includes("streamtape.com/e/"));  
-  let telegram = parts.find(l => l.includes("t.me") || l.includes("telegram.me"));  
-  
-  // Streamtape player  
-  if(streamtape){  
-    videoWrap.innerHTML = `<iframe src="${streamtape.trim()}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>`;  
-  } else {  
-    videoWrap.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20px;'>⚠️ Streamtape video not found</h3>";  
-  }  
-  
-  // Telegram button  
-  if(telegram){  
-    tgBtnWrap.innerHTML = `<button class="btn" onclick="window.open('${telegram.trim()}', '_blank')">📥 Download from Telegram</button>`;  
-  }  
-  
-} else {  
-  videoWrap.innerHTML = "<h2 style='color:white;text-align:center;'>⚠️ No video link found</h2>";  
-}  
-</script>  </body>  
-</html>  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Now Watching - Dareloom Hub</title>
+<meta name="description" content="Watch latest videos on Dareloom Hub. Stream or download directly via Telegram.">
+<meta name="keywords" content="Dareloom, Dareloom Hub, streamtape, filemoon, doodstream, telegram movies, watch online, download movies">
+<link rel="canonical" href="https://dareloom.fun/watch.html">
+<meta property="og:title" content="Now Watching - Dareloom Hub">
+<meta property="og:description" content="Watch and download the latest videos directly on Dareloom Hub.">
+<meta property="og:type" content="video.other">
+<meta property="og:site_name" content="Dareloom Hub">
+<meta name="theme-color" content="#000">
 
+<style>
+body,html{
+  margin:0;padding:0;height:100%;
+  background:#000;color:#fff;font-family:sans-serif;
+  display:flex;flex-direction:column;align-items:center;
+}
+header{
+  background:#111;padding:12px 0;text-align:center;
+  font-size:22px;font-weight:bold;width:100%;
+  box-shadow:0 2px 6px rgba(0,0,0,0.5);
+}
+iframe{
+  width:100%;height:75vh;border:none;margin-top:10px;
+}
+.ad-box{margin:8px 0;width:100%;text-align:center;}
+.btn{
+  background:#e91e63;color:#fff;border:none;
+  padding:10px 20px;border-radius:8px;
+  cursor:pointer;font-weight:bold;margin:15px 0;
+}
+footer{text-align:center;padding:10px;color:#aaa;}
+.suggested{
+  width:95%;max-width:600px;background:#111;margin:15px auto;
+  border-radius:10px;padding:12px;text-align:center;
+  box-shadow:0 0 10px rgba(255,255,255,0.05);
+}
+.suggested a{
+  color:#e91e63;text-decoration:none;font-weight:bold;
+}
+</style>
+</head>
+<body>
+<header>🎥 Dareloom Hub</header>
+
+<div id="videoWrap"></div>
+
+<div class="ad-box">
+  <script type="text/javascript">
+    atOptions = {
+      'key' : 'd1be46ed95d3e2db572824c531da5082',
+      'format' : 'iframe',
+      'height' : 90,
+      'width' : 728,
+      'params' : {}
+    };
+  </script>
+  <script async type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>
+</div>
+
+<div id="tgBtnWrap"></div>
+
+<div id="suggestedWrap" class="suggested" style="display:none;">
+  <h3>🎬 You may also like</h3>
+  <div id="suggestedBox"></div>
+</div>
+
+<footer>© Dareloom Hub</footer>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const raw = params.get("url");
+const videoWrap = document.getElementById("videoWrap");
+const tgBtnWrap = document.getElementById("tgBtnWrap");
+const sugWrap = document.getElementById("suggestedWrap");
+const sugBox = document.getElementById("suggestedBox");
+
+// ✅ Auto Detect Host & Streamtape V/ to E/ Converter (FIX 3)
+function detectPlayer(link){
+  if(!link) return null;
+
+  // Streamtape v/ to e/ conversion for embedding
+  if(link.includes("streamtape.com/v/")){
+      const match = link.match(/\/v\/([0-9A-Za-z_-]+)/);
+      if(match && match[1]) return `https://streamtape.com/e/${match[1]}/`;
+  }
+  
+  if(link.includes("streamtape.com/e/")) return link;
+  if(link.includes("filemoon")) return link;
+  if(link.includes("dood.")) return link;
+  if(link.includes("mixdrop")) return link;
+  if(link.includes("vidhide")) return link;
+  return null;
+}
+
+if(raw){
+  const parts = decodeURIComponent(raw).split(",");
+  
+  // Find a playable link (will handle the Streamtape /v/ -> /e/ conversion)
+  const playerLink = parts.map(l => detectPlayer(l)).find(l => l) || null;
+  
+  // Find the Telegram link
+  const telegram = parts.find(l => l.includes("t.me") || l.includes("telegram.me"));
+
+  if(playerLink){
+    videoWrap.innerHTML = `<iframe src="${playerLink.trim()}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>`;
+  } else {
+    videoWrap.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20px;'>⚠️ No playable link found</h3>";
+  }
+
+  if(telegram){
+    tgBtnWrap.innerHTML = `<button class="btn" onclick="window.open('${telegram.trim()}', '_blank')">📥 Download from Telegram</button>`;
+  }
+} else {
+  videoWrap.innerHTML = "<h2 style='color:white;text-align:center;'>⚠️ No video link found</h2>";
+}
+
+// ✅ Suggested Random Video (from Sheet1)
+fetch('https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWzWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw')
+.then(res=>res.json())
+.then(data=>{
+  const rows = data.values || [];
+  // Assuming video link is in the second column (index 1)
+  const valid = rows.filter(r => r[1] && r[1].includes("http")); 
+  if(valid.length>0){
+    const random = valid[Math.floor(Math.random()*valid.length)];
+    sugWrap.style.display = "block";
+    sugBox.innerHTML = `
+      <p><a href="watch.html?url=${encodeURIComponent(random[1])}">${random[0] || "Watch Another Video"}</a></p>
+    `;
+  }
+});
+</script>
+</body>
+</html>
