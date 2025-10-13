@@ -5,7 +5,8 @@
   "scripts": {
     "build": "node generate-sitemap.js",
     "ping": "node ping-search.js",
-    "full": "npm run build && npm run ping"
+    "full": "npm run build && npm run ping",
+    "cron": "npm run full"
   },
   "dependencies": {
     "node-fetch": "^3.3.2",
