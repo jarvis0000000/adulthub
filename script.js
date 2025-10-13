@@ -1,16 +1,5 @@
 // script.js — Dareloom Hub (Complete, auto-thumbnail enabled)
-// 2025-10-13 (final ready-to-use)
-// Features:
-// - Flexible Google Sheets parsing (any column order)
-// - Auto-detect video links (Streamtape /v/ , YouTube, Drive, MP4)
-// - Auto-thumbnail generation (YouTube & Streamtape get priority)
-// - Caching (localStorage) with TTL
-// - Pagination (new -> old), search, tags, category filter
-// - Modal preview & watch page handling
-// - Injects VideoObject JSON-LD for each open video
-// - Non-blocking ad popunder with cooldown
-// - Lazy image loading (IntersectionObserver)
-// - Debug hooks & reload
+// 2025-10-13 (updated: robust header detection, multiple-links support)
 
 (() => {
   'use strict';
@@ -65,13 +54,10 @@
 
   function isPlayableLink(url){
     if(!url) return false;
-    // Note: Streamtape '/v/' is not directly playable in modal, but we include it to prioritize YouTube/MP4
     return /(streamtape\.com|filemoon|dood\.|mixdrop|vidhide|youtube\.com|youtu\.be|drive\.google\.com|\.mp4)/i.test(url);
   }
 
   // ---------------- AUTO THUMBNAIL (YouTube + Streamtape /v/) ----------------
-  // Streamtape: source format used: https://streamtape.com/v/ABCDEF1234/...
-  // For streamtape thumbnail we attempt a public-ish pattern. Some hosts block hotlinking; fallback used.
   function makeThumbnail(item){
     // 1) explicit poster / thumbnail column (user-provided)
     if (item.poster && item.poster.toString().trim()) return item.poster.toString().trim();
@@ -87,7 +73,7 @@
       const m = l.match(/streamtape\.com\/[ve]\/([^/?#]+)/i);
       if (m && m[1]){
         const id = m[1];
-        // streamtape thumbnail approach: try known endpoints
+        // try a commonly-used streamtape image endpoint (may be blocked on some hosts)
         return `https://i.streamtape.to/vi/${id}.jpg`;
       }
     }
@@ -102,7 +88,6 @@
     const y = extractYouTubeID(url);
     if (y) return `https://www.youtube.com/embed/${y}?autoplay=1&rel=0`;
     if (url.includes('youtube.com/embed')) return url;
-    // google drive
     if (/drive\.google\.com/.test(url)){
       const match = url.match(/[-\w]{25,}/);
       if (match) return `https://drive.google.com/file/d/${match[0]}/preview`;
@@ -115,9 +100,7 @@
       }
       if (url.includes('/e/')) return url;
     }
-    // direct mp4
     if (url.match(/\.mp4($|\?)/i)) return url;
-    // otherwise return original (some hosts provide embed urls)
     return url;
   }
 
@@ -162,9 +145,28 @@
     }
   }
 
+  // ---------------- SMART PARSE: header auto-detect or data-only sheet ----------------
   function parseRows(values){
-    if (!values || values.length < 2) return [];
-    const headers = (values[0]||[]).map(h => (h||'').toString().toLowerCase().trim());
+    if (!values || !values.length) return [];
+
+    // Heuristic: check first row for header-like strings
+    const firstRow = values[0].map(c => (c||'').toString().toLowerCase()).join(' ');
+    const headerWords = ['title','watch','link','url','trailer','thumbnail','poster','date','tags','description','video'];
+    const hasHeader = headerWords.some(w => firstRow.indexOf(w) !== -1);
+
+    let headers = [];
+    let rows = [];
+
+    if (hasHeader){
+      headers = (values[0]||[]).map(h => (h||'').toString().toLowerCase().trim());
+      rows = values.slice(1);
+    } else {
+      // treat sheet as data-only (no header row). Create synthetic headers c0,c1,...
+      const maxCols = Math.max(...values.map(r => (r || []).length));
+      headers = Array.from({length: maxCols}, (_,i) => `c${i}`);
+      rows = values.slice(0); // include first row as data
+    }
+
     const findIndex = (cands) => {
       for (const c of cands){
         const i = headers.indexOf(c);
@@ -174,10 +176,10 @@
     };
 
     // detect common columns (flexible)
-    let idxTitle = findIndex(['title','name','video title','series','movie']); // if -1 we'll fallback to first textual
-    let idxWatch = findIndex(['watch','watch link','link','url','video url']);
-    
-    // Fallback Fix: Agar headers nahi milte hain, toh assume karo ki Title Column A (index 0) hai aur Watch Column B (index 1) hai.
+    let idxTitle = findIndex(['title','name','video title','series','movie', 'c0']);
+    let idxWatch = findIndex(['watch','watch link','link','url','video url','c1']);
+
+    // If detection returned -1, fall back to common positions:
     if (idxTitle === -1) idxTitle = 0;
     if (idxWatch === -1) idxWatch = 1;
 
@@ -187,25 +189,23 @@
     const idxTags = findIndex(['tags','tag','category','categories','genre']);
     const idxDesc = findIndex(['description','desc','summary','details']);
 
-    const rows = values.slice(1);
     const out = [];
     for (let r of rows){
       r = Array.isArray(r) ? r : [];
-      // find title
-      let title = '';
-      if (idxTitle !== -1) title = (r[idxTitle]||'').toString().trim();
-      if (!title) {
-        // fallback: first non-url long text cell
+      // collect title (fallback to any textual cell)
+      let title = (r[idxTitle] || '')?.toString().trim() || '';
+      if (!title){
         for (let i=0;i<r.length;i++){
           const cell = (r[i]||'').toString().trim();
           if (cell && cell.length > 2 && !/https?:\/\//i.test(cell)) { title = cell; break; }
         }
       }
-      // links: prefer trailer/watch combined columns
+
+      // gather links: trailer first, then watch column, then scan row
       let combinedLinks = [];
       if (idxTrailer !== -1 && r[idxTrailer]) combinedLinks = combinedLinks.concat(normalizeLinkList(r[idxTrailer]));
       if (idxWatch !== -1 && r[idxWatch]) combinedLinks = combinedLinks.concat(normalizeLinkList(r[idxWatch]));
-      // else scan entire row for any URLs
+
       if (!combinedLinks.length){
         for (const cell of r){
           if (typeof cell === 'string' && /https?:\/\//i.test(cell)){
@@ -213,10 +213,10 @@
           }
         }
       }
-      // dedupe
-      combinedLinks = Array.from(new Set(combinedLinks));
 
-      // poster (manual)
+      // dedupe and trim
+      combinedLinks = Array.from(new Set((combinedLinks || []).map(x => (x||'').toString().trim()).filter(Boolean)));
+
       const poster = (idxPoster !== -1 && r[idxPoster]) ? r[idxPoster].toString().trim() : '';
       const date = (idxDate !== -1 && r[idxDate]) ? r[idxDate].toString().trim() : '';
       const tags = (idxTags !== -1 && r[idxTags]) ? r[idxTags].toString().trim() : '';
@@ -235,6 +235,7 @@
         description: desc || ''
       });
     }
+
     return out;
   }
 
@@ -280,11 +281,11 @@
 
     slice.forEach(it => {
       const thumb = makeThumbnail(it);
-      const allLinks = it.links.join(','); // <--- FIX 2: Saari links yahan define ki
+      const allLinks = it.links.join(',');
       const div = document.createElement('div');
       div.className = 'card latest-card';
       div.dataset.id = it.id;
-      div.dataset.watch = allLinks; // <--- FIX 2: data-watch mein saari links
+      div.dataset.watch = allLinks;
       div.dataset.title = it.title || '';
       div.innerHTML = `
         <a class="card-link" href="watch.html?url=${encodeURIComponent(allLinks)}" rel="noopener">
@@ -295,7 +296,8 @@
             <div class="tag-container" style="margin-top:6px">${renderTagsForItem(it)}</div>
             <div style="margin-top:8px">
               <button class="btn preview-btn" data-id="${escapeHtml(it.id)}">Preview</button>
-              <button class="btn watch-btn" data-url="${escapeHtml(allLinks)}">Watch</button> </div>
+              <button class="btn watch-btn" data-url="${escapeHtml(allLinks)}">Watch</button>
+            </div>
           </div>
         </a>
       `;
@@ -371,7 +373,6 @@
 
   function onWatchClick(e){
     const url = e.currentTarget.dataset.url;
-    // FIX 2: Watch button ab saari links (comma separated) bhej raha hai
     if (url){ e.stopPropagation(); e.preventDefault(); openWatchPage(url); }
   }
 
@@ -427,8 +428,8 @@
     // Trailer/Preview ke liye YouTube link ko prioritize karo (if available)
     const isYoutube = (l) => /(youtube\.com|youtu\.be)/i.test(l);
     const trailerLink = it.links.find(isYoutube);
-    const playable = trailerLink || it.links.find(l => isPlayableLink(l)); // Agar YouTube nahi hai, toh first playable link use karo
-    
+    const playable = trailerLink || it.links.find(l => isPlayableLink(l));
+
     const embedUrl = toEmbedUrlForModal(playable || '');
     pWrap.innerHTML = '';
     if (embedUrl){
@@ -502,7 +503,6 @@
     openPopUnder();
     setTimeout(()=> {
       try{
-        // FIX 1: Target (saari links) ko bina modify kiye watch.html ko bhej rahe hain.
         const watchPage = `watch.html?url=${encodeURIComponent(target)}`;
         const w = window.open(watchPage, '_blank');
         if (!w || w.closed || typeof w.closed === 'undefined') alert('Please allow pop-ups to open watch page');
