@@ -16,7 +16,7 @@
   'use strict';
 
   // ---------------- CONFIG ----------------
-  const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
+  const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWzWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
   const PER_PAGE = 6;
   const RANDOM_COUNT = 4;
 
@@ -65,6 +65,7 @@
 
   function isPlayableLink(url){
     if(!url) return false;
+    // Note: Streamtape '/v/' is not directly playable in modal, but we include it to prioritize YouTube/MP4
     return /(streamtape\.com|filemoon|dood\.|mixdrop|vidhide|youtube\.com|youtu\.be|drive\.google\.com|\.mp4)/i.test(url);
   }
 
@@ -86,10 +87,8 @@
       const m = l.match(/streamtape\.com\/[ve]\/([^/?#]+)/i);
       if (m && m[1]){
         const id = m[1];
-        // streamtape thumbnail approach: try known endpoints — sometimes hosts change behavior.
-        // Primary attempt:
+        // streamtape thumbnail approach: try known endpoints
         return `https://i.streamtape.to/vi/${id}.jpg`;
-        // If that doesn't work you can change to `https://streamtape.com/get_image/${id}?headers=1`
       }
     }
 
@@ -276,13 +275,14 @@
 
     slice.forEach(it => {
       const thumb = makeThumbnail(it);
+      const allLinks = it.links.join(','); // <--- FIX 2: Saari links yahan define ki
       const div = document.createElement('div');
       div.className = 'card latest-card';
       div.dataset.id = it.id;
-      div.dataset.watch = it.links[0] || '';
+      div.dataset.watch = allLinks; // <--- FIX 2: data-watch mein saari links
       div.dataset.title = it.title || '';
       div.innerHTML = `
-        <a class="card-link" href="watch.html?url=${encodeURIComponent(it.links.join(','))}" rel="noopener">
+        <a class="card-link" href="watch.html?url=${encodeURIComponent(allLinks)}" rel="noopener">
           <img class="thumb loading-lazy" data-src="${escapeHtml(thumb)}" alt="${escapeHtml(it.title)}">
           <div class="meta">
             <div class="video-title">${escapeHtml(it.title)}</div>
@@ -290,8 +290,7 @@
             <div class="tag-container" style="margin-top:6px">${renderTagsForItem(it)}</div>
             <div style="margin-top:8px">
               <button class="btn preview-btn" data-id="${escapeHtml(it.id)}">Preview</button>
-              <button class="btn watch-btn" data-url="${escapeHtml(it.links[0]||'')}">Watch</button>
-            </div>
+              <button class="btn watch-btn" data-url="${escapeHtml(allLinks)}">Watch</button> </div>
           </div>
         </a>
       `;
@@ -367,6 +366,7 @@
 
   function onWatchClick(e){
     const url = e.currentTarget.dataset.url;
+    // FIX 2: Watch button ab saari links (comma separated) bhej raha hai
     if (url){ e.stopPropagation(); e.preventDefault(); openWatchPage(url); }
   }
 
@@ -419,7 +419,11 @@
 
     injectVideoSchema(it);
 
-    const playable = it.links.find(l => isPlayableLink(l));
+    // Trailer/Preview ke liye YouTube link ko prioritize karo (if available)
+    const isYoutube = (l) => /(youtube\.com|youtu\.be)/i.test(l);
+    const trailerLink = it.links.find(isYoutube);
+    const playable = trailerLink || it.links.find(l => isPlayableLink(l)); // Agar YouTube nahi hai, toh first playable link use karo
+    
     const embedUrl = toEmbedUrlForModal(playable || '');
     pWrap.innerHTML = '';
     if (embedUrl){
@@ -487,21 +491,14 @@
   document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closePlayerModal(); });
   window.addEventListener('popstate', () => { const modal = qs('#videoModal'); if (modal && modal.style.display === 'flex') closePlayerModal(); });
 
-  // ---------------- WATCH PAGE OPEN ----------------
+// ---------------- WATCH PAGE OPEN ----------------
   function openWatchPage(target){
     if (!target) return;
     openPopUnder();
     setTimeout(()=> {
       try{
-        let final = target;
-        // if we received multiple links comma-separated, use the first playable one
-        if (final.includes(',')) final = final.split(',')[0];
-        // convert /v/ -> /e/ for streamtape for better embedding
-        if (final.includes('/v/')){
-          const m = final.match(/\/v\/([0-9A-Za-z_-]+)/);
-          if (m && m[1]) final = `https://streamtape.com/e/${m[1]}/`;
-        }
-        const watchPage = `watch.html?url=${encodeURIComponent(final)}`;
+        // FIX 1: Target (saari links) ko bina modify kiye watch.html ko bhej rahe hain.
+        const watchPage = `watch.html?url=${encodeURIComponent(target)}`;
         const w = window.open(watchPage, '_blank');
         if (!w || w.closed || typeof w.closed === 'undefined') alert('Please allow pop-ups to open watch page');
         closePlayerModal();
