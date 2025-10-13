@@ -1,15 +1,15 @@
 {
   "name": "dareloom-hub",
   "version": "1.0.0",
-  "description": "Dareloom.fun - Auto Sitemap, Robots.txt & SEO Meta Generator (Cloudflare + Google Sheets Integration)",
-  "author": "Namo",
-  "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "node generate-sitemap.js"
+    "build": "node generate-sitemap.js",
+    "ping": "node ping-search.js",
+    "full": "npm run build && npm run ping"
   },
   "dependencies": {
     "node-fetch": "^3.3.2",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "fs": "^0.0.1-security"
   }
 }
