@@ -190,9 +190,8 @@ h2 {
 /* --- GRID CARDS --- */
 .grid {
   display: grid;
-  /* Reduced min size for better fit on all devices */
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
-  gap: 15px; /* Reduced gap */
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
 }
 
 .card {
@@ -203,8 +202,9 @@ h2 {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s, box-shadow 0.3s;
   border: 1px solid #222;
-  /* Removed min-height to prevent unnecessary space */
-  min-height: auto; 
+  min-height: 200px;
+  
+  /* FIX 1: Set position for absolute overlay button */
   position: relative; 
 }
 .card:hover {
@@ -214,24 +214,24 @@ h2 {
 
 .thumb {
   width: 100%;
-  height: auto; /* Height auto for aspect ratio */
-  aspect-ratio: 16 / 9; /* Ensure 16:9 ratio */
+  height: 250px;
   object-fit: cover;
   display: block;
   background: #111;
-  /* 🚀 CLS FIX: Contain intrinsic size based on 16:9 (approx 320x180) */
-  contain-intrinsic-size: 320px 180px; 
+  contain-intrinsic-size: 320px 180px;
   content-visibility: auto;
 }
 
-/* NEW FIX: Watch Button Overlay Style (Same, for functionality) */
+/* NEW FIX: Watch Button Overlay Style */
 .watch-overlay-btn {
+  /* FIX 2: Button is positioned absolutely over the thumbnail area */
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: 10;
-  background: rgba(255, 75, 145, 0.9);
+  
+  background: rgba(255, 75, 145, 0.9); /* Primary color with transparency */
   color: #fff;
   border: 2px solid #fff;
   padding: 10px 20px;
@@ -239,121 +239,379 @@ h2 {
   font-weight: 700;
   font-size: 1rem;
   cursor: pointer;
+  
+  /* FIX 3: Hide by default on desktop, show on hover */
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
-  pointer-events: none;
+  pointer-events: none; /* Allows clicks to pass through initially */
 }
 
+/* FIX 4: Show button on card hover (Desktop) */
 .card:hover .watch-overlay-btn {
   opacity: 1;
   visibility: visible;
-  pointer-events: auto;
+  pointer-events: auto; /* Allows clicks when visible */
   transform: translate(-50%, -50%) scale(1.05);
 }
 
 
 /* --- META --- */
 .meta {
-  padding: 8px; /* Reduced padding */
+  padding: 12px;
   font-size: 0.95rem;
   color: var(--text-color);
 }
 .meta h4 {
-  /* FIX: Title to 2 lines max (visual and CLS fix) */
-  display: -webkit-box;
-  -webkit-line-clamp: 2; 
-  -webkit-box-orient: vertical;
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
   margin: 0;
-  font-size: 1.0rem; /* Slightly smaller title */
+  font-size: 1.05rem;
   color: var(--primary-color);
-  min-height: 2.5em; /* Reserve space for 2 lines */
 }
 
-/* --- LATEST LIST (Optimized for Grid Layout) --- */
+/* --- LATEST LIST --- */
 .latest-list {
-  /* Using Grid structure as per index.html inline styles */
-  display: grid; 
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .latest-item {
-  /* latest-item ko standard card ki tarah dikhaya */
-  display: block; /* Flex se block kiya */
+  display: flex;
   background: var(--card-bg);
   border-radius: var(--border-radius-base);
   overflow: hidden;
-  padding: 0; /* Padding hata diya */
+  gap: 15px;
+  padding: 10px;
+  align-items: center;
   border: 1px solid #222;
   transition: border-color 0.3s;
-  min-height: auto;
+  min-height: 200px;
 }
 .latest-item:hover {
   border-color: var(--primary-color);
 }
 
 .latest-thumb {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 9; /* Ensure 16:9 ratio */
+  width: 180px;
+  height: 110px;
+  min-width: 180px;
   object-fit: cover;
-  border-radius: 0;
-  /* 🚀 CLS FIX */
-  contain-intrinsic-size: 320px 180px; 
+  border-radius: 8px;
+  contain-intrinsic-size: 320px 180px;
   content-visibility: auto;
 }
 
 .latest-info {
-  flex: none; /* Flex properties remove kiye */
-  display: block;
-  padding: 8px; /* Padding add kiya */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
-/* --- BUTTONS (Same) --- */
-/* ... */
+/* --- BUTTONS --- */
+.btn,
+.watch-btn,
+.tag-btn {
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+  margin-right: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: opacity 0.2s, background 0.3s;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+.btn:hover,
+.watch-btn:hover {
+  opacity: 0.9;
+}
+.watch-btn {
+  background: var(--secondary-color);
+}
 
-/* NEW: Download/Stream Buttons for Modal Controls (Same) */
-/* ... */
+.tag-btn {
+  background: #333;
+  color: var(--muted);
+  padding: 4px 8px;
+  margin: 0 5px 5px 0;
+  font-size: 0.75rem;
+  border-radius: 5px;
+  text-transform: none;
+  transition: background 0.3s, color 0.3s;
+}
+.tag-btn:hover {
+  background: var(--primary-color);
+  color: #fff;
+}
 
-/* --- PAGINATION (Same) --- */
-/* ... */
+/* NEW: Download/Stream Buttons for Modal Controls */
+.modal-controls-wrap {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+    flex-wrap: wrap; /* for mobile */
+}
+
+.download-btn-streamtape,
+.download-btn-telegram {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 1rem;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.download-btn-streamtape {
+    background: #4A90E2; /* Blue, good for streaming */
+    color: #fff;
+}
+.download-btn-streamtape:hover {
+    background: #357ABD;
+    transform: translateY(-2px);
+}
+
+.download-btn-telegram {
+    background: #0088CC; /* Telegram's signature color */
+    color: #fff;
+}
+.download-btn-telegram:hover {
+    background: #006AA7;
+    transform: translateY(-2px);
+}
+
+/* --- PAGINATION --- */
+.pager {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 30px;
+}
+.page-btn {
+  background: #333;
+  color: var(--text-color);
+  border: 1px solid #555;
+  padding: 8px 14px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s, border-color 0.3s;
+}
+.page-btn.active {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: #fff;
+}
+.page-btn:hover:not(.active) {
+  background: #555;
+  border-color: var(--primary-color);
+}
 
 /* === MODAL & PLAYER FIX === */
-/* ... */
+.full-screen-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 0;
+  overflow-y: auto;
+}
+
+/* 🛑 AD BLOCKER MODAL HIDE */
+#adBlockerModal {
+  display: none !important;
+}
+
+.modal-content.player-content {
+  background: #111;
+  padding: 0;
+  border-radius: var(--border-radius-base);
+  max-width: 900px;
+  width: 95%;
+  max-height: 98vh;
+  overflow-y: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 100;
+}
+
+/* Fixed Full Height Video for Mobile */
+#modalPlayerWrap {
+  width: 100%;
+  /* 16:9 Aspect Ratio for Player on Desktop */
+  position: relative;
+  padding-bottom: 56.25%; /* (9 / 16) * 100 = 56.25% */
+  height: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+#modalPlayerWrap iframe,
+#modalPlayerWrap video {
+  /* Video should fill the 16:9 container */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+}
+
+.modal-controls {
+  padding: 15px;
+  background: var(--card-bg);
+}
+
+/* NEW: PERSISTENT AD STYLES */
+#modalPersistentAd iframe,
+#modalPersistentAd .persistent-ad {
+  max-width: 100%;
+  width: 100%;
+  height: 90px;
+  display: inline-block;
+}
+
+/* small label for persistent ad (optional) */
+#modalPersistentAd .ad-label {
+  color: #aaa;
+  font-size: 12px;
+  margin-bottom: 6px;
+  display: block;
+}
 
 /* --- RESPONSIVENESS --- */
 @media (max-width: 768px) {
-  /* ... (Existing styles) ... */
+  header.site {
+    padding: 10px 10px;
+  }
+
+  .title {
+    font-size: 1.2rem;
+  }
+
+  .nav input {
+    width: 100px;
+  }
+  .nav input:focus {
+    width: 120px;
+  }
+
+  .wrap {
+    padding: 10px;
+  }
 
   .latest-item {
-    /* Mobile par bhi grid structure maintain karein */
     flex-direction: column;
     align-items: flex-start;
-    gap: 0;
+    gap: 10px;
   }
-  
   .latest-thumb {
     width: 100%;
-    height: auto; /* Height auto for aspect ratio */
+    height: 180px;
     min-width: 100%;
-    /* CLS fix in main thumb class handles this */
   }
 
-  /* ... (Other modal/mobile styles are mostly fine) ... */
+  .full-screen-modal {
+    align-items: flex-start;
+  }
+
+  .modal-content.player-content {
+    width: 100%;
+    max-width: 100%;
+    height: 100vh;
+    max-height: none;
+    border-radius: 0;
+    overflow-y: hidden;
+  }
+
+  /* MOBILE PLAYER FIX */
+  #modalPlayerWrap {
+    height: auto;
+    padding-bottom: unset; 
+    min-height: 250px; 
+    background: #000;
+    position: relative; 
+  }
+
+  #modalPlayerWrap iframe,
+  #modalPlayerWrap video {
+    position: relative; 
+    height: 250px; 
+    object-fit: contain; 
+  }
+
+  .modal-controls {
+    position: relative; 
+    bottom: unset;
+    left: unset;
+    right: unset;
+    padding: 10px;
+    background: var(--card-bg); 
+    text-align: left;
+    z-index: 50;
+  }
+  
+  .modal-controls-wrap {
+      justify-content: center;
+  }
+
+  .close-btn {
+    top: 10px;
+    right: 10px;
+  }
+
+  .adsterra-socialbar-placement {
+    display: none;
+  }
+
+  .category-nav a {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+  }
   
   /* FIX 5: Show the Watch Button always on mobile, without hover */
   .watch-overlay-btn {
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
-      transform: translate(-50%, -50%) scale(0.9);
+      transform: translate(-50%, -50%) scale(0.9); /* Thoda chhota kar diya mobile ke liye */
   }
 }
 
-/* Responsive Ad Adjustment (Same) */
-/* ... */
+/* Responsive Ad Adjustment */
+@media (max-width: 600px) {
+  #modalPersistentAd iframe,
+  #modalPersistentAd .persistent-ad {
+    height: 80px;
+  }
+}
 
 /* ===================================================
    ⚡ PERFORMANCE + CORE WEB VITALS FIX
@@ -362,27 +620,29 @@ img, iframe, video {
   display: block;
   max-width: 100%;
   height: auto;
-  /* 🚀 CLS Fix: Aspect ratio for all media elements */
-  aspect-ratio: 16 / 9; 
+  /* 🛑 FIX: iframe/video se aspect-ratio hataya hai, ab woh #modalPlayerWrap ke rules follow karenge */
   background: #111;
+}
+img {
+    aspect-ratio: 16 / 9; /* Thumbnails ke liye theek hai */
 }
 * {
   scroll-behavior: smooth;
   transform: translateZ(0);
 }
-/* 🛑 FIX: Removed old CLS fix (img::before) which conflicts with aspect-ratio */
-/* img::before {
+img::before {
   content: "";
   display: block;
   background: #111;
   width: 100%;
   padding-bottom: 56.25%;
-} */
-
-/* 🚀 FONT FIX: Simplified font loading */
+}
 @font-face {
   font-family: "Poppins";
   font-display: swap;
-  src: url('https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgMbpFVXA.woff2') format('woff2');
-}
-  
+  src: local("Poppins"),
+       url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
+  }
+
+
+shi kro mobile aur pc dono me shi chle
