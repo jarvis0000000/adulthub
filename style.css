@@ -17,10 +17,20 @@ Optimized for Core Web Vitals (LCP + CLS + FCP)
   --shadow-color: rgba(255, 75, 145, 0.3);
 }
 
+/* 🚀 PERFORMANCE: Font Optimization */
+@font-face {
+  font-family: "Poppins";
+  font-display: swap;
+  /* Use Google Fonts link only in HTML <head> for proper loading, or self-host */
+  /* This URL is not a font file, removing source URL to prevent error. */
+  src: local("Poppins"),
+       url("fonts/poppins-v19-latin-regular.woff2") format("woff2"); /* Placeholder if self-hosted */
+  }
+
 body {
   background: var(--bg-color);
   color: var(--text-color);
-  font-family: "Poppins", sans-serif;
+  font-family: "Poppins", system-ui, -apple-system, sans-serif; /* Fallback fonts added */
   margin: 0;
   padding: 0;
   line-height: 1.6;
@@ -60,7 +70,7 @@ header.site {
   width: 40px;
   border-radius: 50%;
   box-shadow: 0 0 10px var(--shadow-color);
-  aspect-ratio: 1/1;
+  aspect-ratio: 1/1; /* CLS FIX: Ensure aspect ratio */
 }
 
 .title {
@@ -202,9 +212,7 @@ h2 {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s, box-shadow 0.3s;
   border: 1px solid #222;
-  min-height: 200px;
-  
-  /* FIX 1: Set position for absolute overlay button */
+  min-height: 280px; /* CLS FIX: Adjusted min-height to account for thumbnail + meta */
   position: relative; 
 }
 .card:hover {
@@ -214,11 +222,12 @@ h2 {
 
 .thumb {
   width: 100%;
-  height: 250px;
+  height: auto; /* Let aspect-ratio handle height */
+  aspect-ratio: 16 / 9; /* CLS FIX: Explicit aspect ratio */
   object-fit: cover;
   display: block;
   background: #111;
-  contain-intrinsic-size: 320px 180px;
+  /* contain-intrinsic-size: 320px 180px; /* Already defined in general img rule, but kept for clarity */
   content-visibility: auto;
 }
 
@@ -288,7 +297,7 @@ h2 {
   align-items: center;
   border: 1px solid #222;
   transition: border-color 0.3s;
-  min-height: 200px;
+  min-height: 130px; /* CLS FIX: Adjusted min-height for horizontal list item */
 }
 .latest-item:hover {
   border-color: var(--primary-color);
@@ -300,7 +309,8 @@ h2 {
   min-width: 180px;
   object-fit: cover;
   border-radius: 8px;
-  contain-intrinsic-size: 320px 180px;
+  /* CLS FIX: Explicitly set aspect-ratio here as well */
+  aspect-ratio: 16 / 9;
   content-visibility: auto;
 }
 
@@ -461,7 +471,7 @@ h2 {
   z-index: 100;
 }
 
-/* Fixed Full Height Video for Mobile */
+/* Fixed Full Height Video for Desktop/Larger Screens */
 #modalPlayerWrap {
   width: 100%;
   /* 16:9 Aspect Ratio for Player on Desktop */
@@ -527,15 +537,18 @@ h2 {
     padding: 10px;
   }
 
+  /* 🚀 MOBILE LIST ITEM ADJUSTMENT */
   .latest-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
+    min-height: 250px; /* Increased min-height for better CLS on mobile list */
   }
   .latest-thumb {
     width: 100%;
-    height: 180px;
+    height: auto; /* Let aspect-ratio handle height */
     min-width: 100%;
+    aspect-ratio: 16 / 9; /* CLS FIX */
   }
 
   .full-screen-modal {
@@ -548,10 +561,10 @@ h2 {
     height: 100vh;
     max-height: none;
     border-radius: 0;
-    overflow-y: hidden;
+    overflow-y: auto; /* Changed to auto to allow scrolling if needed */
   }
 
-  /* MOBILE PLAYER FIX */
+  /* 🚀 MOBILE PLAYER FIX */
   #modalPlayerWrap {
     height: auto;
     padding-bottom: unset; 
@@ -565,6 +578,10 @@ h2 {
     position: relative; 
     height: 250px; 
     object-fit: contain; 
+    /* CLS FIX: Ensure they use the full reserved space */
+    width: 100%; 
+    top: unset;
+    left: unset;
   }
 
   .modal-controls {
@@ -601,7 +618,7 @@ h2 {
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
-      transform: translate(-50%, -50%) scale(0.9); /* Thoda chhota kar diya mobile ke liye */
+      transform: translate(-50%, -50%) scale(0.9); 
   }
 }
 
@@ -620,29 +637,25 @@ img, iframe, video {
   display: block;
   max-width: 100%;
   height: auto;
-  /* 🛑 FIX: iframe/video se aspect-ratio hataya hai, ab woh #modalPlayerWrap ke rules follow karenge */
   background: #111;
 }
+/* 🚀 FIX: This rule should apply to general images */
 img {
-    aspect-ratio: 16 / 9; /* Thumbnails ke liye theek hai */
+    aspect-ratio: 16 / 9;
 }
 * {
   scroll-behavior: smooth;
   transform: translateZ(0);
 }
-img::before {
+/* 🛑 Removed: This pseudo-element can sometimes interfere with JavaScript-rendered content and is redundant with aspect-ratio */
+/* img::before {
   content: "";
   display: block;
   background: #111;
   width: 100%;
   padding-bottom: 56.25%;
-}
-@font-face {
-  font-family: "Poppins";
-  font-display: swap;
-  src: local("Poppins"),
-       url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
-  }
-
-
-shi kro mobile aur pc dono me shi chle
+} */
+/*
+@font-face (moved to top for better LCP)
+*/
+  
