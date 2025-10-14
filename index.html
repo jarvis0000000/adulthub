@@ -22,7 +22,9 @@
   <link rel="preconnect" href="https://www.youtube.com" />
 
   <link rel="preload" href="style.css?v=20251006" as="style" />
-  <link rel="preload" href="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" as="image" />
+  <link rel="preload" href="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" as="image" fetchpriority="high" />
+
+  <link rel="preload" href="https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgMbpFVXA.woff2" as="font" type="font/woff2" crossorigin>
 
   <link rel="stylesheet" href="style.css?v=20251006" />
 
@@ -31,16 +33,16 @@
     html, body {
       margin: 0;
       padding: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      /* Use system-ui as primary font for FCP/LCP */
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;
       background: #000;
       color: #fff;
     }
-    /* 🚀 CLS Improvement: Use aspect-ratio and ensure max-width/height is set on media to prevent shifts */
+    /* 🚀 CLS Improvement: Use aspect-ratio on images/videos for layout stability */
     img, iframe, video {
       display: block;
       max-width: 100%;
       height: auto;
-      /* If images use this ratio, it helps prevent layout shifts before they load */
       aspect-ratio: 16/9; 
     }
     /* 🚀 LCP Improvement: Moved the critical action button styling to the top of the CSS for faster render */
@@ -62,9 +64,11 @@
     }
     .hero-actions { text-align: center; }
     /* 🚀 CLS Improvement: Set the grid structure to reserve space for content */
-    .grid, .latest-list { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    /* Changed minmax(160px) to minmax(150px) to better accommodate mobile view (as seen in screenshots) */
+    .grid, .latest-list { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
     /* 🚀 CLS Improvement: Set a fixed min-height for placeholders */
-    .thumbnail, .video-item { min-height: 200px; background: #111; border-radius: 10px; overflow: hidden; }
+    /* Changed min-height to 180px (150px width * 9/16 aspect ratio + padding) for better CLS */
+    .thumbnail, .video-item { min-height: 180px; background: #111; border-radius: 10px; overflow: hidden; }
     h2 { font-size: 20px; margin: 10px 0; }
   </style>
 
@@ -178,7 +182,9 @@
         </script>
       </div>
       
-      <div id="modalPlayerWrap" style="min-height:200px;background:#000;border-radius:8px;margin-top:10px;">Loading Video Player...</div>
+      <div id="modalPlayerWrap" style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; background:#000;border-radius:8px;margin-top:10px;">
+          Loading Video Player...
+      </div>
       
       <div class="modal-controls" style="margin-top:15px;">
         <h3 id="modalVideoTitle" style="margin:12px 0 6px 0">Loading...</h3>
@@ -195,11 +201,18 @@
       modal.style.display='none';
       document.body.style.overflow='auto';
       const wrap=document.getElementById('modalPlayerWrap');
-      if(wrap)wrap.innerHTML=''; // Important to stop the video
+      if(wrap){
+        // FIX: Stop video playback correctly inside the 16:9 container
+        const iframe = wrap.querySelector('iframe');
+        if(iframe) {
+            iframe.src = 'about:blank'; 
+            wrap.innerHTML = '';
+        }
+      }
     }
   </script>
 
   <script src="script.js?v=20251006" defer></script>
 </body>
-  </html>
-  
+        </html>
+        
