@@ -13,61 +13,41 @@
   <meta name="theme-color" content="#000000" />
   <meta name="rating" content="adult" />
 
-  <!-- Canonical & Sitemap -->
   <link rel="canonical" href="https://dareloom.fun/" />
   <link rel="sitemap" type="application/xml" title="Sitemap" href="https://dareloom.fun/sitemap.xml" />
 
-  <!-- Preconnects for faster resource fetch -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://i.ibb.co" />
   <link rel="preconnect" href="https://www.youtube.com" />
 
-  <!-- Preload critical assets -->
   <link rel="preload" href="style.css?v=20251006" as="style" />
   <link rel="preload" href="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" as="image" />
-
-  <!-- Stylesheet -->
   <link rel="stylesheet" href="style.css?v=20251006" />
 
   <style>
-    /* 🧠 Inline critical CSS (helps reduce CLS & render delay) */
     html, body {
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
-      background: #000;
-      color: #fff;
+      background: #000; color: #fff;
     }
     img, iframe, video {
-      display: block;
-      max-width: 100%;
-      height: auto;
-      aspect-ratio: 16/9;
+      display: block; max-width: 100%; height: auto; aspect-ratio: 16/9;
     }
     .watch-movies-btn {
-      display: inline-block;
-      background: linear-gradient(45deg,#ff0040,#ff7a00);
-      color: #fff;
-      font-weight: 700;
-      text-decoration: none;
-      padding: 12px 25px;
-      border-radius: 10px;
-      font-size: 18px;
-      margin: 25px auto;
-      transition: transform 0.3s;
+      display: inline-block; background: linear-gradient(45deg,#ff0040,#ff7a00);
+      color: #fff; font-weight: 700; text-decoration: none;
+      padding: 12px 25px; border-radius: 10px; font-size: 18px;
+      margin: 25px auto; transition: transform 0.3s;
     }
-    .watch-movies-btn:hover {
-      transform: scale(1.07);
-      background: linear-gradient(45deg,#ff7a00,#ff0040);
-    }
+    .watch-movies-btn:hover { transform: scale(1.07); background: linear-gradient(45deg,#ff7a00,#ff0040); }
     .hero-actions { text-align: center; }
     .grid, .latest-list { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
     .thumbnail, .video-item { min-height: 200px; background: #111; border-radius: 10px; overflow: hidden; }
     h2 { font-size: 20px; margin: 10px 0; }
   </style>
 
-  <!-- Open Graph -->
+  <!-- OG + Twitter -->
   <meta property="og:site_name" content="Dareloom Hub" />
   <meta property="og:title" content="Dareloom Hub - Watch Trailers & Movies in HD" />
   <meta property="og:description" content="Watch exclusive erotic & romantic web series, trailers and uncut clips in HD — updated daily." />
@@ -75,18 +55,17 @@
   <meta property="og:url" content="https://dareloom.fun/" />
   <meta property="og:image" content="https://dareloom.fun/preview-thumbnail.jpg" />
 
-  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Dareloom Hub - Watch Trailers & Movies in HD" />
   <meta name="twitter:description" content="Watch exclusive erotic & romantic web series, trailers and uncut clips in HD — updated daily." />
   <meta name="twitter:image" content="https://dareloom.fun/preview-thumbnail.jpg" />
 
-  <!-- Favicons -->
+  <!-- Icons -->
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="512x512" href="/web-app-manifest-512x512.png" />
   <link rel="manifest" href="/site.webmanifest" />
 
-  <!-- JSON-LD -->
+  <!-- Schema -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -116,7 +95,7 @@
   }
   </script>
 
-  <!-- Safe CSP -->
+  <!-- CSP -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:;" />
 </head>
 
@@ -146,13 +125,13 @@
       </div>
     </section>
 
-    <section class="section" id="latestSection">
+    <section id="latestSection">
       <h2>📺 Latest Full Series Episodes</h2>
-      <div id="latestList" class="latest-list" aria-live="polite"></div>
+      <div id="latestList" class="latest-list"></div>
       <div id="pager" class="pager"></div>
     </section>
 
-    <section class="section" id="randomSection">
+    <section id="randomSection">
       <h2>🔥 Trending Erotic & Romantic Picks</h2>
       <div id="randomGrid" class="grid"></div>
     </section>
@@ -172,32 +151,46 @@
     © Dareloom Hub — <a href="mailto:dareloom.official@gmail.com" style="color:#aaa;">dareloom.official@gmail.com</a>
   </footer>
 
-  <!-- Modal -->
-  <div id="videoModal" style="display:none;" role="dialog" aria-modal="true">
-    <div style="max-width:980px;margin:20px auto;background:#111;color:#fff;padding:16px;border-radius:8px;">
-      <button aria-label="Close" onclick="closePlayerModal()" style="float:right;background:transparent;border:none;color:#fff;font-size:18px;">✖</button>
-      <div class="adsterra-banner-placement" style="margin:10px auto;text-align:center;">
-        <script async type="text/javascript">
-          atOptions = { 'key':'d1be46ed95d3e2db572824c531da5082', 'format':'iframe', 'height':90, 'width':728, 'params':{} };
-        </script>
+  <!-- ✅ Trailer Preview Modal -->
+  <div id="videoModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:9999;overflow:auto;">
+    <div style="max-width:960px;margin:40px auto;padding:15px;">
+      <button onclick="closePlayerModal()" style="float:right;background:#ff0040;border:none;color:#fff;padding:8px 12px;border-radius:6px;cursor:pointer;">✖ Close</button>
+      <div id="modalPlayerWrap" style="margin-top:40px;min-height:200px;background:#000;border-radius:8px;text-align:center;">
+        <p>Loading trailer...</p>
       </div>
-      <div id="modalPlayerWrap" style="min-height:200px;background:#000;border-radius:8px;">Loading Video Player...</div>
-      <div id="modalControlsContainer"></div>
     </div>
   </div>
 
   <script>
+    // ✅ Working open/close modal logic
+    function openPlayerModal(url){
+      const modal = document.getElementById("videoModal");
+      const wrap = document.getElementById("modalPlayerWrap");
+      if(!modal || !wrap) return;
+
+      let embed = "";
+      if(url.includes("youtube.com") || url.includes("youtu.be")){
+        const id = url.split("v=")[1]?.split("&")[0] || url.split("/").pop();
+        embed = `<iframe width="100%" height="480" src="https://www.youtube.com/embed/${id}" frameborder="0" allowfullscreen></iframe>`;
+      } else if(url.includes("streamtape.com")){
+        embed = `<iframe src="${url}" width="100%" height="480" frameborder="0" allowfullscreen></iframe>`;
+      } else {
+        embed = `<video src="${url}" controls autoplay style="width:100%;border-radius:8px;"></video>`;
+      }
+
+      wrap.innerHTML = embed;
+      modal.style.display = "block";
+      document.body.style.overflow = "hidden";
+    }
+
     function closePlayerModal(){
-      const modal=document.getElementById('videoModal');
-      if(!modal)return;
-      modal.style.display='none';
-      document.body.style.overflow='auto';
-      const wrap=document.getElementById('modalPlayerWrap');
-      if(wrap)wrap.innerHTML='';
+      const modal = document.getElementById("videoModal");
+      const wrap = document.getElementById("modalPlayerWrap");
+      if(modal){ modal.style.display = "none"; document.body.style.overflow = "auto"; }
+      if(wrap){ wrap.innerHTML = ""; }
     }
   </script>
 
-  <!-- Defer main script -->
   <script src="script.js?v=20251006" defer></script>
 </body>
 </html>
