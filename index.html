@@ -13,21 +13,17 @@
   <meta name="theme-color" content="#000000" />
   <meta name="rating" content="adult" />
 
-  <!-- Canonical & Sitemap -->
   <link rel="canonical" href="https://dareloom.fun/" />
   <link rel="sitemap" type="application/xml" title="Sitemap" href="https://dareloom.fun/sitemap.xml" />
 
-  <!-- Preconnects for faster resource fetch -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preconnect" href="https://i.ibb.co" />
   <link rel="preconnect" href="https://www.youtube.com" />
 
-  <!-- Preload critical assets -->
   <link rel="preload" href="style.css?v=20251006" as="style" />
   <link rel="preload" href="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" as="image" />
 
-  <!-- Stylesheet -->
   <link rel="stylesheet" href="style.css?v=20251006" />
 
   <style>
@@ -67,7 +63,6 @@
     h2 { font-size: 20px; margin: 10px 0; }
   </style>
 
-  <!-- Open Graph -->
   <meta property="og:site_name" content="Dareloom Hub" />
   <meta property="og:title" content="Dareloom Hub - Watch Trailers & Movies in HD" />
   <meta property="og:description" content="Watch exclusive erotic & romantic web series, trailers and uncut clips in HD — updated daily." />
@@ -75,18 +70,15 @@
   <meta property="og:url" content="https://dareloom.fun/" />
   <meta property="og:image" content="https://dareloom.fun/preview-thumbnail.jpg" />
 
-  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Dareloom Hub - Watch Trailers & Movies in HD" />
   <meta name="twitter:description" content="Watch exclusive erotic & romantic web series, trailers and uncut clips in HD — updated daily." />
   <meta name="twitter:image" content="https://dareloom.fun/preview-thumbnail.jpg" />
 
-  <!-- Favicons -->
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="512x512" href="/web-app-manifest-512x512.png" />
   <link rel="manifest" href="/site.webmanifest" />
 
-  <!-- JSON-LD -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -116,7 +108,6 @@
   }
   </script>
 
-  <!-- Safe CSP -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:;" />
 </head>
 
@@ -172,7 +163,6 @@
     © Dareloom Hub — <a href="mailto:dareloom.official@gmail.com" style="color:#aaa;">dareloom.official@gmail.com</a>
   </footer>
 
-  <!-- Modal -->
   <div id="videoModal" style="display:none;" role="dialog" aria-modal="true">
     <div style="max-width:980px;margin:20px auto;background:#111;color:#fff;padding:16px;border-radius:8px;">
       <button aria-label="Close" onclick="closePlayerModal()" style="float:right;background:transparent;border:none;color:#fff;font-size:18px;">✖</button>
@@ -181,6 +171,9 @@
           atOptions = { 'key':'d1be46ed95d3e2db572824c531da5082', 'format':'iframe', 'height':90, 'width':728, 'params':{} };
         </script>
       </div>
+      
+      <h3 id="modalVideoTitle" style="margin-top:20px; font-size: 1.5em; font-weight: 700;"></h3>
+      <p id="modalVideoDescription" style="color: #ccc; font-size: 0.9em; margin-bottom: 10px;"></p>
       <div id="modalPlayerWrap" style="min-height:200px;background:#000;border-radius:8px;">Loading Video Player...</div>
       <div id="modalControlsContainer"></div>
     </div>
@@ -197,7 +190,6 @@
     }
   </script>
 
-  <!-- Defer main script -->
   <script src="script.js?v=20251006" defer></script>
 </body>
 </html>
