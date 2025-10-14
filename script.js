@@ -167,8 +167,7 @@ picks.forEach(it => {
 const card = document.createElement('div');
 card.className = 'card';
 card.innerHTML = `<img class="thumb" src="${escapeHtml(makeThumbnail(it))}" loading="lazy" alt="${escapeHtml(it.title)}"> <div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
-// Card click should also open the watch link (same as preview)
-card.addEventListener('click', ()=> openWatchPage(it.watch || it.trailer));
+card.addEventListener('click', ()=> triggerAdThenOpenModal(it));
 g.appendChild(card);
 });
 }
@@ -273,289 +272,305 @@ tagbtn.addEventListener('click', onTagClick);
 }
 
 function onPreviewClick(e){
-    const id = e.currentTarget.dataset.id;
-    const it = items.find(x => x.id === id) || filteredItems.find(x => x.id === id);
-    if (!it) return;
-    
-    // FIX: Changed to open the Watch page directly as requested and to fix the modal issue.
-    const watchUrl = it.watch || it.trailer || '';
-    openWatchPage(watchUrl);
+const id = e.currentTarget.dataset.id;
+const it = items.find(x => x.id === id) || filteredItems.find(x => x.id === id);
+if (!it) return;
+triggerAdThenOpenModal(it);
 }
 
 function onWatchClick(e){
-    const url = e.currentTarget.dataset.url;
-    if (!url) return;
-    openWatchPage(url);
+const url = e.currentTarget.dataset.url;
+if (!url) return;
+openWatchPage(url);
 }
 
 function onTagClick(e){
-    const tag = e.currentTarget.dataset.tag;
-    if (!tag) return;
-    applyTagFilter(tag);
+const tag = e.currentTarget.dataset.tag;
+if (!tag) return;
+applyTagFilter(tag);
 }
 
 // ------------- SEARCH & FILTER -------------
 function applyTagFilter(tag){
-    if (!tag) return;
-    filteredItems = items.filter(it => (it.category||'').toLowerCase().split(',').map(s=>s.trim()).includes(tag.toLowerCase()));
-    currentPage = 1;
-    renderLatest(1);
-    updateCount(filteredItems.length);
+if (!tag) return;
+filteredItems = items.filter(it => (it.category||'').toLowerCase().split(',').map(s=>s.trim()).includes(tag.toLowerCase()));
+currentPage = 1;
+renderLatest(1);
+updateCount(filteredItems.length);
 }
 
 function doSearch(q){
-    q = (q||'').toString().trim().toLowerCase();
-    if (!q){
-        filteredItems = items.slice();
-        renderLatest(1);
-        updateCount(filteredItems.length);
-        return;
-    }
-    // if user types 'n' special bypass (old logic) — keep compatibility
-    if (q === 'n'){
-        localStorage.setItem('adblock_bypassed','true');
-        filteredItems = items.slice();
-        renderLatest(1);
-        updateCount(filteredItems.length);
-        return;
-    }
-
-    filteredItems = items.filter(it => {
-        const t = (it.title||'').toLowerCase();
-        const c = (it.category||'').toLowerCase();
-        return t.includes(q) || c.includes(q);
-    });
-    currentPage = 1;
-    renderLatest(1);
-    updateCount(filteredItems.length);
+q = (q||'').toString().trim().toLowerCase();
+if (!q){
+filteredItems = items.slice();
+renderLatest(1);
+updateCount(filteredItems.length);
+return;
+}
+// if user types 'n' special bypass (old logic) — keep compatibility
+if (q === 'n'){
+localStorage.setItem('adblock_bypassed','true');
+filteredItems = items.slice();
+renderLatest(1);
+updateCount(filteredItems.length);
+return;
 }
 
-// ------------- MODAL PREVIEW & WATCH (Mostly unused now, but kept for other buttons like share) -------------
+filteredItems = items.filter(it => {
+const t = (it.title||'').toLowerCase();
+const c = (it.category||'').toLowerCase();
+return t.includes(q) || c.includes(q);
+});
+currentPage = 1;
+renderLatest(1);
+updateCount(filteredItems.length);
+}
 
-// triggerAdThenOpenModal and openPlayerModal functions are now effectively unused 
-// for the Preview button but are retained for other elements (like Random Card click, if you decide to re-enable it).
-
+// ------------- MODAL PREVIEW & WATCH -------------
 function triggerAdThenOpenModal(it){
-    openAdsterraPop();
-    setTimeout(()=> openPlayerModal(it), 150);
+openAdsterraPop();
+setTimeout(()=> openPlayerModal(it), 150);
 }
 
 function openPlayerModal(it){
-    const modal = qs('#videoModal');
-    const pWrap = qs('#modalPlayerWrap');
-    const controls = qs('#modalControlsContainer');
-    const titleEl = qs('#modalVideoTitle');
-    const descEl = qs('#modalVideoDescription');
+const modal = qs('#videoModal');
+const pWrap = qs('#modalPlayerWrap');
+const controls = qs('#modalControlsContainer');
+const titleEl = qs('#modalVideoTitle');
+const descEl = qs('#modalVideoDescription');
 
-    // NOTE: Removed the alert fallback because it caused the bug and is poor UX.
-    if (!modal || !pWrap || !controls || !titleEl) {
-        console.error("Modal elements are missing, cannot open modal player.");
-        return; 
-    }
+if (!modal || !pWrap || !controls || !titleEl) {
+// fallback simple popup
+alert(it.title);
+return;
+}
 
-    // set title/desc
-    titleEl.textContent = it.title || 'Video';
-    descEl.textContent = it.description || '';
+// set title/desc
+titleEl.textContent = it.title || 'Video';
+descEl.textContent = it.description || '';
 
-    // build embed (prefer trailer youtube)
-    const embedUrl = toEmbedUrlForModal(it.trailer || it.watch);
-    pWrap.innerHTML = '';
-    if (embedUrl){
-        if (embedUrl.match(/.mp4($|\?)/i)){
-            const v = document.createElement('video');
-            v.controls = true; v.autoplay = true; v.muted = false; v.playsInline = true;
-            v.src = embedUrl;
-            v.style.width = '100%'; v.style.height = '420px';
-            pWrap.appendChild(v);
-        } else {
-            const iframe = document.createElement('iframe');
-            iframe.src = embedUrl;
-            iframe.setAttribute('allow','autoplay; fullscreen; encrypted-media; picture-in-picture');
-            iframe.setAttribute('allowfullscreen','true');
-            iframe.style.width = '100%'; iframe.style.height = '420px'; iframe.style.border = 'none';
-            pWrap.appendChild(iframe);
-        }
-    } else {
-        pWrap.innerHTML = `<div style="padding:80px 20px;text-align:center;color:var(--muted)">Trailer not available for embed.</div>`;
-    }
+// build embed (prefer trailer youtube)
+const embedUrl = toEmbedUrlForModal(it.trailer || it.watch);
+pWrap.innerHTML = '';
+if (embedUrl){
+if (embedUrl.match(/.mp4($|\?)/i)){
+const v = document.createElement('video');
+v.controls = true; v.autoplay = true; v.muted = false; v.playsInline = true;
+v.src = embedUrl;
+v.style.width = '100%'; v.style.height = '420px';
+pWrap.appendChild(v);
+} else {
+const iframe = document.createElement('iframe');
+iframe.src = embedUrl;
+iframe.setAttribute('allow','autoplay; fullscreen; encrypted-media; picture-in-picture');
+iframe.setAttribute('allowfullscreen','true');
+iframe.style.width = '100%'; iframe.style.height = '420px'; iframe.style.border = 'none';
+pWrap.appendChild(iframe);
+}
+} else {
+pWrap.innerHTML = `<div style="padding:80px 20px;text-align:center;color:var(--muted)">Trailer not available for embed.</div>`;
+}
 
-    // controls: Watch (open watch.html) + Telegram/Stream buttons if link types detected
-    // Applying button separation (flex container and spacing)
-    let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">';
-    const watchUrl = it.watch || it.trailer || '';
+// controls: Watch (open watch.html) + Telegram/Stream buttons if link types detected
+// Applying button separation (flex container and spacing)
+let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">';
+const watchUrl = it.watch || it.trailer || '';
 
-    // Open in Player button (main action)
-    html += `<button class="btn watch-btn-modal" data-url="${escapeHtml(watchUrl)}" style="min-width: 150px;">Open in Player</button>`;
+// Open in Player button (main action)
+html += `<button class="btn watch-btn-modal" data-url="${escapeHtml(watchUrl)}" style="min-width: 150px;">Open in Player</button>`;
 
-    // If Streamtape link present, add a direct streamtape button
-    if ((watchUrl||'').includes('streamtape.com') || (watchUrl||'').includes('/v/')){
-        html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()" style="min-width: 150px;">Open Streamtape</button>`;
-    }
+// If Streamtape link present, add a direct streamtape button
+if ((watchUrl||'').includes('streamtape.com') || (watchUrl||'').includes('/v/')){
+html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()" style="min-width: 150px;">Open Streamtape</button>`;
+}
 
-    // If telegram link
-    if ((watchUrl||'').includes('t.me') || (watchUrl||'').includes('telegram')){
-        html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()" style="min-width: 150px;">Open Telegram</button>`;
-    }
+// If telegram link
+if ((watchUrl||'').includes('t.me') || (watchUrl||'').includes('telegram')){
+html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()" style="min-width: 150px;">Open Telegram</button>`;
+}
 
-    // share button
-    html += `<button class="btn" id="modalShareBtn" style="min-width: 150px;">🔗 Share</button>`;
+// share button
+html += `<button class="btn" id="modalShareBtn" style="min-width: 150px;">🔗 Share</button>`;
 
-    html += '</div>'; // Close the flex container
-    controls.innerHTML = html;
+html += '</div>'; // Close the flex container
+controls.innerHTML = html;
 
-    // show modal
-    modal.style.display = 'flex';
-    document.body.style.overflow = 'hidden';
+// show modal
+modal.style.display = 'flex';
+document.body.style.overflow = 'hidden';
 
-    // bind modal control events
-    qs('#modalShareBtn')?.addEventListener('click', ()=> {
-        const shareUrl = `${window.location.origin}${window.location.pathname}#v=${encodeURIComponent(it.id)}`;
-        const text = `🔥 Watch "${it.title}" on Dareloom Hub\n${shareUrl}`;
-        if (navigator.share) navigator.share({ title: it.title, text, url: shareUrl }).catch(()=>{});
-        else navigator.clipboard.writeText(text).then(()=> alert("Link copied to clipboard")).catch(()=> prompt("Copy link:", shareUrl));
-    });
+// bind modal control events
+qs('#modalShareBtn')?.addEventListener('click', ()=> {
+const shareUrl = `${window.location.origin}${window.location.pathname}#v=${encodeURIComponent(it.id)}`;
+const text = `🔥 Watch "${it.title}" on Dareloom Hub\n${shareUrl}`;
+if (navigator.share) navigator.share({ title: it.title, text, url: shareUrl }).catch(()=>{});
+else navigator.clipboard.writeText(text).then(()=> alert("Link copied to clipboard")).catch(()=> prompt("Copy link:", shareUrl));
+});
 
-    qs('.watch-btn-modal')?.addEventListener('click', (e) => {
-        const url = e.currentTarget.dataset.url;
-        openWatchPage(url);
-    });
+qs('.watch-btn-modal')?.addEventListener('click', (e) => {
+const url = e.currentTarget.dataset.url;
+openWatchPage(url);
+});
 }
 
 function closePlayerModal(){
-    const modal = qs('#videoModal');
-    if (!modal) return;
-    modal.style.display = 'none';
-    document.body.style.overflow = '';
-    const pWrap = qs('#modalPlayerWrap');
-    if (pWrap) pWrap.innerHTML = '';
-    const controls = qs('#modalControlsContainer');
-    if (controls) controls.innerHTML = '';
+const modal = qs('#videoModal');
+if (!modal) return;
+modal.style.display = 'none';
+document.body.style.overflow = '';
+const pWrap = qs('#modalPlayerWrap');
+if (pWrap) pWrap.innerHTML = '';
+const controls = qs('#modalControlsContainer');
+if (controls) controls.innerHTML = '';
 }
 
 // helper to create embed link for modal (youtube/streamtape/drive/mp4)
 function toEmbedUrlForModal(url){
-    if (!url) return '';
-    const y = extractYouTubeID(url);
-    if (y) return `https://www.youtube.com/embed/${y}?autoplay=1&rel=0`;
-    if (url.includes('youtube.com/embed')) return url;
-    if (url.match(/drive.google.com/)){
-        const m = url.match(/[-\w]{25,}/);
-        if (m) return `https://drive.google.com/file/d/${m[0]}/preview`;
-    }
-    if (url.includes('streamtape.com')){
-        if (url.includes('/v/')){
-            const id = url.split('/v/')[1]?.split('/')[0];
-            if (id) return `https://streamtape.com/e/${id}/`;
-        }
-        if (url.includes('/e/')) return url;
-    }
-    if (url.match(/.mp4($|\?)/i)) return url;
-    return '';
+if (!url) return '';
+const y = extractYouTubeID(url);
+if (y) return `https://www.youtube.com/embed/${y}?autoplay=1&rel=0`;
+if (url.includes('youtube.com/embed')) return url;
+if (url.match(/drive.google.com/)){
+const m = url.match(/[-\w]{25,}/);
+if (m) return `https://drive.google.com/file/d/${m[0]}/preview`;
+}
+if (url.includes('streamtape.com')){
+if (url.includes('/v/')){
+const id = url.split('/v/')[1]?.split('/')[0];
+if (id) return `https://streamtape.com/e/${id}/`;
+}
+if (url.includes('/e/')) return url;
+}
+if (url.match(/.mp4($|\?)/i)) return url;
+return '';
 }
 
 // open watch.html (existing file) in new tab with encoded URL param
 function openWatchPage(targetUrl){
-    if (!targetUrl) return;
-    openAdsterraPop();
-    setTimeout(()=> {
-        try{
-            let final = targetUrl;
-            // convert streamtape /v/ to /e/ for better embedding in watch page
-            if (final.includes('/v/')){
-                const m = final.match(/\/v\/([0-9A-Za-z_-]+)\//);
-                if (m && m[1]) final = `https://streamtape.com/e/${m[1]}/`;
-            }
-            const watchPage = `watch.html?url=${encodeURIComponent(final)}`;
-            const w = window.open(watchPage,'_blank');
-            if (!w || w.closed || typeof w.closed === 'undefined'){
-                alert("Please allow pop-ups to open the link in a new tab!");
-            }
-            closePlayerModal();
-        }catch(e){ console.error(e); }
-    }, 120);
+if (!targetUrl) return;
+openAdsterraPop();
+setTimeout(()=> {
+try{
+let final = targetUrl;
+// convert streamtape /v/ to /e/ for better embedding in watch page
+if (final.includes('/v/')){
+const m = final.match(/\/v\/([0-9A-Za-z_-]+)\//);
+if (m && m[1]) final = `https://streamtape.com/e/${m[1]}/`;
+}
+const watchPage = `watch.html?url=${encodeURIComponent(final)}`;
+const w = window.open(watchPage,'_blank');
+if (!w || w.closed || typeof w.closed === 'undefined'){
+alert("Please allow pop-ups to open the link in a new tab!");
+}
+closePlayerModal();
+}catch(e){ console.error(e); }
+}, 120);
 }
 
 // ------------- INIT / BOOT -------------
 async function loadAll(){
-    log("loading sheet...");
-    const raw = await fetchSheet();
-    const parsed = parseRows(raw);
-    // Sort new -> old. If date exists and parseable, attempt to sort by date desc; otherwise keep sheet order reversed
-    parsed.forEach(p => p._sortDate = (p.date ? Date.parse(p.date) || 0 : 0));
-    parsed.sort((a,b) => (b._sortDate || 0) - (a._sortDate || 0));
-    // if all _sortDate === 0 (no usable dates), reverse the parsed order to show newest-first based on sheet order
-    const allZero = parsed.every(p => !p._sortDate);
-    items = allZero ? parsed.reverse() : parsed;
+log("loading sheet...");
+const raw = await fetchSheet();
+const parsed = parseRows(raw);
+// Sort new -> old. If date exists and parseable, attempt to sort by date desc; otherwise keep sheet order reversed
+parsed.forEach(p => p._sortDate = (p.date ? Date.parse(p.date) || 0 : 0));
+parsed.sort((a,b) => (b._sortDate || 0) - (a._sortDate || 0));
+// if all _sortDate === 0 (no usable dates), reverse the parsed order to show newest-first based on sheet order
+const allZero = parsed.every(p => !p._sortDate);
+items = allZero ? parsed.reverse() : parsed;
 
-    filteredItems = items.slice(); // start unfiltered
+filteredItems = items.slice(); // start unfiltered
 
-    log("items loaded", items.length);
-    // update count
-    updateCount(items.length);
+log("items loaded", items.length);
+// update count
+updateCount(items.length);
 
-    // initial renders
-    renderRandom();
-    renderLatest(1);
+// initial renders
+renderRandom();
+renderLatest(1);
 
-    // wire search input
-    const s = qs('#searchInput');
-    if (s){
-        s.addEventListener('input', (e) => {
-            const q = e.target.value || '';
-            doSearch(q);
-        });
-    }
+// wire search input
+const s = qs('#searchInput');
+if (s){
+s.addEventListener('input', (e) => {
+const q = e.target.value || '';
+doSearch(q);
+});
+}
 
-    // modal close wiring (if modal close button exists in DOM)
-    const closeBtn = qs('#videoModal .close-btn');
-    if (closeBtn){
-        closeBtn.addEventListener('click', closePlayerModal);
-    }
-    // click outside modal to close (optional)
-    const modal = qs('#videoModal');
-    if (modal){
-        modal.addEventListener('click', (ev) => {
-            if (ev.target === modal) closePlayerModal();
-        });
-    }
+// modal close wiring (if modal close button exists in DOM)
+const closeBtn = qs('#videoModal .close-btn');
+if (closeBtn){
+closeBtn.addEventListener('click', closePlayerModal);
+}
+// click outside modal to close (optional)
+const modal = qs('#videoModal');
+if (modal){
+modal.addEventListener('click', (ev) => {
+if (ev.target === modal) closePlayerModal();
+});
+}
 
-    // auto pop once after delay (keeps existing ad behavior)
-    window.addEventListener('load', ()=> setTimeout(()=> openAdsterraPop(), INITIAL_AUTO_POP_DELAY), { once:true });
+// auto pop once after delay (keeps existing ad behavior)
+window.addEventListener('load', ()=> setTimeout(()=> openAdsterraPop(), INITIAL_AUTO_POP_DELAY), { once:true });
 }
 
 // update item count display
 function updateCount(n){
-    const c = qs('#count');
-    if (c) c.textContent = `${n} items`;
+const c = qs('#count');
+if (c) c.textContent = `${n} items`;
 }
 
 // search wrapper calls doSearch (keeps names consistent)
-// Removed the duplicate doSearch function definition here, using the one above.
+function doSearch(q){
+// reuse doSearch logic above
+q = (q||'').toString().trim().toLowerCase();
+if (!q){
+filteredItems = items.slice();
+currentPage = 1;
+renderLatest(1);
+updateCount(filteredItems.length);
+return;
+}
+if (q === 'n'){
+localStorage.setItem('adblock_bypassed','true');
+filteredItems = items.slice();
+currentPage = 1;
+renderLatest(1);
+updateCount(filteredItems.length);
+return;
+}
+filteredItems = items.filter(it => {
+const t = (it.title||'').toLowerCase();
+const c = (it.category||'').toLowerCase();
+return t.includes(q) || c.includes(q);
+});
+currentPage = 1;
+renderLatest(1);
+updateCount(filteredItems.length);
+}
 
 // attach global click to handle preview/watch buttons added dynamically (delegation fallback)
 document.addEventListener('click', (e) => {
-    const preview = e.target.closest('.preview-btn');
-    if (preview){
-        const id = preview.dataset.id || preview.getAttribute('data-id');
-        if (id){
-            const it = items.find(x => x.id === id) || filteredItems.find(x => x.id === id);
-            // Use the same logic as the individual onPreviewClick function now
-            if (it) {
-                const watchUrl = it.watch || it.trailer || '';
-                openWatchPage(watchUrl);
-            }
-        }
-    }
-    const watch = e.target.closest('.watch-btn');
-    if (watch && watch.dataset.url){
-        openWatchPage(watch.dataset.url);
-    }
+const preview = e.target.closest('.preview-btn');
+if (preview){
+const id = preview.dataset.id || preview.getAttribute('data-id');
+if (id){
+const it = items.find(x => x.id === id) || filteredItems.find(x => x.id === id);
+if (it) triggerAdThenOpenModal(it);
+}
+}
+const watch = e.target.closest('.watch-btn');
+if (watch && watch.dataset.url){
+openWatchPage(watch.dataset.url);
+}
 });
 // ensure preview/watch triggers open popunder (global)
 document.addEventListener('click', (e) => {
-    const target = e.target.closest('.watch-btn, .preview-btn, .card, .btn, .page-btn');
-    if (target) openAdsterraPop();
+const target = e.target.closest('.watch-btn, .preview-btn, .card, .btn, .page-btn');
+if (target) openAdsterraPop();
 }, { passive:true });
 
 // start
 loadAll();
+                 
