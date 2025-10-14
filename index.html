@@ -5,18 +5,67 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-  <title>Dareloom Hub: Dareloom Hub — Watch Trailers & Movies in HD</title>
-  <meta name="description" content="Dareloom Hub — Watch the latest erotic & romantic web series, movie trailers and uncut clips in HD. Daily updates, fast player and curated picks for adults (18+)." />
-  <meta name="keywords" content="Dareloom, erotic full series, romantic movies, trailers, uncut clips, HD streaming, watch online, 18+ content" />
-  <meta name="robots" content="index, follow" />
+  <title>Dareloom Hub — Watch Trailers & Movies in HD</title>
+  <meta name="description" content="Watch the latest erotic & romantic web series, movie trailers, and uncut clips in HD. Daily updates, fast player, and curated picks for adults (18+)." />
+  <meta name="keywords" content="Dareloom, erotic series, romantic movies, trailers, uncut clips, HD streaming, watch online, 18+ content" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <meta name="author" content="Dareloom Hub" />
   <meta name="theme-color" content="#000000" />
-  <meta name="language" content="en" />
   <meta name="rating" content="adult" />
 
   <!-- Canonical & Sitemap -->
   <link rel="canonical" href="https://dareloom.fun/" />
   <link rel="sitemap" type="application/xml" title="Sitemap" href="https://dareloom.fun/sitemap.xml" />
+
+  <!-- Preconnects for faster resource fetch -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://i.ibb.co" />
+  <link rel="preconnect" href="https://www.youtube.com" />
+
+  <!-- Preload critical assets -->
+  <link rel="preload" href="style.css?v=20251006" as="style" />
+  <link rel="preload" href="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" as="image" />
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css?v=20251006" />
+
+  <style>
+    /* 🧠 Inline critical CSS (helps reduce CLS & render delay) */
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      background: #000;
+      color: #fff;
+    }
+    img, iframe, video {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      aspect-ratio: 16/9;
+    }
+    .watch-movies-btn {
+      display: inline-block;
+      background: linear-gradient(45deg,#ff0040,#ff7a00);
+      color: #fff;
+      font-weight: 700;
+      text-decoration: none;
+      padding: 12px 25px;
+      border-radius: 10px;
+      font-size: 18px;
+      margin: 25px auto;
+      transition: transform 0.3s;
+    }
+    .watch-movies-btn:hover {
+      transform: scale(1.07);
+      background: linear-gradient(45deg,#ff7a00,#ff0040);
+    }
+    .hero-actions { text-align: center; }
+    .grid, .latest-list { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
+    .thumbnail, .video-item { min-height: 200px; background: #111; border-radius: 10px; overflow: hidden; }
+    h2 { font-size: 20px; margin: 10px 0; }
+  </style>
 
   <!-- Open Graph -->
   <meta property="og:site_name" content="Dareloom Hub" />
@@ -25,7 +74,6 @@
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://dareloom.fun/" />
   <meta property="og:image" content="https://dareloom.fun/preview-thumbnail.jpg" />
-  <meta property="og:image:alt" content="Dareloom Hub preview thumbnail" />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -33,171 +81,123 @@
   <meta name="twitter:description" content="Watch exclusive erotic & romantic web series, trailers and uncut clips in HD — updated daily." />
   <meta name="twitter:image" content="https://dareloom.fun/preview-thumbnail.jpg" />
 
-  <!-- Favicons / Manifest -->
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <!-- Favicons -->
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
-  <link rel="icon" type="image/png" sizes="192x192" href="/web-app-manifest-192x192.png" />
   <link rel="icon" type="image/png" sizes="512x512" href="/web-app-manifest-512x512.png" />
-  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="shortcut icon" href="/favicon.ico" />
   <link rel="manifest" href="/site.webmanifest" />
 
-  <!-- Preload critical assets -->
-  <link rel="preload" href="style.css?v=20251006" as="style" />
-  <link rel="preload" href="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" as="image" />
-
-  <!-- Stylesheet (render-blocking reduced by preload + normal link) -->
-  <link rel="stylesheet" href="style.css?v=20251006" />
-
-  <style>
-    /* small inline critical styles to reduce CLS while stylesheet loads */
-    html,body{margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
-    .watch-movies-btn{display:inline-block;background:linear-gradient(45deg,#ff0040,#ff7a00);color:#fff;font-weight:700;text-decoration:none;padding:12px 25px;border-radius:10px;font-size:18px;margin:25px auto;transition:0.3s}
-    .watch-movies-btn:hover{transform:scale(1.07);background:linear-gradient(45deg,#ff7a00,#ff0040)}
-    .hero-actions{text-align:center}
-    /* basic utilities preserved */
-  </style>
-
-  <!-- Structured Data: Organization + WebSite -->
+  <!-- JSON-LD -->
   <script type="application/ld+json">
   {
-    "@context":"https://schema.org",
-    "@graph":[
+    "@context": "https://schema.org",
+    "@graph": [
       {
-        "@type":"Organization",
-        "name":"Dareloom Hub",
-        "url":"https://dareloom.fun",
-        "logo":"https://dareloom.fun/favicon-512x512.png",
-        "contactPoint":[{"@type":"ContactPoint","contactType":"Customer Support","email":"dareloom.official@gmail.com"}],
-        "sameAs":[]
+        "@type": "Organization",
+        "name": "Dareloom Hub",
+        "url": "https://dareloom.fun",
+        "logo": "https://dareloom.fun/favicon-512x512.png",
+        "contactPoint": [{
+          "@type": "ContactPoint",
+          "contactType": "Customer Support",
+          "email": "dareloom.official@gmail.com"
+        }]
       },
       {
-        "@type":"WebSite",
-        "name":"Dareloom Hub",
-        "url":"https://dareloom.fun",
-        "potentialAction":{
-          "@type":"SearchAction",
-          "target":"https://dareloom.fun/?search={query}",
-          "query-input":"required name=query"
+        "@type": "WebSite",
+        "name": "Dareloom Hub",
+        "url": "https://dareloom.fun",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://dareloom.fun/?search={query}",
+          "query-input": "required name=query"
         }
       }
     ]
   }
   </script>
 
-  <!-- Minimal CSP hints (non-blocking) - keep compatible with your ad scripts -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:;">
-
+  <!-- Safe CSP -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:;" />
 </head>
 
 <body>
-  <header class="site" role="banner" aria-label="Site header">
+  <header class="site" role="banner">
     <div class="brand" style="display:flex;align-items:center;padding:12px;">
-      <img class="logo-img" src="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" alt="Dareloom Hub Logo" width="55" height="55" style="border-radius:12px;margin-right:10px;">
+      <img src="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" alt="Dareloom Hub Logo" width="55" height="55" style="border-radius:12px;margin-right:10px;">
       <div>
-        <div class="title" style="font-weight:700;font-size:18px">Dareloom Hub</div>
-        <div style="font-size:12px;color:#888">Dareloom Hub — Watch Trailers & Movies in HD</div>
+        <div class="title" style="font-weight:700;font-size:18px;">Dareloom Hub</div>
+        <div style="font-size:12px;color:#888;">Watch Trailers & Movies in HD</div>
       </div>
     </div>
-
-    <div class="nav" style="display:flex;align-items:center;gap:10px;padding:8px;">
-      <input type="search" id="searchInput" placeholder="Search titles..." aria-label="Search titles" onkeyup="filterVideos && filterVideos(this.value)" style="flex:1;padding:8px;border-radius:6px;border:1px solid #ddd;">
-      <button class="menu-toggle" aria-label="Random Pick" onclick="showRandomPick && showRandomPick()">🎲</button>
-    </div>
+    <nav class="nav" style="display:flex;align-items:center;gap:10px;padding:8px;">
+      <input type="search" id="searchInput" placeholder="Search titles..." aria-label="Search titles" onkeyup="filterVideos && filterVideos(this.value)" style="flex:1;padding:8px;border-radius:6px;border:1px solid #333;background:#111;color:#fff;">
+      <button class="menu-toggle" aria-label="Random Pick" onclick="showRandomPick && showRandomPick()" style="background:#ff0040;color:#fff;border:none;padding:8px 12px;border-radius:8px;">🎲</button>
+    </nav>
   </header>
 
-  <main class="wrap" id="mainWrap" role="main">
+  <main id="mainWrap">
     <section class="hero" aria-labelledby="nowTitle">
-      <aside class="hero-actions" style="margin-bottom:30px;">
-        <div id="nowTitle" class="now-title" style="font-size:20px;font-weight:600">Ready to watch the latest series?</div>
-        <div class="controls" id="controlsContainer"><div class="pill" id="count">0 items</div></div>
-      </aside>
-
+      <div class="hero-actions" style="margin-bottom:30px;">
+        <h1 id="nowTitle" style="font-size:20px;font-weight:600;margin:0;">Ready to watch the latest series?</h1>
+        <div id="controlsContainer"><div id="count" style="font-size:14px;">0 items</div></div>
+      </div>
       <div class="hero-actions">
-        <a href="/Movies/" class="watch-movies-btn" aria-label="Watch Erotic Movies">🎬 Watch Erotic Movies Here →</a>
+        <a href="/Movies/" class="watch-movies-btn">🎬 Watch Erotic Movies Here →</a>
       </div>
     </section>
 
-    <section class="section" id="latestSection" aria-labelledby="latestHeading">
-      <h2 id="latestHeading">📺 Latest Full Series Episodes</h2>
+    <section class="section" id="latestSection">
+      <h2>📺 Latest Full Series Episodes</h2>
       <div id="latestList" class="latest-list" aria-live="polite"></div>
-      <div id="pager" class="pager" aria-label="Pagination"></div>
+      <div id="pager" class="pager"></div>
     </section>
 
-    <section class="section" id="randomSection" aria-labelledby="randomHeading">
-      <h2 id="randomHeading">🔥 Trending Erotic & Romantic Picks</h2>
-      <div id="randomGrid" class="grid" role="list"></div>
+    <section class="section" id="randomSection">
+      <h2>🔥 Trending Erotic & Romantic Picks</h2>
+      <div id="randomGrid" class="grid"></div>
     </section>
 
-    <hr>
-
-    <section class="section" id="categorySection" style="display:none;">
+    <section id="categorySection" style="display:none;">
       <h2 id="categoryTitle">All Videos</h2>
       <div id="categoryGrid" class="grid"></div>
     </section>
 
-    <!-- SEO-rich content (kept concise & useful; helps indexing) -->
-    <section class="seo-content" style="padding:20px;color:var(--muted-color);font-size:14px;text-align:justify;">
-      <h1 style="font-size:20px;margin:0 0 10px 0;">Welcome to Dareloom Hub - Your Source for Free Erotic & Romantic Full Series (18+)</h1>
-      <p>
-        Dareloom Hub provides curated erotic and romantic web series, trailers, and uncut clips in HD streaming quality. Content is updated daily with working links and a fast, mobile-first player. This platform is intended for adult audiences (18+). Explore trending picks, browse categories, and enjoy private playback.
-      </p>
-      <p style="display:none">keywords: erotic web series, watch trailers online, HD streaming, full episodes free</p>
+    <section class="seo-content" style="padding:20px;color:#aaa;font-size:14px;text-align:justify;">
+      <h2 style="font-size:20px;margin:0 0 10px;">Welcome to Dareloom Hub (18+)</h2>
+      <p>Dareloom Hub provides curated erotic and romantic web series, trailers, and uncut clips in HD streaming quality. Content is updated daily with working links and a fast, mobile-first player. This platform is intended for adult audiences (18+).</p>
     </section>
   </main>
 
-  <footer class="foot" role="contentinfo" style="padding:14px;text-align:center;color:#888;">
-    <div class="footer-info">© Dareloom Hub. Contact: <a href="mailto:dareloom.official@gmail.com">dareloom.official@gmail.com</a></div>
+  <footer style="padding:14px;text-align:center;color:#888;">
+    © Dareloom Hub — <a href="mailto:dareloom.official@gmail.com" style="color:#aaa;">dareloom.official@gmail.com</a>
   </footer>
 
-  <!-- Video modal (unchanged behavior) -->
-  <div id="videoModal" class="full-screen-modal" style="display:none;" role="dialog" aria-modal="true" aria-hidden="true">
-    <div class="modal-content player-content" style="max-width:980px;margin:20px auto;background:#111;color:#fff;padding:16px;border-radius:8px;">
-      <button class="close-btn" aria-label="Close player" onclick="closePlayerModal()" style="float:right;background:transparent;border:none;color:#fff;font-size:18px;">✖</button>
-
+  <!-- Modal -->
+  <div id="videoModal" style="display:none;" role="dialog" aria-modal="true">
+    <div style="max-width:980px;margin:20px auto;background:#111;color:#fff;padding:16px;border-radius:8px;">
+      <button aria-label="Close" onclick="closePlayerModal()" style="float:right;background:transparent;border:none;color:#fff;font-size:18px;">✖</button>
       <div class="adsterra-banner-placement" style="margin:10px auto;text-align:center;">
         <script async type="text/javascript">
-          atOptions = {
-            'key': 'd1be46ed95d3e2db572824c531da5082',
-            'format': 'iframe',
-            'height': 90,
-            'width': 728,
-            'params': {}
-          };
+          atOptions = { 'key':'d1be46ed95d3e2db572824c531da5082', 'format':'iframe', 'height':90, 'width':728, 'params':{} };
         </script>
       </div>
-
-      <div id="modalPlayerWrap" class="player-card">
-        <div class="player-placeholder">Loading Video Player...</div>
-      </div>
-
-      <div class="modal-controls">
-        <h3 id="modalVideoTitle" style="margin:12px 0 6px 0">Loading...</h3>
-        <p id="modalVideoDescription" style="color:var(--muted);font-size:14px;margin:0 0 10px 0"></p>
-        <div id="modalControlsContainer" class="controls"></div>
-      </div>
-
-      <div id="modalPersistentAd" style="width:100%;text-align:center;padding:10px 0;background:#000;border-top:1px solid #111;"></div>
-      <div class="adsterra-socialbar-placement" style="margin:15px 0;"></div>
+      <div id="modalPlayerWrap" style="min-height:200px;background:#000;border-radius:8px;">Loading Video Player...</div>
+      <div id="modalControlsContainer"></div>
     </div>
   </div>
 
-  <!-- small inline helper to close modal -->
   <script>
     function closePlayerModal(){
-      const modal = document.getElementById('videoModal');
-      if(!modal) return;
-      modal.style.display = 'none';
-      modal.setAttribute('aria-hidden','true');
-      document.body.style.overflow = 'auto';
-      const wrap = document.getElementById('modalPlayerWrap');
-      if(wrap) wrap.innerHTML = '';
+      const modal=document.getElementById('videoModal');
+      if(!modal)return;
+      modal.style.display='none';
+      document.body.style.overflow='auto';
+      const wrap=document.getElementById('modalPlayerWrap');
+      if(wrap)wrap.innerHTML='';
     }
   </script>
 
-  <!-- Main script: defer for performance -->
+  <!-- Defer main script -->
   <script src="script.js?v=20251006" defer></script>
 </body>
-        </html>
+</html>
