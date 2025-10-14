@@ -203,6 +203,9 @@ h2 {
   transition: transform 0.3s, box-shadow 0.3s;
   border: 1px solid #222;
   min-height: 200px;
+  
+  /* FIX 1: Set position for absolute overlay button */
+  position: relative; 
 }
 .card:hover {
   transform: translateY(-5px);
@@ -218,6 +221,40 @@ h2 {
   contain-intrinsic-size: 320px 180px;
   content-visibility: auto;
 }
+
+/* NEW FIX: Watch Button Overlay Style */
+.watch-overlay-btn {
+  /* FIX 2: Button is positioned absolutely over the thumbnail area */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  
+  background: rgba(255, 75, 145, 0.9); /* Primary color with transparency */
+  color: #fff;
+  border: 2px solid #fff;
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  
+  /* FIX 3: Hide by default on desktop, show on hover */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s, visibility 0.3s, transform 0.3s;
+  pointer-events: none; /* Allows clicks to pass through initially */
+}
+
+/* FIX 4: Show button on card hover (Desktop) */
+.card:hover .watch-overlay-btn {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto; /* Allows clicks when visible */
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
 
 /* --- META --- */
 .meta {
@@ -516,29 +553,27 @@ h2 {
 
   /* MOBILE PLAYER FIX */
   #modalPlayerWrap {
-    /* Mobile par full height player chahiye toh padding-bottom hata dein */
     height: auto;
     padding-bottom: unset; 
-    min-height: 250px; /* Thodi height set karein */
+    min-height: 250px; 
     background: #000;
-    position: relative; /* Remove relative positioning if you want it to behave like a normal element */
+    position: relative; 
   }
 
   #modalPlayerWrap iframe,
   #modalPlayerWrap video {
-    position: relative; /* Set to relative on mobile */
-    height: 250px; /* Fixed height for video on smaller screens */
-    object-fit: contain; /* Video ko cut hone se bachane ke liye */
+    position: relative; 
+    height: 250px; 
+    object-fit: contain; 
   }
 
   .modal-controls {
-    /* position: absolute; agar player full screen nahi hai toh absolute position hata dein */
     position: relative; 
     bottom: unset;
     left: unset;
     right: unset;
     padding: 10px;
-    background: var(--card-bg); /* Full opacity background */
+    background: var(--card-bg); 
     text-align: left;
     z-index: 50;
   }
@@ -559,6 +594,14 @@ h2 {
   .category-nav a {
     padding: 6px 10px;
     font-size: 0.8rem;
+  }
+  
+  /* FIX 5: Show the Watch Button always on mobile, without hover */
+  .watch-overlay-btn {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transform: translate(-50%, -50%) scale(0.9); /* Thoda chhota kar diya mobile ke liye */
   }
 }
 
@@ -599,5 +642,5 @@ img::before {
   font-display: swap;
   src: local("Poppins"),
        url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
-  }
-  
+    }
+    
