@@ -313,6 +313,45 @@ h2 {
   color: #fff;
 }
 
+/* NEW: Download/Stream Buttons for Modal Controls */
+.modal-controls-wrap {
+    display: flex;
+    gap: 15px;
+    margin: 15px 0;
+    flex-wrap: wrap; /* for mobile */
+}
+
+.download-btn-streamtape,
+.download-btn-telegram {
+    display: inline-flex;
+    align-items: center;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 1rem;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.download-btn-streamtape {
+    background: #4A90E2; /* Blue, good for streaming */
+    color: #fff;
+}
+.download-btn-streamtape:hover {
+    background: #357ABD;
+    transform: translateY(-2px);
+}
+
+.download-btn-telegram {
+    background: #0088CC; /* Telegram's signature color */
+    color: #fff;
+}
+.download-btn-telegram:hover {
+    background: #006AA7;
+    transform: translateY(-2px);
+}
+
 /* --- PAGINATION --- */
 .pager {
   display: flex;
@@ -388,13 +427,20 @@ h2 {
 /* Fixed Full Height Video for Mobile */
 #modalPlayerWrap {
   width: 100%;
-  height: 100%;
-  max-height: 80vh;
+  /* 16:9 Aspect Ratio for Player on Desktop */
   position: relative;
+  padding-bottom: 56.25%; /* (9 / 16) * 100 = 56.25% */
+  height: 0;
+  overflow: hidden;
   background: #000;
 }
+
 #modalPlayerWrap iframe,
 #modalPlayerWrap video {
+  /* Video should fill the 16:9 container */
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   border: none;
@@ -468,29 +514,37 @@ h2 {
     overflow-y: hidden;
   }
 
+  /* MOBILE PLAYER FIX */
   #modalPlayerWrap {
-    height: 100vh;
-    max-height: none;
-    padding: 0;
-    margin: 0;
-    border-radius: 0;
+    /* Mobile par full height player chahiye toh padding-bottom hata dein */
+    height: auto;
+    padding-bottom: unset; 
+    min-height: 250px; /* Thodi height set karein */
+    background: #000;
+    position: relative; /* Remove relative positioning if you want it to behave like a normal element */
   }
 
   #modalPlayerWrap iframe,
   #modalPlayerWrap video {
-    height: 100vh;
-    object-fit: cover;
+    position: relative; /* Set to relative on mobile */
+    height: 250px; /* Fixed height for video on smaller screens */
+    object-fit: contain; /* Video ko cut hone se bachane ke liye */
   }
 
   .modal-controls {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    /* position: absolute; agar player full screen nahi hai toh absolute position hata dein */
+    position: relative; 
+    bottom: unset;
+    left: unset;
+    right: unset;
     padding: 10px;
-    background: rgba(0, 0, 0, 0.7);
-    text-align: center;
+    background: var(--card-bg); /* Full opacity background */
+    text-align: left;
     z-index: 50;
+  }
+  
+  .modal-controls-wrap {
+      justify-content: center;
   }
 
   .close-btn {
@@ -523,8 +577,11 @@ img, iframe, video {
   display: block;
   max-width: 100%;
   height: auto;
-  aspect-ratio: 16 / 9;
+  /* 🛑 FIX: iframe/video se aspect-ratio hataya hai, ab woh #modalPlayerWrap ke rules follow karenge */
   background: #111;
+}
+img {
+    aspect-ratio: 16 / 9; /* Thumbnails ke liye theek hai */
 }
 * {
   scroll-behavior: smooth;
@@ -543,3 +600,4 @@ img::before {
   src: local("Poppins"),
        url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
   }
+  
