@@ -1,13 +1,14 @@
 // script.js
 // Dareloom Hub - Complete player + sheet + pagination + preview/watch + tags + random
-// 2025-10-11
+// 2025-10-15 (Includes: Comma-separation fix, Ad logic, Pagination)
 
 // ------------- CONFIG -------------
+// 🛑 IMPORTANT: API Key is sensitive. Ensure this is correct and restricted to your domain.
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 const PER_PAGE = 5;
 const RANDOM_COUNT = 4;
 
-// Pop / ads config (keeps existing behavior)
+// Pop / ads config 
 const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const POP_COOLDOWN_MS = 7000;
 const POP_DELAY_MS = 2000;
@@ -125,7 +126,7 @@ const date = (DT !== -1 && r[DT]) ? r[DT].toString().trim() : '';
 const category = (CA !== -1 && r[CA]) ? r[CA].toString().trim() : '';
 const description = (DE !== -1 && r[DE]) ? r[DE].toString().trim() : '';
     
-// 🛑 FIX 1: Split the rawWatch string by comma and assign links based on type
+// 🛑 FIX: Split the rawWatch string by comma and assign links based on type
 let telegramLink = '';
 let streamtapeLink = '';
 const links = rawWatch.split(',').map(l => l.trim()).filter(Boolean);
@@ -315,7 +316,8 @@ renderLatest(1);
 updateCount(filteredItems.length);
 }
 
-function doSearch(q){
+// Search function (public wrapper for search input)
+function filterVideos(q){
 q = (q||'').toString().trim().toLowerCase();
 if (!q){
 filteredItems = items.slice();
@@ -341,6 +343,7 @@ currentPage = 1;
 renderLatest(1);
 updateCount(filteredItems.length);
 }
+
 
 // ------------- MODAL PREVIEW & WATCH -------------
 function triggerAdThenOpenModal(it){
@@ -397,12 +400,12 @@ if (watchUrl) {
     html += `<button class="btn watch-btn-modal" data-url="${escapeHtml(watchUrl)}" style="min-width: 150px;">Open in Player</button>`;
 }
 
-// 🛑 FIX 2: Streamtape button using its dedicated URL
+// Streamtape button using its dedicated URL
 if (watchUrl.includes('streamtape.com') || watchUrl.includes('/v/')){
     html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()" style="min-width: 150px;">Open Streamtape</button>`;
 }
 
-// 🛑 FIX 2: Telegram button using its dedicated URL
+// Telegram button using its dedicated URL
 if (telegramUrl.includes('t.me') || telegramUrl.includes('telegram')){
     html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(telegramUrl)}','_blank')})()" style="min-width: 150px;">Open Telegram</button>`;
 }
@@ -431,16 +434,8 @@ openWatchPage(url);
 });
 }
 
-function closePlayerModal(){
-const modal = qs('#videoModal');
-if (!modal) return;
-modal.style.display = 'none';
-document.body.style.overflow = '';
-const pWrap = qs('#modalPlayerWrap');
-if (pWrap) pWrap.innerHTML = '';
-const controls = qs('#modalControlsContainer');
-if (controls) controls.innerHTML = '';
-}
+// Close function is defined inline in index.html (but keep this here for reference)
+// function closePlayerModal(){ ... } 
 
 // helper to create embed link for modal (youtube/streamtape/drive/mp4)
 function toEmbedUrlForModal(url){
@@ -475,7 +470,8 @@ if (final.includes('/v/')){
 const m = final.match(/\/v\/([0-9A-Za-z_-]+)\//);
 if (m && m[1]) final = `https://streamtape.com/e/${m[1]}/`;
 }
-const watchPage = `watch.html?url=${encodeURIComponent(final)}`;
+// 🛑 FIX: Use ABSOLUTE path for watch.html to work from all directories (e.g., /video/)
+const watchPage = `/watch.html?url=${encodeURIComponent(final)}`;
 const w = window.open(watchPage,'_blank');
 if (!w || w.closed || typeof w.closed === 'undefined'){
 alert("Please allow pop-ups to open the link in a new tab!");
@@ -484,6 +480,13 @@ closePlayerModal();
 }catch(e){ console.error(e); }
 }, 120);
 }
+
+// Random pick function (called by button)
+function showRandomPick(){
+const random = items[Math.floor(Math.random() * items.length)];
+if (random) triggerAdThenOpenModal(random);
+}
+
 
 // ------------- INIT / BOOT -------------
 async function loadAll(){
@@ -512,7 +515,7 @@ const s = qs('#searchInput');
 if (s){
 s.addEventListener('input', (e) => {
 const q = e.target.value || '';
-doSearch(q);
+filterVideos(q);
 });
 }
 
@@ -529,7 +532,7 @@ if (ev.target === modal) closePlayerModal();
 });
 }
 
-// auto pop once after delay (keeps existing ad behavior)
+// auto pop once after delay 
 window.addEventListener('load', ()=> setTimeout(()=> openAdsterraPop(), INITIAL_AUTO_POP_DELAY), { once:true });
 }
 
@@ -538,56 +541,6 @@ function updateCount(n){
 const c = qs('#count');
 if (c) c.textContent = `${n} items`;
 }
-
-// search wrapper calls doSearch (keeps names consistent)
-function doSearch(q){
-// reuse doSearch logic above
-q = (q||'').toString().trim().toLowerCase();
-if (!q){
-filteredItems = items.slice();
-currentPage = 1;
-renderLatest(1);
-updateCount(filteredItems.length);
-return;
-}
-if (q === 'n'){
-localStorage.setItem('adblock_bypassed','true');
-filteredItems = items.slice();
-currentPage = 1;
-renderLatest(1);
-updateCount(filteredItems.length);
-return;
-}
-filteredItems = items.filter(it => {
-const t = (it.title||'').toLowerCase();
-const c = (it.category||'').toLowerCase();
-return t.includes(q) || c.includes(q);
-});
-currentPage = 1;
-renderLatest(1);
-updateCount(filteredItems.length);
-}
-
-// attach global click to handle preview/watch buttons added dynamically (delegation fallback)
-document.addEventListener('click', (e) => {
-const preview = e.target.closest('.preview-btn');
-if (preview){
-const id = preview.dataset.id || preview.getAttribute('data-id');
-if (id){
-const it = items.find(x => x.id === id) || filteredItems.find(x => x.id === id);
-if (it) triggerAdThenOpenModal(it);
-}
-}
-const watch = e.target.closest('.watch-btn');
-if (watch && watch.dataset.url){
-openWatchPage(watch.dataset.url);
-}
-});
-// ensure preview/watch triggers open popunder (global)
-document.addEventListener('click', (e) => {
-const target = e.target.closest('.watch-btn, .preview-btn, .card, .btn, .page-btn');
-if (target) openAdsterraPop();
-}, { passive:true });
 
 // start
 loadAll();
