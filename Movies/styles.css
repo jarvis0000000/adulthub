@@ -117,7 +117,7 @@ body {
   color: var(--bg-dark);
 }
 
-/* --- Card Styles (Professional) --- */
+/* --- Card Styles (Professional) */
 .card {
   background: var(--bg-mid);
   border-radius: 10px;
@@ -284,14 +284,21 @@ body {
   box-shadow: 0 5px 15px rgba(0,0,0,0.5);
   transition: transform 0.3s;
   aspect-ratio: 16 / 9; /* Standard screenshot ratio */
-  /* ✅ FIX: Changed 'cover' to 'contain' to ensure the entire image is visible, preventing content clipping */
+  /* FIX: Changed 'cover' to 'contain' to ensure the entire image is visible, preventing content clipping */
   object-fit: contain; 
   background-color: var(--bg-light); /* Fills the background if letterboxing occurs */
 }
 .screenshot-img:hover { transform: scale(1.02); }
 
 /* --- Pagination --- */
-.pagination { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin-top: 30px; }
+.pagination { 
+  display: flex; 
+  justify-content: center; 
+  gap: 10px; 
+  flex-wrap: wrap; 
+  margin-top: 30px; 
+  margin-bottom: 30px; /* Added default margin bottom */
+}
 .page-btn {
   padding: 8px 14px;
   background: var(--bg-light);
@@ -305,7 +312,15 @@ body {
 .page-btn.active { background: var(--primary-color); font-weight: 700; }
 
 /* --- Telegram Floating Buttons --- */
-.telegram-buttons { position: fixed; right: 25px; bottom: 25px; display: flex; flex-direction: column; gap: 15px; z-index: 100; }
+.telegram-buttons { 
+  position: fixed; 
+  right: 25px; 
+  bottom: 25px; 
+  display: flex; 
+  flex-direction: column; 
+  gap: 15px; 
+  z-index: 100; 
+}
 .telegram-btn {
   background: var(--secondary-color);
   color: #fff;
@@ -340,6 +355,13 @@ body.detail-page .logo { margin-left: auto; margin-right: auto; }
   .detail-card {flex-direction: column; gap: 20px; padding: 20px;}
   .detail-poster {width: 100%; height: auto;}
   .detail-container {padding: 20px;}
+
+  /* ✅ FIX for Pagination Overlap */
+  /* Add padding to the bottom of the pagination to push it up and clear the fixed Telegram buttons */
+  .pagination {
+    padding-bottom: 80px; 
+    margin-bottom: 0;
+  }
 }
 @media(max-width:600px){
   .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
