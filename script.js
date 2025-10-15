@@ -104,14 +104,13 @@ const idxDate = find(['date','upload date','published']);
 const idxCategory = find(['category','categories','tags','tag','genre']);
 const idxDesc = find(['description','desc','summary']);
 
-// If headers not found (or sparse), still treat row0 as header - fallback indices chosen conservatively (based on your sheet)
 // We use your custom indices here: Title=0 (A), Trailer=2 (C), Watch=6 (G), Category=20 (U)
 const TI = idxTitle !== -1 ? idxTitle : 0;
 const TR = idxTrailer !== -1 ? idxTrailer : 2;
-const WA = idxWatch !== -1 ? idxWatch : 6; // *** UPDATED for Column G
+const WA = idxWatch !== -1 ? idxWatch : 6; // Column G (The WATCH column you are using)
 const TH = idxPoster !== -1 ? idxPoster : -1;
 const DT = idxDate !== -1 ? idxDate : -1;
-const CA = idxCategory !== -1 ? idxCategory : 20; // *** UPDATED for Column U
+const CA = idxCategory !== -1 ? idxCategory : 20; // Column U
 const DE = idxDesc !== -1 ? idxDesc : -1;
 
 const rows = values.slice(1);
@@ -120,22 +119,39 @@ for (let r of rows){
 r = Array.isArray(r) ? r : [];
 const title = (r[TI] || '').toString().trim();
 const trailer = (r[TR] || '').toString().trim();
-const watch = (r[WA] || '').toString().trim();
+const rawWatch = (r[WA] || '').toString().trim(); // Raw data from Watch column
 const poster = (TH !== -1 && r[TH]) ? r[TH].toString().trim() : '';
 const date = (DT !== -1 && r[DT]) ? r[DT].toString().trim() : '';
 const category = (CA !== -1 && r[CA]) ? r[CA].toString().trim() : '';
 const description = (DE !== -1 && r[DE]) ? r[DE].toString().trim() : '';
+    
+// 🛑 FIX 1: Split the rawWatch string by comma and assign links based on type
+let telegramLink = '';
+let streamtapeLink = '';
+const links = rawWatch.split(',').map(l => l.trim()).filter(Boolean);
+    
+links.forEach(link => {
+    if (link.includes('t.me') || link.includes('telegram')) {
+        telegramLink = link;
+    } else if (link.includes('streamtape.com') || link.includes('/v/')) {
+        streamtapeLink = link;
+    }
+});
+    
+// Set 'watch' to the Streamtape/primary link for 'Open in Player' button
+const finalWatchLink = streamtapeLink || rawWatch; // Fallback to rawWatch if Streamtape not found
 
-// skip rows with no playable link  
-if ((!trailer || trailer.length === 0) && (!watch || watch.length === 0)) continue;  
+// skip rows with no playable link
+if ((!trailer || trailer.length === 0) && (!finalWatchLink || finalWatchLink.length === 0)) continue;
 
-const id = `${slugify(title)}|${encodeURIComponent(watch||trailer||Math.random().toString(36).slice(2,8))}`;  
+const id = `${slugify(title)}|${encodeURIComponent(finalWatchLink||trailer||Math.random().toString(36).slice(2,8))}`;  
 
 out.push({  
   id,  
   title: title || 'Untitled',  
   trailer: trailer || '',  
-  watch: watch || '',  
+  watch: finalWatchLink || '', // Streamtape/Primary link
+  telegram: telegramLink || '', // Telegram link
   poster: poster || '',  
   date: date || '',  
   category: category || '',  
@@ -349,7 +365,7 @@ return;
 titleEl.textContent = it.title || 'Video';
 descEl.textContent = it.description || '';
 
-// build embed (prefer trailer youtube)
+// build embed (prefer trailer youtube, fallback to primary watch link)
 const embedUrl = toEmbedUrlForModal(it.trailer || it.watch);
 pWrap.innerHTML = '';
 if (embedUrl){
@@ -371,22 +387,24 @@ pWrap.appendChild(iframe);
 pWrap.innerHTML = `<div style="padding:80px 20px;text-align:center;color:var(--muted)">Trailer not available for embed.</div>`;
 }
 
-// controls: Watch (open watch.html) + Telegram/Stream buttons if link types detected
-// Applying button separation (flex container and spacing)
+// controls: Watch (open watch.html) + Telegram/Stream buttons
 let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">';
-const watchUrl = it.watch || it.trailer || '';
+const watchUrl = it.watch || it.trailer || ''; // Primary link (Streamtape)
+const telegramUrl = it.telegram || ''; // Telegram link
 
-// Open in Player button (main action)
-html += `<button class="btn watch-btn-modal" data-url="${escapeHtml(watchUrl)}" style="min-width: 150px;">Open in Player</button>`;
-
-// If Streamtape link present, add a direct streamtape button
-if ((watchUrl||'').includes('streamtape.com') || (watchUrl||'').includes('/v/')){
-html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()" style="min-width: 150px;">Open Streamtape</button>`;
+// Open in Player button (main action) - Uses Streamtape link
+if (watchUrl) {
+    html += `<button class="btn watch-btn-modal" data-url="${escapeHtml(watchUrl)}" style="min-width: 150px;">Open in Player</button>`;
 }
 
-// If telegram link
-if ((watchUrl||'').includes('t.me') || (watchUrl||'').includes('telegram')){
-html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()" style="min-width: 150px;">Open Telegram</button>`;
+// 🛑 FIX 2: Streamtape button using its dedicated URL
+if (watchUrl.includes('streamtape.com') || watchUrl.includes('/v/')){
+    html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(watchUrl)}','_blank')})()" style="min-width: 150px;">Open Streamtape</button>`;
+}
+
+// 🛑 FIX 2: Telegram button using its dedicated URL
+if (telegramUrl.includes('t.me') || telegramUrl.includes('telegram')){
+    html += `<button class="btn" onclick="(function(){window.open('${escapeHtml(telegramUrl)}','_blank')})()" style="min-width: 150px;">Open Telegram</button>`;
 }
 
 // share button
@@ -573,4 +591,4 @@ if (target) openAdsterraPop();
 
 // start
 loadAll();
-                 
+    
