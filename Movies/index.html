@@ -4,7 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dareloom Hub - Movies, Shows & Anime</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <!-- Preload fonts to improve Largest Contentful Paint (LCP) -->
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap"></noscript>
+  
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -33,6 +36,9 @@
 
   <script type='text/javascript' src='//pl27626803.revenuecpmgate.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js'></script>
   <footer class="site-footer">&copy; 2024 Dareloom Hub. All Rights Reserved.</footer>
+  
+  <!-- App.js must be loaded after all HTML elements -->
   <script src="app.js"></script>
 </body>
 </html>
+
