@@ -51,6 +51,7 @@ border-bottom: 2px solid var(--primary-color);
 .brand { display: flex; align-items: center; gap: 10px; }
 
 .logo-img {
+/* 🛑 LCP FIX: width/height defined in HTML */
 height: 40px;
 width: 40px;
 border-radius: 50%;
@@ -64,7 +65,7 @@ margin: 0;
 text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
 }
 
-.nav { display: flex; align-items: center; gap: 10px; } /* Increased gap for better spacing */
+.nav { display: flex; align-items: center; gap: 10px; } 
 
 .nav input {
 padding: 8px 15px;
@@ -94,40 +95,12 @@ transform: rotate(180deg) scale(1.1);
 background: var(--secondary-color);
 }
 
-/* NEW: CATEGORY NAVIGATION BAR (Not currently in HTML but good practice) */
-.category-nav {
-background: #0d0d0d;
-border-bottom: 2px solid var(--secondary-color);
-padding: 10px 0;
-overflow-x: auto; 
-white-space: nowrap;
-display: flex;
-box-shadow: 0 4px 5px rgba(0, 0, 0, 0.4);
-}
-
-.category-nav a {
-color: var(--text-color);
-text-decoration: none;
-padding: 8px 15px;
-margin: 0 5px;
-border-radius: 20px;
-font-size: 0.9rem;
-font-weight: 500;
-flex-shrink: 0;
-}
-.category-nav a:hover,
-.category-nav a.active {
-background-color: var(--primary-color);
-color: #fff;
-box-shadow: 0 0 8px rgba(255, 75, 145, 0.5);
-}
-
 /* --- GENERAL LAYOUT AND TITLES --- */
 .wrap {
 padding: var(--section-padding);
 max-width: 1200px;
 margin: 0 auto;
-width: 100%; /* Ensure wrap takes full width */
+width: 100%; 
 }
 
 h2 {
@@ -205,13 +178,13 @@ color: var(--primary-color);
 
 /* --- LATEST LIST (The Fix for Overlap!) --- */
 .latest-list {
-    /* 🛑 FIX: Reverting to Flexbox Column for List view (Desktop View Fix) */
+    /* 🛑 FIX: Reverting to Flexbox Column for List view (CLS Fix) */
     display: flex;
     flex-direction: column;
     gap: 16px;
-    /* Optional: Max width for list items on very wide screens */
     max-width: 900px; 
     margin: 0 auto;
+    min-height: 500px; /* CLS Improvement: reserve space */
 }
 .latest-item {
     display: flex;
@@ -238,7 +211,7 @@ color: var(--primary-color);
     flex: 1;
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Center content vertically */
+    justify-content: center; 
 }
 .latest-info h4 {
     margin-top: 0;
@@ -252,7 +225,7 @@ color: var(--primary-color);
 }
 
 
-/* --- BUTTONS & PAGINATION --- (Rest of the code remains clean) */
+/* --- BUTTONS & PAGINATION --- */
 .btn, .watch-btn, .tag-btn {
 background: var(--primary-color);
 color: #fff;
@@ -350,7 +323,6 @@ z-index: 100;
 /* Fixed Full Height Video */
 #modalPlayerWrap {
 width: 100%;
-/* CLS Fix: Aspect-ratio is good for reserving space, keep it */
 aspect-ratio: 16 / 9; 
 height: auto; 
 max-height: 80vh;
@@ -377,7 +349,7 @@ background: var(--card-bg);
 #modalPersistentAd {
     min-height: 90px; 
     display: block;
-    padding: 10px 15px 0 15px; /* Add padding consistent with .modal-controls */
+    padding: 10px 15px 0 15px; 
 }
 #modalPersistentAd iframe,
 #modalPersistentAd .persistent-ad {
@@ -397,7 +369,7 @@ text-align: center;
 
 /* --- RESPONSIVENESS --- */
 @media (max-width: 768px) {
-header.site { padding: 10px 0; } /* Padding is inside .wrap */
+header.site { padding: 10px 0; } 
 
 .nav input { width: 100px; }  
 .nav input:focus { width: 120px; }  
@@ -430,7 +402,7 @@ header.site { padding: 10px 0; } /* Padding is inside .wrap */
 }  
 
 #modalPlayerWrap {  
-  height: 100%; /* Height is 100% of modal-content */
+  height: 100%; 
   max-height: none;   
   aspect-ratio: auto;
 }  
@@ -463,5 +435,5 @@ header.site { padding: 10px 0; } /* Padding is inside .wrap */
 #modalPersistentAd .persistent-ad {
 height: 80px;
 }
-    }
+                            }
     
