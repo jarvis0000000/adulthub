@@ -16,6 +16,7 @@ body {
   background: var(--bg-dark);
   color: var(--text-light);
   line-height: 1.6;
+  overflow-x: hidden; /* ✅ FIX: Horizontal scrollbar removed from body */
 }
 
 /* --- Header & Navigation (COMPACT) --- */
@@ -274,8 +275,10 @@ body {
   padding-bottom: 5px;
 }
 .screenshots-grid {
+  /* Reverting to grid for better structure and size control */
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  /* At least one column of 150px, otherwise fill the available space */
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); 
   gap: 15px;
 }
 .screenshot-img {
@@ -284,9 +287,10 @@ body {
   box-shadow: 0 5px 15px rgba(0,0,0,0.5);
   transition: transform 0.3s;
   aspect-ratio: 16 / 9; /* Standard screenshot ratio */
-  /* FIX: Changed 'cover' to 'contain' to ensure the entire image is visible, preventing content clipping */
-  object-fit: contain; 
-  background-color: var(--bg-light); /* Fills the background if letterboxing occurs */
+  /* Reverting to cover to ensure the image fills its container, preventing stacking */
+  object-fit: cover; 
+  background-color: var(--bg-light); 
+  display: block; /* Ensure it behaves like a block element */
 }
 .screenshot-img:hover { transform: scale(1.02); }
 
@@ -356,7 +360,7 @@ body.detail-page .logo { margin-left: auto; margin-right: auto; }
   .detail-poster {width: 100%; height: auto;}
   .detail-container {padding: 20px;}
 
-  /* ✅ FIX for Pagination Overlap */
+  /* FIX for Pagination Overlap */
   /* Add padding to the bottom of the pagination to push it up and clear the fixed Telegram buttons */
   .pagination {
     padding-bottom: 80px; 
