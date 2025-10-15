@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="style.css?v=20251006" />
 
   <style>
-    /* 🧠 Inline critical CSS (from style.css :root and body) */
+    /* 🧠 Inline critical CSS (Fixes CLS and LCP) */
     :root {
       --primary-color: #ff4b91;
       --secondary-color: #1e90ff;
@@ -37,7 +37,6 @@
       --text-color: #fff;
       --border-radius-base: 12px;
     }
-    /* 🚀 CLS Improvement: Use a basic system font first, then Poppins */
     html, body {
       margin: 0;
       padding: 0;
@@ -45,18 +44,17 @@
       background: var(--bg-color);
       color: var(--text-color);
     }
-    /* 🚀 CLS/LCP Improvement: Consistent Aspect Ratio for placeholders */
-    /* Note: 'thumb' class will override this for specific components, which is intended */
+    /* CLS Improvement: Consistent Aspect Ratio for placeholders */
     img, iframe, video {
       display: block;
       max-width: 100%;
       height: auto;
-      aspect-ratio: 16/9; /* Default for all media */
+      aspect-ratio: 16/9;
     }
-    /* 🚀 LCP Improvement: Critical button styling */
+    /* LCP Improvement: Critical button styling */
     .watch-movies-btn {
       display: inline-block;
-      background: var(--secondary-color); /* Using CSS variable for consistency */
+      background: var(--secondary-color);
       color: #fff;
       font-weight: 700;
       text-decoration: none;
@@ -71,12 +69,12 @@
       background: var(--primary-color);
     }
     .hero-actions { text-align: center; }
-    /* CLS Improvement: Set grid structure and placeholder size (16:9 on 150px min width) */
-    .grid, .latest-list { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-    /* Match CSS .card styles to reserve space (approx 200px width * 9/16 aspect ratio + meta padding) */
+    /* 🛑 FIX: Grid definition for .grid ONLY. .latest-list uses external flexbox. */
+    .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+    /* CLS Improvement: Set min-height for cards */
     .card { min-height: 250px; background: var(--card-bg); border-radius: var(--border-radius-base); overflow: hidden; }
     h2 { color: var(--primary-color); font-size: 1.4rem; margin-bottom: 20px; border-left: 4px solid var(--secondary-color); padding-left: 10px;}
-
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 16px; } /* Define .wrap here too */
   </style>
 
   <script type="application/ld+json">
@@ -113,7 +111,7 @@
 
 <body>
   <header class="site" role="banner">
-    <div class="wrap" style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 0;">
+    <div class="wrap" style="display: flex; justify-content: space-between; align-items: center; padding: 0;">
         <div class="brand">
           <img src="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" alt="Dareloom Hub Logo" class="logo-img" width="40" height="40" loading="eager">
           <h1 class="title">Dareloom Hub</h1>
@@ -168,12 +166,9 @@
     
     <div class="modal-content player-content">
       
-      <div id="modalPersistentAd" style="width: 100%;">
+      <div id="modalPersistentAd">
           <div class="ad-label">Advertisement</div>
           <div class="persistent-ad" style="height: 90px; background: #222; text-align: center; color: #fff;">
-              <script async type="text/javascript">
-                  atOptions = { 'key':'d1be46ed95d3e2db572824c531da5082', 'format':'iframe', 'height':90, 'width':728, 'params':{} };
-              </script>
               </div>
       </div>
 
@@ -194,7 +189,6 @@
   </div>
 
   <script>
-    // Moved the critical close function up, as it's not dependent on the main script.js
     function closePlayerModal(){
       const modal=document.getElementById('videoModal');
       if(!modal)return;
@@ -214,4 +208,5 @@
 
   <script src="script.js?v=20251006" defer></script>
 </body>
-</html>
+  </html>
+  
