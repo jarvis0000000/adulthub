@@ -16,7 +16,7 @@ body {
   background: var(--bg-dark);
   color: var(--text-light);
   line-height: 1.6;
-  overflow-x: hidden; /* ✅ FIX: Horizontal scrollbar removed from body */
+  overflow-x: hidden; /* FIX: Horizontal scrollbar removed from body */
 }
 
 /* --- Header & Navigation (COMPACT) --- */
@@ -283,14 +283,18 @@ body {
 }
 .screenshot-img {
   width: 100%;
+  height: auto; /* ✅ FIX: Let the image's natural height determine the container size */
   border-radius: 8px;
   box-shadow: 0 5px 15px rgba(0,0,0,0.5);
   transition: transform 0.3s;
-  aspect-ratio: 16 / 9; /* Standard screenshot ratio */
-  /* Reverting to cover to ensure the image fills its container, preventing stacking */
-  object-fit: cover; 
+  
+  /* ❌ FIX: Removed fixed aspect-ratio to prevent clipping/cutting the image */
+  aspect-ratio: initial; 
+  /* ✅ FIX: Used contain to ensure the whole image is visible and not clipped */
+  object-fit: contain; 
+  
   background-color: var(--bg-light); 
-  display: block; /* Ensure it behaves like a block element */
+  display: block; 
 }
 .screenshot-img:hover { transform: scale(1.02); }
 
@@ -371,4 +375,4 @@ body.detail-page .logo { margin-left: auto; margin-right: auto; }
   .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
   .category-heading {font-size: 24px;}
   .main-nav {justify-content: center; margin-top: 10px;}
-  }
+}
