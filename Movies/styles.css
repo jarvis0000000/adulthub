@@ -142,7 +142,7 @@ body {
   display: block;
 }
 
-/* ✅ Category Badge on Poster (Now the clickable link) */
+/* Category Badge on Poster (Clickable link) */
 .card-category {
   position: absolute;
   top: 10px;
@@ -284,7 +284,9 @@ body {
   box-shadow: 0 5px 15px rgba(0,0,0,0.5);
   transition: transform 0.3s;
   aspect-ratio: 16 / 9; /* Standard screenshot ratio */
-  object-fit: cover;
+  /* ✅ FIX: Changed 'cover' to 'contain' to ensure the entire image is visible, preventing content clipping */
+  object-fit: contain; 
+  background-color: var(--bg-light); /* Fills the background if letterboxing occurs */
 }
 .screenshot-img:hover { transform: scale(1.02); }
 
@@ -343,4 +345,4 @@ body.detail-page .logo { margin-left: auto; margin-right: auto; }
   .grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
   .category-heading {font-size: 24px;}
   .main-nav {justify-content: center; margin-top: 10px;}
-}
+  }
