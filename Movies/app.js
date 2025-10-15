@@ -1,11 +1,19 @@
 const SHEET_ID = "1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o";
 const API_KEY = "AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
-const SHEET_NAME = "Sheet2";   // ✅ Correct sheet name
+const SHEET_NAME = "Sheet2";
 const PAGE_SIZE = 6;
+
+// ✅ Improvement: Global cache for data to prevent fetching on every route change
+let allDataCache = null; 
 
 function qs(sel) { return document.querySelector(sel); }
 
 async function fetchAllRows() {
+  // Return cached data if available
+  if (allDataCache) {
+    return allDataCache;
+  }
+  
   try {
     const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?key=${API_KEY}`;
     const res = await fetch(url);
@@ -27,9 +35,11 @@ async function fetchAllRows() {
     });
 
     data.forEach((d, i) => {
+      // Use Title as fallback for a unique ID if 'id' field is empty
       d._id = (d.id || d.Title || (i + 1).toString()).trim();
     });
 
+    allDataCache = data; // Cache the fetched data
     return data;
   } catch (err) {
     console.error("❌ Fetch Error:", err);
@@ -59,12 +69,16 @@ function renderPagination(totalItems, currentPage, cat = "all", searchQuery = ""
 }
 
 function movieCardHtml(item) {
-  const genre = item.Genre?.split(',')[0] || item.Category || '';
+  // Use the first genre/category found for the badge
+  const genre = item.Genre?.split(',')[0]?.trim() || item.Category?.split(',')[0]?.trim() || 'Unknown';
   const rating = item.Rating || 'N/A';
+  const genreHash = `#/category/${encodeURIComponent(genre)}`;
+  
   return `
   <div class="card" onclick="navigateTo('#/item/${encodeURIComponent(item._id)}')">
     <img src="${item.Poster || ''}" alt="${item.Title}">
-    <div class="card-meta">${genre}</div>
+    <!-- ✅ FIX: Genre is now a clickable <a> tag, event.stopPropagation() prevents detail page click -->
+    <a href="javascript:void(0)" class="card-category" onclick="event.stopPropagation(); navigateTo('${genreHash}')">${genre}</a>
     <div class="card-body">
       <h3>${item.Title}</h3>
       <p>⭐ ${rating}</p>
@@ -84,21 +98,16 @@ async function getUniqueCategories(data) {
   return Array.from(categories);
 }
 
+// ✅ FIX: Returns empty string to hide the category list bar completely
 function renderCategoryList(categories) {
-  let html = '<div class="category-list-wrap">';
-  categories.forEach(cat => {
-    const hash = `#/category/${encodeURIComponent(cat)}`;
-    html += `<a href="javascript:void(0)" class="category-list-btn" onclick="navigateTo('${hash}')">${cat}</a>`;
-  });
-  html += '</div>';
-  return html;
+  return ''; 
 }
 
 async function renderHome(page = 1) {
   const app = qs('#app');
   const data = await fetchAllRows();
   const categories = await getUniqueCategories(data);
-  const categoryListHtml = renderCategoryList(categories);
+  const categoryListHtml = renderCategoryList(categories); // This is now empty
   const { pageItems, total } = paginate(data, page, PAGE_SIZE);
   app.innerHTML = `
   <div class="container">
@@ -122,11 +131,14 @@ async function renderCategory(cat, page = 1) {
     <div id="pagination" class="pagination"></div>
   </div>`;
   const data = await fetchAllRows();
-  const lowerCat = cat.toLowerCase();
+  const lowerCat = decodeURIComponent(cat).toLowerCase();
+  
+  // Filter based on Category or Genre column containing the selected category
   const filtered = data.filter(d =>
     d.Category?.trim().toLowerCase().includes(lowerCat) ||
     d.Genre?.trim().toLowerCase().includes(lowerCat)
   );
+  
   const { pageItems, total } = paginate(filtered, page, PAGE_SIZE);
   qs('#list').innerHTML = pageItems.map(movieCardHtml).join('');
   qs('#pagination').innerHTML = renderPagination(total, page, cat);
@@ -187,12 +199,18 @@ async function renderItemDetail(id) {
   const title = item.Title || 'Untitled';
   const desc = item.Description || 'No description available.';
   const poster = item.Poster || '';
-  const category = item.Category || 'Unknown';
+  // Use the full list of categories/genres for detail page
+  const categories = (item.Category || item.Genre || 'Unknown').split(',').map(c => c.trim()).filter(c => c);
   const rating = item.Rating || 'N/A';
   const runtime = item.Runtime || 'N/A';
   const date = item.Date || 'N/A';
   const watchLinksHtml = createWatchLinksHtml(item);
   const screenshotsHtml = createScreenshotsHtml(item);
+
+  // Make category tags clickable on the detail page
+  const categoryTags = categories.map(cat => 
+    `<span class="info-tag category-tag" onclick="navigateTo('#/category/${encodeURIComponent(cat)}/page/1')">${cat}</span>`
+  ).join('');
 
   app.innerHTML = `
   <div class="container detail-container">
@@ -201,7 +219,7 @@ async function renderItemDetail(id) {
       <div class="detail-meta">
         <h1 class="detail-title">${title}</h1>
         <div class="detail-info-row">
-          <span class="info-tag category-tag">${category}</span>
+          ${categoryTags}
           <span class="info-tag rating-tag">⭐ ${rating}</span>
           <span class="info-tag runtime-tag">🕒 ${runtime}</span>
           <span class="info-tag date-tag">📅 ${date}</span>
@@ -215,10 +233,11 @@ async function renderItemDetail(id) {
 }
 
 function navigateTo(hash) { window.location.hash = hash; }
-function getRoute() { return location.hash.replace(/^#\/?/, '').split('/'); }
 
 async function router() {
-  const parts = getRoute();
+  const hash = location.hash.replace(/^#\/?/, ''); 
+  const parts = hash.split('/');
+
   const isDetail = parts[0] === 'item';
   document.body.classList.toggle('detail-page', isDetail);
 
@@ -226,9 +245,11 @@ async function router() {
     await renderHome(Number(parts[1]) || 1); return;
   }
   if (parts[0] === 'category') {
+    // parts[1] is the category name, parts[3] is the page number
     await renderCategory(parts[1] || 'all', Number(parts[3]) || 1); return;
   }
   if (parts[0] === 'search') {
+    // parts[1] is the query, parts[3] is the page number
     await renderSearch(decodeURIComponent(parts[1] || ''), Number(parts[3]) || 1); return;
   }
   if (isDetail) {
@@ -237,6 +258,7 @@ async function router() {
   await renderHome(1);
 }
 
+// Event listener for search input on Enter key press
 qs('#searchInput')?.addEventListener('keyup', (e) => {
   if (e.key === 'Enter') {
     const q = e.target.value.trim();
