@@ -1,6 +1,6 @@
 // script.js
 // Dareloom Hub - Complete player + sheet + pagination + preview/watch + tags + random
-// 2025-10-15 (Includes: Comma-separation fix, Ad logic, Pagination)
+// 2025-10-15 (Includes: Comma-separation fix, Ad logic, Pagination, and MODAL EMBED FIX)
 
 // ------------- CONFIG -------------
 // 🛑 IMPORTANT: API Key is sensitive. Ensure this is correct and restricted to your domain.
@@ -371,24 +371,28 @@ descEl.textContent = it.description || '';
 // build embed (prefer trailer youtube, fallback to primary watch link)
 const embedUrl = toEmbedUrlForModal(it.trailer || it.watch);
 pWrap.innerHTML = '';
-if (embedUrl){
-if (embedUrl.match(/.mp4($|\?)/i)){
-const v = document.createElement('video');
-v.controls = true; v.autoplay = true; v.muted = false; v.playsInline = true;
-v.src = embedUrl;
-v.style.width = '100%'; v.style.height = '420px';
-pWrap.appendChild(v);
+
+// 🛑 FIX: If no valid embed URL is found, show a message.
+if (!embedUrl){
+    pWrap.innerHTML = `<div style="padding:80px 20px;text-align:center;color:var(--muted)">
+        Preview not available for embed. Please use the 'Open in Player' button.
+    </div>`;
+} else if (embedUrl.match(/.mp4($|\?)/i)){
+    const v = document.createElement('video');
+    v.controls = true; v.autoplay = true; v.muted = false; v.playsInline = true;
+    v.src = embedUrl;
+    v.style.width = '100%'; v.style.height = '420px';
+    pWrap.appendChild(v);
 } else {
-const iframe = document.createElement('iframe');
-iframe.src = embedUrl;
-iframe.setAttribute('allow','autoplay; fullscreen; encrypted-media; picture-in-picture');
-iframe.setAttribute('allowfullscreen','true');
-iframe.style.width = '100%'; iframe.style.height = '420px'; iframe.style.border = 'none';
-pWrap.appendChild(iframe);
+    // This runs for YouTube, Drive, Streamtape Embeds, and generic HTTP(S) links
+    const iframe = document.createElement('iframe');
+    iframe.src = embedUrl;
+    iframe.setAttribute('allow','autoplay; fullscreen; encrypted-media; picture-in-picture');
+    iframe.setAttribute('allowfullscreen','true');
+    iframe.style.width = '100%'; iframe.style.height = '420px'; iframe.style.border = 'none';
+    pWrap.appendChild(iframe);
 }
-} else {
-pWrap.innerHTML = `<div style="padding:80px 20px;text-align:center;color:var(--muted)">Trailer not available for embed.</div>`;
-}
+
 
 // controls: Watch (open watch.html) + Telegram/Stream buttons
 let html = '<div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">';
@@ -434,27 +438,44 @@ openWatchPage(url);
 });
 }
 
-// Close function is defined inline in index.html (but keep this here for reference)
-// function closePlayerModal(){ ... } 
-
 // helper to create embed link for modal (youtube/streamtape/drive/mp4)
 function toEmbedUrlForModal(url){
 if (!url) return '';
+url = url.trim();
+
+// 1. YouTube
 const y = extractYouTubeID(url);
 if (y) return `https://www.youtube.com/embed/${y}?autoplay=1&rel=0`;
 if (url.includes('youtube.com/embed')) return url;
+
+// 🛑 2. MEGA Link Fix (Cannot be embedded, force user to watch page)
+if (url.includes('mega.nz')) {
+    openWatchPage(url);
+    return ''; // Stop modal from showing empty player
+}
+
+// 3. Google Drive
 if (url.match(/drive.google.com/)){
-const m = url.match(/[-\w]{25,}/);
-if (m) return `https://drive.google.com/file/d/${m[0]}/preview`;
+    const m = url.match(/[-\w]{25,}/);
+    if (m) return `https://drive.google.com/file/d/${m[0]}/preview`;
+    if (url.includes('/view')) return url.replace('/view', '/preview'); // common mistake fix
 }
+
+// 4. Streamtape
 if (url.includes('streamtape.com')){
-if (url.includes('/v/')){
-const id = url.split('/v/')[1]?.split('/')[0];
-if (id) return `https://streamtape.com/e/${id}/`;
+    if (url.includes('/v/')){
+        const id = url.split('/v/')[1]?.split('/')[0];
+        if (id) return `https://streamtape.com/e/${id}/`; // Convert /v/ to /e/
+    }
+    if (url.includes('/e/')) return url;
 }
-if (url.includes('/e/')) return url;
+
+// 5. Generic Embed/Direct MP4/Other Custom Embed Links
+// If it starts with http/https, we treat it as an embeddable link (e.g., direct mp4 or other custom player)
+if (url.startsWith('http') || url.startsWith('https')) {
+    return url;
 }
-if (url.match(/.mp4($|\?)/i)) return url;
+
 return '';
 }
 
