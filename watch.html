@@ -1,73 +1,220 @@
-<!DOCTYPE html>  <html lang="en">  
-<head>  
-<meta charset="UTF-8">  
-<meta name="viewport" content="width=device-width,initial-scale=1.0">  
-<title>Now Watching - Dareloom Hub</title>  
-<style>  
-body,html{  
-  margin:0;padding:0;height:100%;  
-  background:#000;color:#fff;font-family:sans-serif;  
-  display:flex;flex-direction:column;align-items:center;  
-}  
-header{  
-  background:#111;padding:12px 0;text-align:center;  
-  font-size:22px;font-weight:bold;width:100%;  
-  box-shadow:0 2px 6px rgba(0,0,0,0.5);  
-}  
-iframe{  
-  width:100%;height:75vh;border:none;margin-top:10px;  
-}  
-.ad-box{  
-  margin:8px 0;  
-  width:100%;text-align:center;  
-}  
-.btn{  
-  background:#e91e63;color:#fff;border:none;  
-  padding:10px 20px;border-radius:8px;  
-  cursor:pointer;font-weight:bold;margin:15px 0;  
-}  
-footer{text-align:center;padding:10px;color:#aaa;}  
-</style>  
-</head>  
-<body>  
-<header>🎥 Dareloom Hub</header>  <div id="videoWrap"></div>  <!-- 🔸 Ad placement -->  <div class="ad-box">  
-  <script type="text/javascript">  
-    atOptions = {  
-      'key' : 'd1be46ed95d3e2db572824c531da5082',  
-      'format' : 'iframe',  
-      'height' : 90,  
-      'width' : 728,  
-      'params' : {}  
-    };  
-  </script>  
-  <script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>  
-</div>  <div id="tgBtnWrap"></div>  <footer>© Dareloom Hub</footer>  <script>  
-const params = new URLSearchParams(window.location.search);  
-let raw = params.get("url");  
-const videoWrap = document.getElementById("videoWrap");  
-const tgBtnWrap = document.getElementById("tgBtnWrap");  
-  
-// Extract both links (split by comma if multiple)  
-if(raw){  
-  const parts = decodeURIComponent(raw).split(",");  
-  let streamtape = parts.find(l => l.includes("streamtape.com/e/"));  
-  let telegram = parts.find(l => l.includes("t.me") || l.includes("telegram.me"));  
-  
-  // Streamtape player  
-  if(streamtape){  
-    videoWrap.innerHTML = `<iframe src="${streamtape.trim()}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>`;  
-  } else {  
-    videoWrap.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20px;'>⚠️ Streamtape video not found</h3>";  
-  }  
-  
-  // Telegram button  
-  if(telegram){  
-    tgBtnWrap.innerHTML = `<button class="btn" onclick="window.open('${telegram.trim()}', '_blank')">📥 Download from Telegram</button>`;  
-  }  
-  
-} else {  
-  videoWrap.innerHTML = "<h2 style='color:white;text-align:center;'>⚠️ No video link found</h2>";  
-}  
-</script>  </body>  
-</html>  
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Now Watching - Dareloom Hub</title>
+<style>
+/* CSS is mostly unchanged */
+body,html{
+  margin:0;padding:0;height:100%;
+  background:#000;color:#fff;font-family:sans-serif;
+  display:flex;flex-direction:column;align-items:center;
+}
+header{
+  background:#111;padding:12px 0;text-align:center;
+  font-size:22px;font-weight:bold;width:100%;
+  box-shadow:0 2px 6px rgba(0,0,0,0.5);
+  z-index: 10; /* Ensure header is above ad overlay */
+}
+iframe{
+  width:100%;height:75vh;border:none;margin-top:10px;
+}
+.ad-box{
+  margin:8px 0;
+  width:100%;text-align:center;
+}
+.btn{
+  background:#e91e63;color:#fff;border:none;
+  padding:10px 20px;border-radius:8px;
+  cursor:pointer;font-weight:bold;margin:15px 0;
+}
+footer{text-align:center;padding:10px;color:#aaa;}
 
+/* 🛑 NEW: Ad Block Warning Styling */
+#adblock-warning-overlay {
+  display:none; 
+  position:fixed; 
+  top:0; 
+  left:0; 
+  width:100%; 
+  height:100%; 
+  background:rgba(0,0,0,0.95); 
+  color:white; 
+  text-align:center; 
+  z-index:99999; 
+  backdrop-filter: blur(5px); 
+  justify-content:center; 
+  align-items:center; 
+  flex-direction:column; 
+  padding:20px;
+  box-sizing: border-box;
+}
+
+/* 🛑 NEW: Main Content Wrapper for visibility control */
+#main-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 95%;
+    max-width: 900px; /* Added max-width for better desktop viewing */
+    flex-grow: 1; /* Allows it to fill space */
+}
+</style>
+</head>
+
+<body>
+<header>🎥 Dareloom Hub</header>
+
+<div id="adblock-warning-overlay" role="alert" aria-live="assertive">
+    <h1 style="color:#FFD700; font-size: 2.2rem; margin-top:0;">🚫 Ad Blocker Detected!</h1>
+    <p style="font-size:18px; margin-top:20px; max-width:600px;">
+        Humein maaf kijiye, hum aapko video nahi dikha sakte jab tak aap apna Ad Blocker disable nahi karte.
+        Kripya Ad Blocker band karein aur page ko **refresh** karein.
+    </p>
+</div>
+
+<div id="main-content-wrapper">
+    <div id="videoWrap"></div>
+
+    <div class="ad-box">
+      <script type="text/javascript">
+        atOptions = {
+          'key' : 'd1be46ed95d3e2db572824c531da5082',
+          'format' : 'iframe',
+          'height' : 90,
+          'width' : 728,
+          'params' : {}
+        };
+      </script>
+      <script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>
+    </div>
+
+    <div id="tgBtnWrap"></div>
+</div>
+
+<footer>© Dareloom Hub</footer>
+
+<script>
+    const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
+    let lastPop = 0;
+    const POP_COOLDOWN_MS = 7000;
+    const POP_DELAY_MS = 2000;
+    let isAdBlockerActive = false; // State variable
+
+    function openAdsterraPop(){
+        if (isAdBlockerActive) return; 
+        const now = Date.now();
+        if (now - lastPop < POP_COOLDOWN_MS) return;
+        lastPop = now;
+        setTimeout(() => {
+            try{
+                const s = document.createElement('script');
+                s.src = AD_POP;
+                s.async = true;
+                document.body.appendChild(s);
+                setTimeout(()=>{ try{s.remove();}catch(e){} }, 3500);
+            }catch(e){ console.warn("Ad pop failed", e); }
+        }, POP_DELAY_MS);
+    }
+</script>
+
+
+<script>
+// ------------- AD BLOCKER LOGIC -------------
+function showAdBlockerWarning(){
+    isAdBlockerActive = true;
+    const warning = document.getElementById('adblock-warning-overlay');
+    const content = document.getElementById('main-content-wrapper');
+    if (warning) warning.style.display = 'flex';
+    if (content) content.style.display = 'none';
+}
+
+function showContent(){
+    isAdBlockerActive = false;
+    const warning = document.getElementById('adblock-warning-overlay');
+    const content = document.getElementById('main-content-wrapper');
+    if (warning) warning.style.display = 'none';
+    if (content) content.style.display = 'flex'; // Use flex to retain column layout
+}
+
+function checkAdBlocker(){
+    return new Promise(resolve => {
+        const dummyAd = document.createElement('div');
+        dummyAd.className = 'pub_300x250 pub_dummy_ad ads adblock_detected';
+        dummyAd.style.width = '1px';
+        dummyAd.style.height = '1px';
+        dummyAd.style.position = 'absolute';
+        dummyAd.style.left = '-1000px';
+        document.body.appendChild(dummyAd);
+        setTimeout(() => {
+            if (dummyAd.offsetHeight === 0 || dummyAd.offsetParent === null) {
+                resolve(true); // Ad Blocker is ON
+            } else {
+                resolve(false); // Ad Blocker is OFF
+            }
+            dummyAd.remove();
+        }, 300);
+    });
+}
+// ------------- VIDEO LOAD LOGIC -------------
+async function loadVideo(){
+    // 1. Check Ad Blocker
+    const adBlockActive = await checkAdBlocker();
+    if (adBlockActive) {
+        showAdBlockerWarning();
+        return; // Stop execution if blocked
+    }
+    showContent();
+    
+    // 2. Pop-under Ad on successful load
+    openAdsterraPop();
+
+    // 3. Video URL Parsing and rendering
+    const params = new URLSearchParams(window.location.search);
+    let raw = params.get("url");
+    const videoWrap = document.getElementById("videoWrap");
+    const tgBtnWrap = document.getElementById("tgBtnWrap");
+    
+    if(raw){
+        const parts = decodeURIComponent(raw).split(",");
+        // Ensure only streamtape or embed link is used for player
+        let streamtape = parts.find(l => l.includes("streamtape.com/e/") || l.includes("drive.google.com/file") || l.includes("mega.nz") || l.includes("http")); 
+        let telegram = parts.find(l => l.includes("t.me") || l.includes("telegram.me"));
+
+        // If MEGA link, use a viewer link or direct iframe (MEGA embedding is tricky, often breaks)
+        if (streamtape && streamtape.includes("mega.nz")) {
+            // Mega is difficult to embed. Better to open in a new tab.
+            videoWrap.innerHTML = `<h3 style='color:white;text-align:center;margin-top:20px;'>
+                ⚠️ MEGA videos cannot be embedded. Please use the button below.
+                <button class="btn" style="background:#007bff;" onclick="window.open('${streamtape.trim()}', '_blank')">Open MEGA Link</button>
+            </h3>`;
+        }
+        // Streamtape/Drive/Other Embeds
+        else if (streamtape){
+            let finalEmbedUrl = streamtape.trim();
+            // Simple check for Google Drive preview (if /view is used instead of /preview)
+            if (finalEmbedUrl.includes("drive.google.com") && finalEmbedUrl.includes("/view")) {
+                finalEmbedUrl = finalEmbedUrl.replace("/view", "/preview");
+            }
+            
+            videoWrap.innerHTML = `<iframe src="${finalEmbedUrl}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>`;
+        } else {
+            videoWrap.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20px;'>⚠️ No valid video link found</h3>";
+        }
+        
+        // Telegram button
+        if(telegram){
+            tgBtnWrap.innerHTML = `<button class="btn" onclick="openAdsterraPop(); window.open('${telegram.trim()}', '_blank')">📥 Download from Telegram</button>`;
+        }
+        
+    } else {
+        videoWrap.innerHTML = "<h2 style='color:white;text-align:center;'>⚠️ No video link found</h2>";
+    }
+}
+
+// 4. Initial Load
+document.addEventListener('DOMContentLoaded', loadVideo);
+</script>
+</body>
+</html>
