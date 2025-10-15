@@ -21,11 +21,11 @@
   <link rel="preconnect" href="https://i.ibb.co" />
   <link rel="preconnect" href="https://www.youtube.com" />
 
-  <link rel="preload" href="style.css?v=20251006" as="style" />
+  <link rel="preload" href="/style.css?v=20251015" as="style" />
   <link rel="preload" href="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" as="image" fetchpriority="high" />
   <link rel="preload" href="https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgMbpFVXA.woff2" as="font" type="font/woff2" crossorigin>
 
-  <link rel="stylesheet" href="style.css?v=20251006" />
+  <link rel="stylesheet" href="/style.css?v=20251015" />
 
   <style>
     /* 🧠 Inline critical CSS (Fixes CLS and LCP) */
@@ -49,7 +49,8 @@
       display: block;
       max-width: 100%;
       height: auto;
-      aspect-ratio: 16/9;
+      /* CLS FIX */
+      aspect-ratio: 16/9; 
     }
     /* LCP Improvement: Critical button styling */
     .watch-movies-btn {
@@ -113,7 +114,7 @@
   <header class="site" role="banner">
     <div class="wrap" style="display: flex; justify-content: space-between; align-items: center; padding: 0;">
         <div class="brand">
-          <img src="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" alt="Dareloom Hub Logo" class="logo-img" width="40" height="40" loading="eager">
+          <img src="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" alt="Dareloom Hub Logo" class="logo-img" width="40" height="40" loading="eager" fetchpriority="high">
           <h1 class="title">Dareloom Hub</h1>
         </div>
         <nav class="nav">
@@ -206,7 +207,7 @@
     }
   </script>
 
-  <script src="script.js?v=20251006" defer></script>
+  <script src="/script.js?v=20251015" defer></script>
 </body>
-  </html>
-  
+          </html>
+          
