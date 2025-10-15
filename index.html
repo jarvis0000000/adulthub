@@ -76,6 +76,26 @@
     .card { min-height: 250px; background: var(--card-bg); border-radius: var(--border-radius-base); overflow: hidden; }
     h2 { color: var(--primary-color); font-size: 1.4rem; margin-bottom: 20px; border-left: 4px solid var(--secondary-color); padding-left: 10px;}
     .wrap { max-width: 1200px; margin: 0 auto; padding: 16px; } /* Define .wrap here too */
+
+    /* 🛑 NEW: Ad Blocker Warning Styling */
+    #adblock-warning-overlay {
+      display:none; 
+      position:fixed; 
+      top:0; 
+      left:0; 
+      width:100%; 
+      height:100%; 
+      background:rgba(0,0,0,0.95); 
+      color:white; 
+      text-align:center; 
+      z-index:99999; 
+      backdrop-filter: blur(5px); 
+      justify-content:center; 
+      align-items:center; 
+      flex-direction:column; 
+      padding:20px;
+      box-sizing: border-box;
+    }
   </style>
 
   <script type="application/ld+json">
@@ -111,85 +131,97 @@
 </head>
 
 <body>
-  <header class="site" role="banner">
-    <div class="wrap" style="display: flex; justify-content: space-between; align-items: center; padding: 0;">
-        <div class="brand">
-          <img src="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" alt="Dareloom Hub Logo" class="logo-img" width="40" height="40" loading="eager" fetchpriority="high">
-          <h1 class="title">Dareloom Hub</h1>
-        </div>
-        <nav class="nav">
-          <input type="search" id="searchInput" placeholder="Search titles..." aria-label="Search titles" onkeyup="filterVideos && filterVideos(this.value)">
-          <button class="menu-toggle" aria-label="Random Pick" onclick="showRandomPick && showRandomPick()">🎲</button>
-        </nav>
-    </div>
-  </header>
-
-  <main id="mainWrap" class="wrap">
-    <section class="hero section" aria-labelledby="nowTitle">
-      <div class="hero-actions">
-        <h2 id="nowTitle" class="now-title" style="margin:0;">Ready to watch the latest series?</h2>
-        <div id="controlsContainer"><div id="count" class="pill">0 items</div></div>
-      </div>
-      <div class="hero-actions" style="justify-content:center; padding: 0;">
-        <a href="/Movies/" class="watch-movies-btn">🎬 Watch Erotic Movies Here →</a>
-      </div>
-    </section>
-
-    <section class="section" id="latestSection">
-      <h2>📺 Latest Full Series Episodes</h2>
-      <div id="latestList" class="latest-list" aria-live="polite">
-        </div>
-      <div id="pager" class="pager"></div>
-    </section>
-
-    <section class="section" id="randomSection">
-      <h2>🔥 Trending Erotic & Romantic Picks</h2>
-      <div id="randomGrid" class="grid">
-        </div>
-    </section>
-
-    <section id="categorySection" style="display:none;" class="section">
-      <h2 id="categoryTitle">All Videos</h2>
-      <div id="categoryGrid" class="grid"></div>
-    </section>
-
-    <section class="seo-content section">
-      <h2 style="font-size: 1.4rem;">Welcome to Dareloom Hub (18+)</h2>
-      <p style="color:var(--muted);font-size:0.9rem;">Dareloom Hub provides curated erotic and romantic web series, trailers, and uncut clips in HD streaming quality. Content is updated daily with working links and a fast, mobile-first player. This platform is intended for adult audiences (18+).</p>
-    </section>
-  </main>
-
-  <footer style="padding:14px;text-align:center;color:var(--muted);">
-    © Dareloom Hub — <a href="mailto:dareloom.official@gmail.com" style="color:var(--secondary-color);">dareloom.official@gmail.com</a>
-  </footer>
-
-  <div id="videoModal" class="full-screen-modal" style="display:none;" role="dialog" aria-modal="true">
-    
-    <div class="modal-content player-content">
-      
-      <div id="modalPersistentAd">
-          <div class="ad-label">Advertisement</div>
-          <div class="persistent-ad" style="height: 90px; background: #222; text-align: center; color: #fff;">
-              </div>
-      </div>
-
-      <button aria-label="Close" onclick="closePlayerModal()" class="close-btn">✖</button>
-      
-      <div id="modalPlayerWrap">
-          Loading Video Player...
-          </div>
-      
-      <div class="modal-controls">
-        <h3 id="modalVideoTitle" style="margin:0 0 6px 0">Loading...</h3>
-        <p id="modalVideoDescription" style="color:var(--muted);font-size:0.9rem;margin:0 0 10px 0"></p>
-        <div id="modalControlsContainer" style="display:flex; flex-wrap: wrap; gap: 8px;">
-            </div>
-      </div>
-
-    </div>
+  
+  <div id="adblock-warning-overlay" role="alert" aria-live="assertive">
+      <h1 style="color:#FFD700; font-size: 2.2rem; margin-top:0;">🚫 Ad Blocker Detected!</h1>
+      <p style="font-size:18px; margin-top:20px; max-width:600px;">
+          Humein maaf kijiye, hum aapko content nahi dikha sakte jab tak aap apna Ad Blocker disable nahi karte.
+          Aapke Ad Blockers ko disable karne se humari site ko chalane mein madad milti hai.
+      </p>
+      <p style="margin-top:20px; font-weight: 700;">**Kripya Ad Blocker band karein aur page ko refresh karein।**</p>
   </div>
 
-  <script>
+  <div id="main-content-wrapper">
+    
+    <header class="site" role="banner">
+      <div class="wrap" style="display: flex; justify-content: space-between; align-items: center; padding: 0;">
+          <div class="brand">
+            <img src="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" alt="Dareloom Hub Logo" class="logo-img" width="40" height="40" loading="eager" fetchpriority="high">
+            <h1 class="title">Dareloom Hub</h1>
+          </div>
+          <nav class="nav">
+            <input type="search" id="searchInput" placeholder="Search titles..." aria-label="Search titles" onkeyup="filterVideos && filterVideos(this.value)">
+            <button class="menu-toggle" aria-label="Random Pick" onclick="showRandomPick && showRandomPick()">🎲</button>
+          </nav>
+      </div>
+    </header>
+
+    <main id="mainWrap" class="wrap">
+      <section class="hero section" aria-labelledby="nowTitle">
+        <div class="hero-actions">
+          <h2 id="nowTitle" class="now-title" style="margin:0;">Ready to watch the latest series?</h2>
+          <div id="controlsContainer"><div id="count" class="pill">0 items</div></div>
+        </div>
+        <div class="hero-actions" style="justify-content:center; padding: 0;">
+          <a href="/Movies/" class="watch-movies-btn">🎬 Watch Erotic Movies Here →</a>
+        </div>
+      </section>
+
+      <section class="section" id="latestSection">
+        <h2>📺 Latest Full Series Episodes</h2>
+        <div id="latestList" class="latest-list" aria-live="polite">
+          </div>
+        <div id="pager" class="pager"></div>
+      </section>
+
+      <section class="section" id="randomSection">
+        <h2>🔥 Trending Erotic & Romantic Picks</h2>
+        <div id="randomGrid" class="grid">
+          </div>
+      </section>
+
+      <section id="categorySection" style="display:none;" class="section">
+        <h2 id="categoryTitle">All Videos</h2>
+        <div id="categoryGrid" class="grid"></div>
+      </section>
+
+      <section class="seo-content section">
+        <h2 style="font-size: 1.4rem;">Welcome to Dareloom Hub (18+)</h2>
+        <p style="color:var(--muted);font-size:0.9rem;">Dareloom Hub provides curated erotic and romantic web series, trailers, and uncut clips in HD streaming quality. Content is updated daily with working links and a fast, mobile-first player. This platform is intended for adult audiences (18+).</p>
+      </section>
+    </main>
+
+    <footer style="padding:14px;text-align:center;color:var(--muted);">
+      © Dareloom Hub — <a href="mailto:dareloom.official@gmail.com" style="color:var(--secondary-color);">dareloom.official@gmail.com</a>
+    </footer>
+
+    <div id="videoModal" class="full-screen-modal" style="display:none;" role="dialog" aria-modal="true">
+      
+      <div class="modal-content player-content">
+        
+        <div id="modalPersistentAd">
+            <div class="ad-label">Advertisement</div>
+            <div class="persistent-ad" style="height: 90px; background: #222; text-align: center; color: #fff;">
+                </div>
+        </div>
+
+        <button aria-label="Close" onclick="closePlayerModal()" class="close-btn">✖</button>
+        
+        <div id="modalPlayerWrap">
+            Loading Video Player...
+            </div>
+        
+        <div class="modal-controls">
+          <h3 id="modalVideoTitle" style="margin:0 0 6px 0">Loading...</h3>
+          <p id="modalVideoDescription" style="color:var(--muted);font-size:0.9rem;margin:0 0 10px 0"></p>
+          <div id="modalControlsContainer" style="display:flex; flex-wrap: wrap; gap: 8px;">
+              </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div> <script>
     function closePlayerModal(){
       const modal=document.getElementById('videoModal');
       if(!modal)return;
@@ -199,9 +231,15 @@
       if(wrap){
         // FIX: Stop video playback correctly and clear DOM
         const iframe = wrap.querySelector('iframe');
+        const video = wrap.querySelector('video');
         if(iframe) {
             iframe.src = 'about:blank'; 
             wrap.innerHTML = 'Loading Video Player...';
+        }
+        if (video) {
+             video.pause();
+             video.src = '';
+             wrap.innerHTML = 'Loading Video Player...';
         }
       }
     }
@@ -209,5 +247,4 @@
 
   <script src="/script.js?v=20251015" defer></script>
 </body>
-          </html>
-          
+</html>
