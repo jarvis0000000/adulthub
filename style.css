@@ -1,8 +1,6 @@
 /*
-
 style.css - Unique, Dark-Themed, Fully Responsive Design
 */
-
 
 :root {
 --primary-color: #ff4b91;
@@ -18,7 +16,7 @@ style.css - Unique, Dark-Themed, Fully Responsive Design
 
 /* 🛑 CLS FIX: Basic Reset for better control and performance */
 * {
-    box-sizing: border-box; /* Ensures padding/border don't affect width/height */
+    box-sizing: border-box; 
 }
 
 body {
@@ -40,10 +38,10 @@ a:hover { color: var(--primary-color); }
 /* --- HEADER AND NAVIGATION --- */
 header.site {
 display: flex;
-justify-content: space-between;
+justify-content: center; /* Centering content wrap */
 align-items: center;
 background: var(--card-bg);
-padding: 10px var(--section-padding);
+padding: 10px 0; /* Padding is handled by .wrap inside */
 position: sticky;
 top: 0;
 z-index: 99;
@@ -66,7 +64,7 @@ margin: 0;
 text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
 }
 
-.nav { display: flex; align-items: center; gap: 8px; }
+.nav { display: flex; align-items: center; gap: 10px; } /* Increased gap for better spacing */
 
 .nav input {
 padding: 8px 15px;
@@ -96,12 +94,12 @@ transform: rotate(180deg) scale(1.1);
 background: var(--secondary-color);
 }
 
-/* NEW: CATEGORY NAVIGATION BAR (from previous request) */
+/* NEW: CATEGORY NAVIGATION BAR (Not currently in HTML but good practice) */
 .category-nav {
 background: #0d0d0d;
 border-bottom: 2px solid var(--secondary-color);
 padding: 10px 0;
-overflow-x: auto; /* Horizontal scroll on mobile */
+overflow-x: auto; 
 white-space: nowrap;
 display: flex;
 box-shadow: 0 4px 5px rgba(0, 0, 0, 0.4);
@@ -115,10 +113,8 @@ margin: 0 5px;
 border-radius: 20px;
 font-size: 0.9rem;
 font-weight: 500;
-transition: background-color 0.3s, color 0.3s;
 flex-shrink: 0;
 }
-
 .category-nav a:hover,
 .category-nav a.active {
 background-color: var(--primary-color);
@@ -131,6 +127,7 @@ box-shadow: 0 0 8px rgba(255, 75, 145, 0.5);
 padding: var(--section-padding);
 max-width: 1200px;
 margin: 0 auto;
+width: 100%; /* Ensure wrap takes full width */
 }
 
 h2 {
@@ -163,7 +160,7 @@ font-size: 0.8rem;
 font-weight: 600;
 }
 
-/* --- GRID CARDS --- */
+/* --- GRID CARDS (Trending Picks) --- */
 .grid {
 display: grid;
 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -186,9 +183,7 @@ box-shadow: 0 8px 25px var(--shadow-color);
 
 .thumb {
 width: 100%;
-/* CLS Fix: Removing fixed height for .thumb to use Aspect-ratio or padding-bottom method */
-/* height: 250px; <-- REMOVED */
-/* LCP/CLS Fix: Use aspect-ratio for modern CLS control (Assumes a 16:9 or 4:3 aspect ratio) */
+/* CLS Fix: Use aspect-ratio for modern CLS control */
 aspect-ratio: 16 / 9; 
 object-fit: cover;
 display: block;
@@ -208,43 +203,56 @@ font-size: 1.05rem;
 color: var(--primary-color);
 }
 
-/* --- LATEST LIST --- */
+/* --- LATEST LIST (The Fix for Overlap!) --- */
 .latest-list {
-display: flex;
-flex-direction: column;
-gap: 16px;
+    /* 🛑 FIX: Reverting to Flexbox Column for List view (Desktop View Fix) */
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    /* Optional: Max width for list items on very wide screens */
+    max-width: 900px; 
+    margin: 0 auto;
 }
 .latest-item {
-display: flex;
-background: var(--card-bg);
-border-radius: var(--border-radius-base);
-overflow: hidden;
-gap: 15px;
-padding: 10px;
-align-items: center;
-border: 1px solid #222;
-transition: border-color 0.3s;
+    display: flex;
+    background: var(--card-bg);
+    border-radius: var(--border-radius-base);
+    overflow: hidden;
+    gap: 15px;
+    padding: 10px;
+    align-items: center;
+    border: 1px solid #222;
+    transition: border-color 0.3s;
 }
 .latest-item:hover { border-color: var(--primary-color); }
 
 .latest-thumb {
-width: 180px;
-/* CLS Fix: Use aspect-ratio for better stability, removing fixed height */
-/* height: 110px; <-- REMOVED */
-aspect-ratio: 16 / 9; /* Common video/thumbnail ratio */
-min-width: 180px;
-object-fit: cover;
-border-radius: 8px;
+    width: 180px;
+    aspect-ratio: 16 / 9; 
+    min-width: 180px;
+    object-fit: cover;
+    border-radius: 8px;
 }
 
 .latest-info {
-flex: 1;
-display: flex;
-flex-direction: column;
-justify-content: space-between;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center content vertically */
+}
+.latest-info h4 {
+    margin-top: 0;
+    margin-bottom: 5px;
+    color: var(--primary-color);
+}
+.latest-info p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.9rem;
 }
 
-/* --- BUTTONS --- */
+
+/* --- BUTTONS & PAGINATION --- (Rest of the code remains clean) */
 .btn, .watch-btn, .tag-btn {
 background: var(--primary-color);
 color: #fff;
@@ -273,7 +281,6 @@ transition: background 0.3s, color 0.3s;
 }
 .tag-btn:hover { background: var(--primary-color); color: #fff; }
 
-/* --- PAGINATION --- */
 .pager {
 display: flex;
 justify-content: center;
@@ -312,11 +319,6 @@ padding: 0;
 overflow-y: auto;
 }
 
-/* 🛑 AD BLOCKER MODAL HIDE */
-#adBlockerModal {
-display: none !important;
-}
-
 .modal-content.player-content {
 background: #111;
 padding: 0;
@@ -345,12 +347,12 @@ cursor: pointer;
 z-index: 100;
 }
 
-/* Fixed Full Height Video for Mobile */
+/* Fixed Full Height Video */
 #modalPlayerWrap {
 width: 100%;
-/* CLS Fix: Use aspect-ratio to reserve space for the video player */
-aspect-ratio: 16 / 9; /* Common video aspect ratio */
-height: auto; /* Allow aspect-ratio to control height */
+/* CLS Fix: Aspect-ratio is good for reserving space, keep it */
+aspect-ratio: 16 / 9; 
+height: auto; 
 max-height: 80vh;
 position: relative;
 background: #000;
@@ -361,6 +363,8 @@ width: 100%;
 height: 100%;
 border: none;
 display: block;
+/* 🛑 FIX: Use contain to prevent cropping and see the full video */
+object-fit: contain; 
 }
 
 .modal-controls {
@@ -372,56 +376,53 @@ background: var(--card-bg);
 /* CLS Fix: Minimum height for Ad to prevent layout shift */
 #modalPersistentAd {
     min-height: 90px; 
-    display: block; /* Ensure it takes up space */
+    display: block;
+    padding: 10px 15px 0 15px; /* Add padding consistent with .modal-controls */
 }
 #modalPersistentAd iframe,
 #modalPersistentAd .persistent-ad {
 max-width: 100%;
 width: 100%;
 height: 90px;
-display: inline-block;
+display: block;
 }
 
-/* small label for persistent ad (optional) */
 #modalPersistentAd .ad-label {
 color: #aaa;
 font-size: 12px;
 margin-bottom: 6px;
 display:block;
+text-align: center;
 }
 
 /* --- RESPONSIVENESS --- */
 @media (max-width: 768px) {
-header.site { padding: 10px 10px; }
+header.site { padding: 10px 0; } /* Padding is inside .wrap */
 
-.title { font-size: 1.2rem; }  
-  
 .nav input { width: 100px; }  
 .nav input:focus { width: 120px; }  
   
 .wrap { padding: 10px; }  
   
 .latest-item {  
+    /* Reverting to stacked layout on mobile */
     flex-direction: column;  
     align-items: flex-start;  
     gap: 10px;  
 }  
 .latest-thumb {  
     width: 100%;  
-    /* CLS Fix: Mobile view needs to maintain aspect ratio on full width */
-    height: auto; /* Use auto with aspect-ratio */
     aspect-ratio: 16 / 9;
+    height: auto; 
     min-width: 100%;  
 }  
   
-/* Fullscreen Video Fix Mobile (Overrides aspect-ratio for full mobile screen) */  
+/* Fullscreen Video Fix Mobile */  
 .full-screen-modal {  
   align-items: flex-start;  
 }  
-
 .modal-content.player-content {  
   width: 100%;  
-  max-width: 100%;  
   height: 100vh;  
   max-height: none;  
   border-radius: 0;  
@@ -429,50 +430,32 @@ header.site { padding: 10px 10px; }
 }  
 
 #modalPlayerWrap {  
-  height: 100vh;  
+  height: 100%; /* Height is 100% of modal-content */
   max-height: none;   
-  padding: 0;  
-  margin: 0;  
-  border-radius: 0;  
-  /* CLS Fix: Remove aspect-ratio override for full height mobile video */
   aspect-ratio: auto;
 }  
 #modalPlayerWrap iframe,  
 #modalPlayerWrap video {  
-  height: 100vh;  
-  object-fit: cover;  
+  height: 100%; 
+  object-fit: contain; /* Ensure no cropping */
 }  
 
 .modal-controls {  
-  position: absolute; /* Place controls over the video */  
+  position: absolute; 
   bottom: 0;  
   left: 0;  
   right: 0;  
   padding: 10px;  
-  background: rgba(0, 0, 0, 0.7); /* Semi-transparent background */  
+  background: rgba(0, 0, 0, 0.9); /* Opaque background */  
   text-align: center;  
   z-index: 50;   
 }  
-  
 .close-btn {  
     top: 10px;  
     right: 10px;  
 }  
 
-.adsterra-socialbar-placement {  
-    display: none; /* Hide social bar on small screens if it interferes */  
-}  
-
-.category-nav a {  
-    padding: 6px 10px;  
-    font-size: 0.8rem;  
-}
-
-}
-
 /* Responsive Ad Adjustment */
-@media (max-width: 600px) {
-/* CLS Fix: Minimum height for Ad to prevent layout shift */
 #modalPersistentAd {
     min-height: 80px; 
 }
@@ -480,5 +463,5 @@ header.site { padding: 10px 10px; }
 #modalPersistentAd .persistent-ad {
 height: 80px;
 }
-  }
-                              
+    }
+    
