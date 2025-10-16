@@ -28,7 +28,7 @@ async function fetchAllRows() {
     if (rows.length < 2) return [];
 
     const headers = rows[0].map(h => h.trim());
-    const data = rows.slice(1).map(r => {
+    let data = rows.slice(1).map(r => {
       const obj = {};
       headers.forEach((h, i) => obj[h] = r[i] ?? "");
       return obj;
@@ -38,6 +38,9 @@ async function fetchAllRows() {
       // Use Title as fallback for a unique ID if 'id' field is empty
       d._id = (d.id || d.Title || (i + 1).toString()).trim();
     });
+
+    // 🌟 FIX: Reverse the data array so that the newest entries (at the bottom of the sheet) appear first.
+    data.reverse();
 
     allDataCache = data; // Cache the fetched data
     return data;
@@ -77,7 +80,7 @@ function movieCardHtml(item) {
   return `
   <div class="card" onclick="navigateTo('#/item/${encodeURIComponent(item._id)}')">
     <img src="${item.Poster || ''}" alt="${item.Title}">
-    <!-- ✅ FIX: Genre is now a clickable <a> tag, event.stopPropagation() prevents detail page click -->
+    <!-- Genre is a clickable <a> tag, event.stopPropagation() prevents detail page click -->
     <a href="javascript:void(0)" class="card-category" onclick="event.stopPropagation(); navigateTo('${genreHash}')">${genre}</a>
     <div class="card-body">
       <h3>${item.Title}</h3>
@@ -98,7 +101,7 @@ async function getUniqueCategories(data) {
   return Array.from(categories);
 }
 
-// ✅ FIX: Returns empty string to hide the category list bar completely
+// FIX: Returns empty string to hide the category list bar completely
 function renderCategoryList(categories) {
   return ''; 
 }
@@ -193,7 +196,8 @@ function createScreenshotsHtml(item) {
 async function renderItemDetail(id) {
   const app = qs('#app');
   const data = await fetchAllRows();
-  const item = data.find(d => d._id === decodeURIComponent(id));
+  // Since we reversed the data for home/pagination, we need to find the item in the reversed array
+  const item = data.find(d => d._id === decodeURIComponent(id)); 
   if (!item) { app.innerHTML = "<p class='not-found'>Item not found</p>"; return; }
 
   const title = item.Title || 'Untitled';
