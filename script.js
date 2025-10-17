@@ -1,6 +1,6 @@
 // script.js
 // Dareloom Hub - Complete player + sheet + pagination + preview/watch + tags + random
-// 2025-10-15 (Includes: Comma-separation fix, Ad logic, Pagination, and MODAL EMBED FIX)
+// 2025-10-17 (MAXIMUM CTR / CLICK OPTIMIZATION)
 
 // ------------- CONFIG -------------
 // 🛑 IMPORTANT: API Key is sensitive. Ensure this is correct and restricted to your domain.
@@ -10,9 +10,10 @@ const RANDOM_COUNT = 4;
 
 // Pop / ads config 
 const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
-const POP_COOLDOWN_MS = 7000;
-const POP_DELAY_MS = 2000;
-const INITIAL_AUTO_POP_DELAY = 10000;
+// 🛑 CTR OPTIMIZATION: Aggressive Timing
+const POP_COOLDOWN_MS = 4000; // 7000ms से 4000ms
+const POP_DELAY_MS = 500;     // 2000ms से 500ms
+const INITIAL_AUTO_POP_DELAY = 5000; // 10000ms से 5000ms
 let lastPop = 0;
 
 // ------------- STATE -------------
@@ -32,11 +33,11 @@ return (text||'').toString().toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').rep
 
 function escapeHtml(s){
 return (s||'').toString()
-.replace(/&/g,'&')
-.replace(/</g,'<')
-.replace(/>/g,'>')
-.replace(/"/g,'"')
-.replace(/'/g,'\'');
+.replace(/&/g,'&amp;')
+.replace(/</g,'&lt;')
+.replace(/>/g,'&gt;')
+.replace(/"/g,'&quot;')
+.replace(/'/g,'&#39;');
 }
 
 function extractYouTubeID(url){
@@ -63,7 +64,8 @@ const s = document.createElement('script');
 s.src = AD_POP;
 s.async = true;
 document.body.appendChild(s);
-setTimeout(()=>{ try{s.remove();}catch(e){} }, 3500);
+// Keep the script for a longer time for better loading chance
+setTimeout(()=>{ try{s.remove();}catch(e){} }, 5000); 
 }catch(e){ console.warn("Ad pop failed", e); }
 }, POP_DELAY_MS);
 }
@@ -184,6 +186,7 @@ picks.forEach(it => {
 const card = document.createElement('div');
 card.className = 'card';
 card.innerHTML = `<img class="thumb" src="${escapeHtml(makeThumbnail(it))}" loading="lazy" alt="${escapeHtml(it.title)}"> <div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
+// Clicks on random cards also trigger ad
 card.addEventListener('click', ()=> triggerAdThenOpenModal(it));
 g.appendChild(card);
 });
@@ -207,7 +210,8 @@ slice.forEach(it => {
 const div = document.createElement('div');
 div.className = 'latest-item';
 const thumb = makeThumbnail(it);
-div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(thumb)}" loading="lazy" alt="${escapeHtml(it.title)}"> <div class="latest-info"> <div style="font-weight:700">${escapeHtml(it.title)}</div> <div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date || '')}</div> <div class="tag-container" style="margin-top:6px">${renderTagsForItem(it)}</div> <div style="margin-top:8px"> <button class="btn preview-btn" data-id="${escapeHtml(it.id)}">Preview</button> <button class="watch-btn" data-url="${escapeHtml(it.watch || it.trailer)}">Watch</button> </div> </div>`;
+// 🛑 UX TWEAK: Changed button text for better CTR
+div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(thumb)}" loading="lazy" alt="${escapeHtml(it.title)}"> <div class="latest-info"> <div style="font-weight:700">${escapeHtml(it.title)}</div> <div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date || '')}</div> <div class="tag-container" style="margin-top:6px">${renderTagsForItem(it)}</div> <div style="margin-top:8px"> <button class="btn preview-btn" data-id="${escapeHtml(it.id)}">Open Details</button> <button class="watch-btn" data-url="${escapeHtml(it.watch || it.trailer)}">Watch Now</button> </div> </div>`;
 list.appendChild(div);
 });
 
@@ -267,7 +271,8 @@ function changePage(page){
 renderLatest(page);
 const latestSection = qs('#latestSection');
 if (latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' });
-openAdsterraPop();
+// 🛑 CTR OPTIMIZATION: Pop on page change
+openAdsterraPop(); 
 }
 
 function attachLatestListeners(){
@@ -292,12 +297,15 @@ function onPreviewClick(e){
 const id = e.currentTarget.dataset.id;
 const it = items.find(x => x.id === id) || filteredItems.find(x => x.id === id);
 if (!it) return;
+// 🛑 CTR OPTIMIZATION: Trigger ad then open modal
 triggerAdThenOpenModal(it);
 }
 
 function onWatchClick(e){
 const url = e.currentTarget.dataset.url;
 if (!url) return;
+// 🛑 CTR OPTIMIZATION: Pop on Watch click too
+openAdsterraPop();
 openWatchPage(url);
 }
 
@@ -314,6 +322,8 @@ filteredItems = items.filter(it => (it.category||'').toLowerCase().split(',').ma
 currentPage = 1;
 renderLatest(1);
 updateCount(filteredItems.length);
+// 🛑 CTR OPTIMIZATION: Pop on tag filter
+openAdsterraPop(); 
 }
 
 // Search function (public wrapper for search input)
@@ -339,6 +349,12 @@ const t = (it.title||'').toLowerCase();
 const c = (it.category||'').toLowerCase();
 return t.includes(q) || c.includes(q);
 });
+
+// 🛑 CTR OPTIMIZATION: Pop on successful search (when search term is long enough)
+if (q.length > 2) {
+    openAdsterraPop();
+}
+
 currentPage = 1;
 renderLatest(1);
 updateCount(filteredItems.length);
@@ -348,7 +364,8 @@ updateCount(filteredItems.length);
 // ------------- MODAL PREVIEW & WATCH -------------
 function triggerAdThenOpenModal(it){
 openAdsterraPop();
-setTimeout(()=> openPlayerModal(it), 150);
+// 🛑 Increased delay slightly to ensure ad loads before modal takes focus
+setTimeout(()=> openPlayerModal(it), 250);
 }
 
 function openPlayerModal(it){
@@ -401,6 +418,7 @@ const telegramUrl = it.telegram || ''; // Telegram link
 
 // Open in Player button (main action) - Uses Streamtape link
 if (watchUrl) {
+    // 🛑 UX TWEAK: Changed button text for better CTR
     html += `<button class="btn watch-btn-modal" data-url="${escapeHtml(watchUrl)}" style="min-width: 150px;">Open in Player</button>`;
 }
 
@@ -554,6 +572,7 @@ if (ev.target === modal) closePlayerModal();
 }
 
 // auto pop once after delay 
+// 🛑 CTR OPTIMIZATION: Initial pop delay reduced
 window.addEventListener('load', ()=> setTimeout(()=> openAdsterraPop(), INITIAL_AUTO_POP_DELAY), { once:true });
 }
 
@@ -563,6 +582,9 @@ const c = qs('#count');
 if (c) c.textContent = `${n} items`;
 }
 
-// start
-loadAll();
-    
+// function to close the modal (missing in original code, but required)
+function closePlayerModal(){
+    const modal = qs('#videoModal');
+    if(modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
+    const pWrap = qs('#modalPlayerWrap')
