@@ -587,4 +587,9 @@ function closePlayerModal(){
     const modal = qs('#videoModal');
     if(modal) modal.style.display = 'none';
     document.body.style.overflow = '';
-    const pWrap = qs('#modalPlayerWrap')
+    const pWrap = qs('#modalPlayerWrap');
+    if(pWrap) pWrap.innerHTML = ''; // Stop the video/audio playback
+}
+
+// start
+loadAll();
