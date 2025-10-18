@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "node generate-sitemap.js",
+    "build-pages": "node generate-actresses.js",
+    "build-sitemap": "node generate-sitemap.js",
     "ping": "node ping-search.js",
-    "full": "npm run build && npm run ping",
+    "full": "npm run build-pages && npm run build-sitemap && npm run ping",
     "cron": "npm run full"
   },
   "dependencies": {
