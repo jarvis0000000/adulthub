@@ -235,7 +235,7 @@ const div = document.createElement('div');
 div.className = 'latest-item';
 const thumb = makeThumbnail(it);
 // 🛑 UX TWEAK: Changed button text for better CTR
-div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(thumb)}" loading="lazy" alt="${escapeHtml(it.title)}"> <div class="latest-info"> <div style="font-weight:700">${escapeHtml(it.title)}</div> <div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date || '')}</div> <div class="tag-container" style="margin-top:6px">${renderTagsForItem(it)}</div> <div style="margin-top:8px"> <button class="btn preview-btn" data-id="${escapeHtml(it.id)}">Open Details</button> <button class="watch-btn" data-url="${escapeHtml(it.watch || it.trailer)}">Watch Now</button> </div> </div>`;
+div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(thumb)}" loading="lazy" alt="${escapeHtml(it.title)}"> <div class="latest-info"> <div style="font-weight:700">${escapeHtml(it.title)}</div> <div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date || '')}</div> <div class="tag-container" style="margin-top:6px">${renderTagsForItem(it)}</div> <div style="margin-top:8px"> <button class="btn preview-btn" data-id="${escapeHtml(it.id)}">Trailer</button> <button class="watch-btn" data-url="${escapeHtml(it.watch || it.trailer)}">Watch Now</button> </div> </div>`;
 list.appendChild(div);
 });
 
