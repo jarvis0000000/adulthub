@@ -522,20 +522,7 @@ function toEmbedUrlForModal(url){
   return '';
 }
 
-// open watch.html (existing file) in new tab with encoded URL param
-function openWatchPage(targetUrl){
-  if (!targetUrl) return;
-  // mark user gesture
-  markUserGesture();
-  openAdsterraPop();
-  setTimeout(()=> {
-    try{
-      let final = targetUrl;
-      // convert streamtape /v/ to /e/ for better embedding in watch page
-      if (final.includes('/v/')){
-        const m = final.match(/\/v\/([0-9A-Za-z_-]+)\//);
-        if (m && m[1]) final = `https://streamtape.com/e/${m[1]}/`;
-      }
+
       // 🛑 FIX: Use ABSOLUTE path for watch.html to work from all directories (e.g., /video/)
       const watchPage = `/watch.html?url=${encodeURIComponent(final)}`;
       const w = window.open(watchPage,'_blank');
@@ -562,7 +549,33 @@ async function loadAll(){
   // Sort new -> old. If date exists and parseable, attempt to sort by date desc; otherwise keep sheet order reversed
   parsed.forEach(p => p._sortDate = (p.date ? Date.parse(p.date) || 0 : 0));
   parsed.sort((a,b) => (b._sortDate || 0) - (a._sortDate || 0));
-  // if all _sortDate === 0 (no usable dates), reverse the parsed order to show newest-first based on sheet order
+  // if all _sortDate === 0 (no u// open watch.html (existing file) in new tab with encoded URL param
+function openWatchPage(targetUrl){
+  if (!targetUrl) return;
+  markUserGesture();
+  openAdsterraPop();
+
+  setTimeout(()=> {
+    try {
+      let final = targetUrl;
+      // convert streamtape /v/ to /e/ for better embedding
+      if (final.includes('/v/')){
+        const m = final.match(/\/v\/([0-9A-Za-z_-]+)\//);
+        if (m && m[1]) final = `https://streamtape.com/e/${m[1]}/`;
+      }
+      // ✅ redirect first to go.html (ad trigger page)
+      const redirectPage = `/go.html?target=${encodeURIComponent(final)}`;
+
+      const w = window.open(redirectPage, '_blank');
+      if (!w || w.closed || typeof w.closed === 'undefined'){
+        alert("Please allow pop-ups to open the link in a new tab!");
+      }
+      closePlayerModal();
+    } catch(e){
+      console.error(e);
+    }
+  }, 120);
+}sable dates), reverse the parsed order to show newest-first based on sheet order
   const allZero = parsed.every(p => !p._sortDate);
   items = allZero ? parsed.reverse() : parsed;
 
