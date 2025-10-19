@@ -3,7 +3,9 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-// config
+// ================================
+// CONFIG
+// ================================
 const BASE_URL = "https://dareloom.fun";
 const DATA_CSV = path.join(process.cwd(), "data", "actresses.csv");
 const OUT_DIR = path.join(process.cwd(), "actors");
@@ -11,7 +13,9 @@ const SITEMAP_ACTORS = path.join(process.cwd(), "sitemap-actors.xml");
 const SEO_META = path.join(process.cwd(), "seo-meta-actors.json");
 const SITEMAP_INDEX = path.join(process.cwd(), "sitemap-index.xml");
 
-// helpers
+// ================================
+// HELPERS
+// ================================
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -37,10 +41,8 @@ function parseCSV(csvText) {
   if (lines.length === 0) return [];
   const headers = lines.shift().split(",").map(h => h.trim());
   return lines.map(line => {
-    // naive csv parse (commas in quotes handled)
     const values = [];
-    let cur = "";
-    let inQuotes = false;
+    let cur = "", inQuotes = false;
     for (let i = 0; i < line.length; i++) {
       const ch = line[i];
       if (ch === '"' && line[i+1] === '"') { cur += '"'; i++; continue; }
@@ -55,6 +57,29 @@ function parseCSV(csvText) {
   });
 }
 
+// ================================
+// AUTO SEO METADATA
+// ================================
+function autoMeta(actor) {
+  const name = actor.name || actor.stage_name || "";
+  const nationality = actor.nationality || "";
+  const baseKeywords = ["porn", "xxx", "sex", "full video", "HD scenes", "trending", "clips"];
+  
+  // Auto title
+  const title = `${name} — Full HD Videos & Scenes | Dareloom.fun`;
+
+  // Auto meta description
+  const description = `Watch ${name} full HD videos, trending xxx scenes, and exclusive clips online. Explore ${name}'s top performances on Dareloom.fun.`;
+
+  // Auto keywords
+  const keywords = [name, nationality, ...baseKeywords].join(", ");
+
+  return { title, description, keywords };
+}
+
+// ================================
+// HTML GENERATOR
+// ================================
 function actorPageHtml({ title, description, image, url, lastmod, keywords }) {
   const jsonLd = {
     "@context": "https://schema.org",
@@ -69,13 +94,13 @@ function actorPageHtml({ title, description, image, url, lastmod, keywords }) {
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>${escapeHtml(title)} — Dareloom.fun</title>
+  <title>${escapeHtml(title)}</title>
   <meta name="description" content="${escapeHtml(description)}" />
   <meta name="keywords" content="${escapeHtml(keywords)}" />
   <link rel="canonical" href="${url}" />
   <meta name="robots" content="index, follow" />
   <meta property="og:type" content="profile" />
-  <meta property="og:title" content="${escapeHtml(title)} — Dareloom.fun" />
+  <meta property="og:title" content="${escapeHtml(title)}" />
   <meta property="og:description" content="${escapeHtml(description)}" />
   ${image ? `<meta property="og:image" content="${image}" />` : ""}
   <script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
@@ -97,7 +122,9 @@ function escapeHtml(s = "") {
   })[m]);
 }
 
-// main
+// ================================
+// MAIN GENERATOR
+// ================================
 (async function main(){
   try {
     if (!fs.existsSync(DATA_CSV)) {
@@ -115,58 +142,39 @@ function escapeHtml(s = "") {
     for (const r of rows) {
       const name = r.name || r.stage_name || "";
       if (!name) continue;
+
       const slugSource = r.stage_name || name;
       const slug = slugify(slugSource);
       const fileName = `${slug}.html`;
       const url = `${BASE_URL}/actors/${fileName}`;
       const lastmod = formatDate(r.lastmod);
-      const description = r.bio || `${name} — performer profile on Dareloom.fun.`;
       const image = r.profile_image_url || "";
-      const keywords = (name + (r.stage_name ? `, ${r.stage_name}` : "") + (r.nationality ? `, ${r.nationality}` : "")).split(" ").join(", ");
 
-      // write static html page
-      const html = actorPageHtml({
-        title: name,
-        description,
-        image,
-        url,
-        lastmod,
-        keywords
-      });
-      const outPath = path.join(OUT_DIR, fileName);
-      fs.writeFileSync(outPath, html, "utf8");
+      // Auto SEO metadata
+      const { title, description, keywords } = autoMeta(r);
 
-      // add to sitemap entries
+      // Write static HTML page
+      const html = actorPageHtml({ title, description, image, url, lastmod, keywords });
+      fs.writeFileSync(path.join(OUT_DIR, fileName), html, "utf8");
+
+      // Add to sitemap entries
       sitemapUrls.push({ loc: url, lastmod, priority: "0.6" });
 
-      // prepare seo meta json
-      metaArray.push({
-        name,
-        stage_name: r.stage_name || "",
-        url,
-        description,
-        keywords,
-        lastModified: lastmod,
-        profile_image: image
-      });
+      // Add to SEO meta JSON
+      metaArray.push({ name, stage_name: r.stage_name || "", url, description, keywords, lastModified: lastmod, profile_image: image });
     }
 
-    // create sitemap-actors.xml
-    const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n` +
-      `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
+    // Create sitemap-actors.xml
+    const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
       sitemapUrls.map(u => `  <url><loc>${u.loc}</loc><lastmod>${u.lastmod}</lastmod><priority>${u.priority}</priority></url>`).join("\n") +
       `\n</urlset>\n`;
-
     fs.writeFileSync(SITEMAP_ACTORS, sitemapXml, "utf8");
 
-    // write seo-meta-actors.json
+    // Write SEO meta JSON
     fs.writeFileSync(SEO_META, JSON.stringify(metaArray, null, 2), "utf8");
 
-    // update or create sitemap-index.xml (keep existing sitemaps + this new one)
-    const indexList = [
-      `${BASE_URL}/sitemap.xml`,
-      `${BASE_URL}/sitemap-actors.xml`
-    ];
+    // Update sitemap-index.xml
+    const indexList = [`${BASE_URL}/sitemap.xml`, `${BASE_URL}/sitemap-actors.xml`];
     const sitemapIndexXml = `<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
       indexList.map(loc => `  <sitemap><loc>${loc}</loc></sitemap>`).join("\n") +
       `\n</sitemapindex>\n`;
