@@ -5,50 +5,43 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Now Watching - Dareloom Hub</title>
 <style>
-/* CSS synchronized with style.css */
+/* CSS is mostly unchanged */
 :root {
-    --primary: #ff4b91; /* Pink - Synchronized with style.css */
-    --secondary: #1e90ff; /* Blue - Added for button contrast */
+    --primary: #e91e63; /* Pink */
     --background: #000;
     --text-color: #fff;
     --muted-color: #aaa;
 }
 body,html{
   margin:0;padding:0;height:100%;
-  background:var(--background);color:var(--text-color);font-family:system-ui, sans-serif;
+  background:var(--background);color:var(--text-color);font-family:sans-serif;
   display:flex;flex-direction:column;align-items:center;
 }
 header{
   background:#111;padding:12px 0;text-align:center;
   font-size:22px;font-weight:bold;width:100%;
   box-shadow:0 2px 6px rgba(0,0,0,0.5);
-  color: var(--primary); /* Title color */
   z-index: 10;
 }
-/* Ensure iframe takes up appropriate space */
 iframe{
-  width:100%;height:75vh;max-height: 500px; 
-  border:none;margin-top:15px;
-  background: black; /* Prevent white flash */
+  width:100%;height:75vh;border:none;margin-top:10px;
 }
 .ad-box{
-  margin:15px 0 8px 0;
+  margin:8px 0;
   width:100%;text-align:center;
 }
 .btn{
   background:var(--primary);color:#fff;border:none;
   padding:10px 20px;border-radius:8px;
-  cursor:pointer;font-weight:bold;margin:10px 10px;
+  cursor:pointer;font-weight:bold;margin:15px 10px;
   transition: background 0.3s;
-  text-transform: uppercase;
-  min-width: 150px;
 }
 .btn:hover {
     background: #c2185b;
 }
-footer{text-align:center;padding:15px;color:var(--muted-color);font-size: 0.9rem;}
+footer{text-align:center;padding:10px;color:var(--muted-color);}
 
-/* Ad Block Warning Styling */
+/* NEW: Ad Block Warning Styling */
 #adblock-warning-overlay {
   display:none; 
   position:fixed; 
@@ -76,21 +69,19 @@ footer{text-align:center;padding:15px;color:var(--muted-color);font-size: 0.9rem
     width: 95%;
     max-width: 900px;
     flex-grow: 1;
-    padding-bottom: 20px;
 }
 
 /* User Message Box */
 #user-message {
-    background: #222;
+    background: #333;
     color: #fff;
     padding: 10px 20px;
     border-radius: 8px;
     width: 100%;
-    margin-top: 15px;
+    margin-top: 10px;
     text-align: center;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 500;
-    border-left: 4px solid var(--secondary);
 }
 
 #controls-container {
@@ -98,23 +89,7 @@ footer{text-align:center;padding:15px;color:var(--muted-color);font-size: 0.9rem
     justify-content: center;
     width: 100%;
     flex-wrap: wrap;
-}
-
-@media (max-width: 600px) {
-    iframe {
-        height: 50vh;
-    }
-    #user-message {
-        font-size: 14px;
-    }
-    .btn {
-        margin: 5px;
-        font-size: 0.9rem;
-        padding: 8px 15px;
-    }
-    header {
-        font-size: 20px;
-    }
+    margin-top: 10px;
 }
 </style>
 </head>
@@ -128,9 +103,6 @@ footer{text-align:center;padding:15px;color:var(--muted-color);font-size: 0.9rem
         Humein maaf kijiye, hum aapko video nahi dikha sakte jab tak aap apna **Ad Blocker** disable nahi karte.
         Kripya Ad Blocker band karein aur page ko **refresh** karein.
     </p>
-    <p style="font-size:16px; color: var(--primary);">
-        (⚠️ **Agar Ad Blocker nahi hai**, toh shayad koi extension blocking kar raha hai.)
-    </p>
 </div>
 
 <div id="main-content-wrapper">
@@ -138,8 +110,7 @@ footer{text-align:center;padding:15px;color:var(--muted-color);font-size: 0.9rem
         🎉 **Enjoy watching!** For a better experience, click **full screen** to avoid in-player ads.
     </div>
     
-    <div id="videoWrap">
-        </div>
+    <div id="videoWrap"></div>
 
     <div class="ad-box">
       <script type="text/javascript">
@@ -161,10 +132,10 @@ footer{text-align:center;padding:15px;color:var(--muted-color);font-size: 0.9rem
 <footer>© Dareloom Hub</footer>
 
 <script>
-    // --- MONETIZATION CONFIG ---
+    // 🛑 CTR OPTIMIZATION: Aggressive Timing
     const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
-    const POP_COOLDOWN_MS = 4000;
-    const POP_DELAY_MS = 500;
+    const POP_COOLDOWN_MS = 4000; // Reduced from 7000ms
+    const POP_DELAY_MS = 500;     // Reduced from 2000ms
     let lastPop = 0;
     let isAdBlockerActive = false; // State variable
 
@@ -179,147 +150,130 @@ footer{text-align:center;padding:15px;color:var(--muted-color);font-size: 0.9rem
                 s.src = AD_POP;
                 s.async = true;
                 document.body.appendChild(s);
-                // Remove script after a short time
-                setTimeout(()=>{ try{s.remove();}catch(e){} }, 5000); 
+                setTimeout(()=>{ try{s.remove();}catch(e){} }, 5000); // Increased removal time
             }catch(e){ console.warn("Ad pop failed", e); }
         }, POP_DELAY_MS);
     }
+</script>
 
-    // --- AD BLOCKER LOGIC ---
-    function showAdBlockerWarning(){
-        isAdBlockerActive = true;
-        const warning = document.getElementById('adblock-warning-overlay');
-        const content = document.getElementById('main-content-wrapper');
-        if (warning) warning.style.display = 'flex';
-        if (content) content.style.display = 'none';
+
+<script>
+// ------------- AD BLOCKER LOGIC -------------
+function showAdBlockerWarning(){
+    isAdBlockerActive = true;
+    const warning = document.getElementById('adblock-warning-overlay');
+    const content = document.getElementById('main-content-wrapper');
+    if (warning) warning.style.display = 'flex';
+    if (content) content.style.display = 'none';
+}
+
+function showContent(){
+    isAdBlockerActive = false;
+    const warning = document.getElementById('adblock-warning-overlay');
+    const content = document.getElementById('main-content-wrapper');
+    if (warning) warning.style.display = 'none';
+    if (content) content.style.display = 'flex'; // Use flex to retain column layout
+}
+
+function checkAdBlocker(){
+    return new Promise(resolve => {
+        // Use a common ad class name for detection
+        const dummyAd = document.createElement('div');
+        dummyAd.className = 'pub_300x250 pub_dummy_ad ads adblock_detected';
+        dummyAd.style.width = '1px';
+        dummyAd.style.height = '1px';
+        dummyAd.style.position = 'absolute';
+        dummyAd.style.left = '-1000px';
+        document.body.appendChild(dummyAd);
+        setTimeout(() => {
+            // Check if the element's size has been collapsed by an ad blocker
+            if (dummyAd.offsetHeight === 0 || dummyAd.offsetParent === null || window.getComputedStyle(dummyAd).getPropertyValue('display') === 'none') {
+                resolve(true); // Ad Blocker is ON
+            } else {
+                resolve(false); // Ad Blocker is OFF
+            }
+            dummyAd.remove();
+        }, 300);
+    });
+}
+// ------------- VIDEO LOAD LOGIC -------------
+async function loadVideo(){
+    // 1. Check Ad Blocker
+    const adBlockActive = await checkAdBlocker();
+    if (adBlockActive) {
+        showAdBlockerWarning();
+        return; // Stop execution if blocked
     }
+    showContent();
+    
+    // 2. Pop-under Ad on successful load
+    openAdsterraPop();
 
-    function showContent(){
-        isAdBlockerActive = false;
-        const warning = document.getElementById('adblock-warning-overlay');
-        const content = document.getElementById('main-content-wrapper');
-        if (warning) warning.style.display = 'none';
-        if (content) content.style.display = 'flex'; 
-    }
-
-    function checkAdBlocker(){
-        return new Promise(resolve => {
-            // Check based on a common class name and computed style
-            const dummyAd = document.createElement('div');
-            dummyAd.className = 'pub_300x250 pub_dummy_ad ads adblock_detected';
-            dummyAd.style.width = '1px';
-            dummyAd.style.height = '1px';
-            dummyAd.style.position = 'absolute';
-            dummyAd.style.left = '-1000px';
-            document.body.appendChild(dummyAd);
-            setTimeout(() => {
-                // If the element's size is collapsed or its display property is 'none', Ad Blocker is ON
-                const isBlocked = dummyAd.offsetHeight === 0 || dummyAd.offsetParent === null || window.getComputedStyle(dummyAd).getPropertyValue('display') === 'none';
-                dummyAd.remove();
-                resolve(isBlocked); 
-            }, 300);
-        });
-    }
-
-    // --- VIDEO LOAD LOGIC ---
-    async function loadVideo(){
-        // 1. Check Ad Blocker
-        const adBlockActive = await checkAdBlocker();
-        if (adBlockActive) {
-            showAdBlockerWarning();
-            return; // Stop execution if blocked
+    // 3. Video URL Parsing and rendering
+    const params = new URLSearchParams(window.location.search);
+    let raw = params.get("url");
+    const videoWrap = document.getElementById("videoWrap");
+    const controlsContainer = document.getElementById("controls-container");
+    
+    if(raw){
+        const fullUrl = decodeURIComponent(raw).trim();
+        
+        // Check for Telegram link embedded within the URL query parameter (as done in script.js)
+        let telegramLink = '';
+        let embedLink = fullUrl;
+        
+        // This handles if the watch link contains a comma-separated list (though it shouldn't be used here)
+        if (fullUrl.includes(',')) {
+            const parts = fullUrl.split(',').map(l => l.trim()).filter(Boolean);
+            telegramLink = parts.find(l => l.includes("t.me") || l.includes("telegram.me")) || '';
+            embedLink = parts.find(l => !l.includes("t.me") && !l.includes("telegram.me")) || fullUrl;
+        } else if (fullUrl.includes("t.me") || fullUrl.includes("telegram.me")) {
+            // If only Telegram link is passed, it can't be embedded.
+            telegramLink = fullUrl;
+            embedLink = ''; 
         }
-        showContent();
+
+        // --- Handle specific link types for embedding ---
         
-        // 2. Pop-under Ad on successful load
-        openAdsterraPop();
-
-        // 3. Video URL Parsing and rendering
-        const params = new URLSearchParams(window.location.search);
-        let raw = params.get("target"); // Looking for 'target' parameter
-        const videoWrap = document.getElementById("videoWrap");
-        const controlsContainer = document.getElementById("controls-container");
-        
-        if(raw){
-            const fullUrl = decodeURIComponent(raw).trim();
+        // MEGA Link
+        if (embedLink.includes("mega.nz")) {
+            videoWrap.innerHTML = `<h3 style='color:white;text-align:center;margin-top:40px;'>
+                ⚠️ This video is hosted on MEGA. It cannot be embedded here.
+            </h3>`;
+            controlsContainer.innerHTML += `<button class="btn" style="background:#007bff;" onclick="openAdsterraPop(); window.open('${embedLink}', '_blank')">Open MEGA Link in New Tab</button>`;
+        }
+        // General Embed (Streamtape / Drive / Other HTTP/S)
+        else if (embedLink){
+            let finalEmbedUrl = embedLink;
             
-            // Separate Telegram link from the embed link
-            let telegramLink = '';
-            let embedLink = fullUrl;
-            
-            // If the URL contains a comma, it means it has multiple links (Streamtape, Telegram)
-            if (fullUrl.includes(',')) {
-                const parts = fullUrl.split(',').map(l => l.trim()).filter(Boolean);
-                telegramLink = parts.find(l => l.includes("t.me") || l.includes("telegram.me")) || '';
-                // The main embed link is the one that's NOT Telegram
-                embedLink = parts.find(l => !l.includes("t.me") && !l.includes("telegram.me")) || '';
-            } else if (fullUrl.includes("t.me") || fullUrl.includes("telegram.me")) {
-                // If only Telegram link is passed
-                telegramLink = fullUrl;
-                embedLink = ''; 
-            } else {
-                // If only a single, non-comma URL is passed
-                embedLink = fullUrl;
+            // Simple check for Google Drive preview (if /view is used instead of /preview)
+            if (finalEmbedUrl.includes("drive.google.com") && finalEmbedUrl.includes("/view")) {
+                finalEmbedUrl = finalEmbedUrl.replace("/view", "/preview");
             }
-
-            // --- Handle specific link types for embedding ---
-            
-            // MEGA Link: Cannot be embedded
-            if (embedLink.includes("mega.nz")) {
-                videoWrap.innerHTML = `<h3 style='color:white;text-align:center;margin-top:40px;'>
-                    ⚠️ This content is hosted on MEGA. It cannot be embedded here.
-                </h3>`;
-                controlsContainer.innerHTML += `<button class="btn" style="background:#007bff;" onclick="openAdsterraPop(); window.open('${embedLink}', '_blank')">Open MEGA Link in New Tab</button>`;
-            }
-            // Streamtape and General Embed Links
-            else if (embedLink){
-                let finalEmbedUrl = embedLink;
-                
-                // 🛑 CRITICAL: Convert Streamtape /v/ (view) to /e/ (embed)
-                if (finalEmbedUrl.includes("streamtape.com/v/")){
-                    const m = finalEmbedUrl.match(/\/v\/([0-9A-Za-z_-]+)/);
-                    if (m && m[1]) {
-                        finalEmbedUrl = `https://streamtape.com/e/${m[1]}/`;
-                    }
-                }
-                
-                // 💡 NEW: Check for common embed indicators of other sites.
-                const isEmbeddable = finalEmbedUrl.includes("iframe") || 
-                                     finalEmbedUrl.includes("embed") || 
-                                     finalEmbedUrl.includes("streamtape.com/e/") || 
-                                     finalEmbedUrl.includes("drive.google.com/preview") ||
-                                     // Common embed patterns of other hosts
-                                     finalEmbedUrl.includes("/embed-") || 
-                                     finalEmbedUrl.includes("/v/") ||
-                                     finalEmbedUrl.includes("/watch?") ||
-                                     finalEmbedUrl.includes("/play/"); 
-
-                if (!isEmbeddable) {
-                     // Treat as external player required (e.g., direct link or unknown non-embed)
-                     videoWrap.innerHTML = `<h3 style='color:white;text-align:center;margin-top:40px;'>
-                        ⚠️ This link requires an external player.
-                    </h3>`;
-                     controlsContainer.innerHTML += `<button class="btn" style="background:var(--secondary);" onclick="openAdsterraPop(); window.open('${finalEmbedUrl}', '_blank')">Open External Player</button>`;
-                } else {
-                    // Inject iframe for embeddable content (Streamtape or others)
-                    videoWrap.innerHTML = `<iframe src="${finalEmbedUrl}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>`;
-                }
-            } else {
-                videoWrap.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20px;'>⚠️ No valid video link found for player.</h3>";
+            // Streamtape /v/ to /e/ conversion (safety check, should be done in script.js)
+            if (finalEmbedUrl.includes("streamtape.com/v/")){
+                const m = finalEmbedUrl.match(/\/v\/([0-9A-Za-z_-]+)\//);
+                if (m && m[1]) finalEmbedUrl = `https://streamtape.com/e/${m[1]}/`;
             }
             
-            // Telegram Download Button
-            if(telegramLink){
-                controlsContainer.innerHTML += `<button class="btn" style="background:#0088cc;" onclick="openAdsterraPop(); window.open('${telegramLink}', '_blank')">⬇️ Download / Watch on Telegram</button>`;
-            }
-            
+            videoWrap.innerHTML = `<iframe src="${finalEmbedUrl}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>`;
         } else {
-            videoWrap.innerHTML = "<h2 style='color:white;text-align:center;'>⚠️ No video link parameter found</h2>";
+            videoWrap.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20px;'>⚠️ No valid video link found for player.</h3>";
         }
+        
+        // Telegram Download Button
+        if(telegramLink){
+            // 🛑 User requested "Download" option
+            controlsContainer.innerHTML += `<button class="btn" style="background:#0088cc;" onclick="openAdsterraPop(); window.open('${telegramLink}', '_blank')">⬇️ Download / Watch on Telegram</button>`;
+        }
+        
+    } else {
+        videoWrap.innerHTML = "<h2 style='color:white;text-align:center;'>⚠️ No video link parameter found</h2>";
     }
+}
 
-    // 4. Initial Load
-    document.addEventListener('DOMContentLoaded', loadVideo);
+// 4. Initial Load
+document.addEventListener('DOMContentLoaded', loadVideo);
 </script>
 </body>
 </html>
