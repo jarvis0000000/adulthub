@@ -1,224 +1,161 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-  <title>Dareloom Hub — Watch Trailers & Movies in HD</title>
-  <meta name="description" content="Watch the latest erotic & romantic web series, trailers, and uncut clips in HD. Daily updates, fast player, and curated picks for adults (18+)." />
-  <meta name="keywords" content="Dareloom, erotic series, romantic movies, trailers, uncut clips, HD streaming, watch online, 18+ content" />
-  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-  <meta name="author" content="Dareloom Hub" />
-  <meta name="theme-color" content="#000000" />
-  <meta name="rating" content="adult" />
+<html lang="en">  
+<head>  
+  <meta charset="utf-8" />  
+  <meta name="viewport" content="width=device-width,initial-scale=1" />  
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />    <title>Dareloom Hub — Watch Trailers & Movies in HD</title>  
+  <meta name="description" content="Watch the latest erotic & romantic web series, movie trailers, and uncut clips in HD. Daily updates, fast player, and curated picks for adults (18+)." />  
+  <meta name="keywords" content="Dareloom, erotic series, romantic movies, trailers, uncut clips, HD streaming, watch online, 18+ content" />  
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />  
+  <meta name="author" content="Dareloom Hub" />  
+  <meta name="theme-color" content="#000000" />  
+  <meta name="rating" content="adult" />    <link rel="canonical" href="https://dareloom.fun/" />  
+  <link rel="sitemap" type="application/xml" title="Sitemap" href="https://dareloom.fun/sitemap.xml" />    <link rel="preconnect" href="https://fonts.googleapis.com" />  
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />  
+  <link rel="preconnect" href="https://i.ibb.co" />  
+  <link rel="preconnect" href="https://www.youtube.com" />    <link rel="preload" href="/style.css?v=20251017" as="style" />  
+  <link rel="preload" href="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" as="image" fetchpriority="high" />  
+  <link rel="preload" href="https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgMbpFVXA.woff2" as="font" type="font/woff2" crossorigin>    <link rel="stylesheet" href="/style.css?v=20251017" />    <style>  
+    /* 🧠 Inline critical CSS (Fixes CLS and LCP) */  
+    :root {  
+      --primary-color: #ff4b91;  
+      --secondary-color: #1e90ff;  
+      --bg-color: #000;  
+      --card-bg: #111;  
+      --text-color: #fff;  
+      --border-radius-base: 12px;  
+    }  
+    html, body {  
+      margin: 0;  
+      padding: 0;  
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, sans-serif;  
+      background: var(--bg-color);  
+      color: var(--text-color);  
+    }  
+    /* CLS Improvement: Consistent Aspect Ratio for placeholders */  
+    img, iframe, video {  
+      display: block;  
+      max-width: 100%;  
+      height: auto;  
+      /* CLS FIX */  
+      aspect-ratio: 16/9;   
+    }  
+    /* LCP Improvement: Critical button styling */  
+    .watch-movies-btn {  
+      display: inline-block;  
+      background: var(--secondary-color);  
+      color: #fff;  
+      font-weight: 700;  
+      text-decoration: none;  
+      padding: 12px 25px;  
+      border-radius: 10px;  
+      font-size: 18px;  
+      margin: 25px auto;  
+      transition: transform 0.3s;  
+    }  
+    .watch-movies-btn:hover {  
+      transform: scale(1.07);  
+      background: var(--primary-color);  
+    }  
+    .hero-actions { text-align: center; }  
+    /* 🛑 FIX: Grid definition for .grid ONLY. .latest-list uses external flexbox. */  
+    .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }  
+    /* CLS Improvement: Set min-height for cards */  
+    .card { min-height: 250px; background: var(--card-bg); border-radius: var(--border-radius-base); overflow: hidden; }  
+    h2 { color: var(--primary-color); font-size: 1.4rem; margin-bottom: 20px; border-left: 4px solid var(--secondary-color); padding-left: 10px;}  
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 16px; } /* Define .wrap here too */  
+  </style>    <script type="application/ld+json">  
+  {  
+    "@context": "https://schema.org",  
+    "@graph": [  
+      {  
+        "@type": "Organization",  
+        "name": "Dareloom Hub",  
+        "url": "https://dareloom.fun",  
+        "logo": "https://dareloom.fun/favicon-512x512.png",  
+        "contactPoint": [{  
+          "@type": "ContactPoint",  
+          "contactType": "Customer Support",  
+          "email": "dareloom.official@gmail.com"  
+        }]  
+      },  
+      {  
+        "@type": "WebSite",  
+        "name": "Dareloom Hub",  
+        "url": "https://dareloom.fun",  
+        "potentialAction": {  
+          "@type": "SearchAction",  
+          "target": "https://dareloom.fun/?search={query}",  
+          "query-input": "required name=query"  
+        }  
+      }  
+    ]  
+  }  
+  </script>    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:;" />  
+</head>  <body>  
+  <header class="site" role="banner">  
+    <div class="wrap" style="display: flex; justify-content: space-between; align-items: center; padding: 0;">  
+        <div class="brand">  
+          <img src="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" alt="Dareloom Hub Logo" class="logo-img" width="40" height="40" loading="eager" fetchpriority="high">  
+          <h1 class="title">Dareloom Hub</h1>  
+        </div>  
+        <nav class="nav">  
+          <input type="search" id="searchInput" placeholder="Search titles..." aria-label="Search titles" onkeyup="filterVideos && filterVideos(this.value)">  
+          
+          <button class="menu-toggle" aria-label="Random Scroll" onclick="openReelsPlayer()">
+            <span style="font-size: 1.2rem;">⬆️</span>
+          </button>
+          <button class="menu-toggle" aria-label="Random Pick" onclick="showRandomPick && showRandomPick()">🎲</button>
+        </nav>  
+    </div>  
+  </header>    
+  
+  <main id="mainWrap" class="wrap">  
+    <section class="hero section" aria-labelledby="nowTitle">  
+      <div class="hero-actions">  
+        <h2 id="nowTitle" class="now-title" style="margin:0;">Ready to watch the latest series?</h2>  
+        <div id="controlsContainer"><div id="count" class="pill">0 items</div></div>  
+      </div>  
+      <div class="hero-actions" style="justify-content:center; padding: 0;">  
+        <a href="/Movies/" class="watch-movies-btn">🎬 Watch Erotic Movies Here →</a>  
+      </div>  
+    </section>  
+    
+    <section class="section" id="latestSection">  
+      <h2>📺 Latest Full Series Episodes</h2>  
+      <div id="latestList" class="latest-list" aria-live="polite">  
+      </div>  
+      <div id="pager" class="pager"></div>  
+    </section>  
 
-  <link rel="canonical" href="https://dareloom.fun/" />
-  <link rel="sitemap" type="application/xml" title="Sitemap" href="https://dareloom.fun/sitemap.xml" />
+    <section class="section" id="randomSection">  
+      <h2>🔥 Trending Erotic & Romantic Picks</h2>  
+      <div id="randomGrid" class="grid">  
+      </div>  
+    </section>  
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://i.ibb.co" />
-  <link rel="preconnect" href="https://www.youtube.com" />
+    <section id="categorySection" style="display:none;" class="section">  
+      <h2 id="categoryTitle">All Videos</h2>  
+      <div id="categoryGrid" class="grid"></div>  
+    </section>  
 
-  <link rel="preload" href="/style.css?v=20251015" as="style" />
-  <link rel="preload" href="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" as="image" fetchpriority="high" />
-  <link rel="preload" href="https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgMbpFVXA.woff2" as="font" type="font/woff2" crossorigin>
-
-  <link rel="stylesheet" href="/style.css?v=20251015" />
-
-  <style>
-    /* Inline critical CSS improvements */
-    :root {
-      --primary-color: #ff4b91;
-      --secondary-color: #1e90ff;
-      --bg-color: #000;
-      --card-bg: #111;
-      --text-color: #fff;
-      --muted: #9aa3ad;
-      --radius: 12px;
-    }
-    html,body {
-      margin:0;padding:0;background:var(--bg-color);color:var(--text-color);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    }
-    .wrap { max-width:1200px;margin:0 auto;padding:16px; }
-    header.site { border-bottom:1px solid rgba(255,255,255,0.04); position:sticky; top:0; background:#000; z-index:50; }
-    .brand{ display:flex; align-items:center; gap:10px; }
-    .logo-img{ border-radius:8px; }
-    .title{ font-size:1.05rem; margin:0; }
-    nav.nav{ display:flex; align-items:center; gap:8px; }
-    input[type="search"]{ background:#111;border:1px solid rgba(255,255,255,0.04); color:var(--text-color); padding:8px 10px;border-radius:8px; width:220px; }
-    .menu-toggle{ background:transparent;border:1px solid rgba(255,255,255,0.06); color:var(--text-color); padding:8px 10px;border-radius:8px; cursor:pointer; }
-
-    /* Cards / lists */
-    .latest-list{ display:grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap:18px; margin-top:18px; }
-    .card, .latest-item{ background:var(--card-bg); border-radius:var(--radius); overflow:hidden; min-height:160px; box-shadow:0 6px 18px rgba(0,0,0,0.6); }
-    .latest-thumb{ width:100%; display:block; aspect-ratio:16/9; object-fit:cover; }
-    .latest-info{ padding:12px; }
-    .btn{ background:var(--primary-color); color:#fff; border:none; padding:10px 14px; border-radius:8px; cursor:pointer; font-weight:700; }
-    .pill{ background:#111;padding:6px 10px;border-radius:999px;color:var(--muted); font-weight:600; }
-
-    /* Modal */
-    #videoModal { position:fixed; inset:0; display:none; background:rgba(0,0,0,0.92); justify-content:center; align-items:center; z-index:9999; }
-    .modal-content{ width:95%; max-width:1000px; background:#0b0b0b; border-radius:10px; padding:0; position:relative; overflow:hidden; }
-    .close-btn{ position:absolute; right:10px; top:10px; background:transparent;color:#fff;border:none;font-size:20px; cursor:pointer; z-index:10; }
-    #modalPlayerWrap iframe, #modalPlayerWrap video{ width:100%; height:62vh; display:block; border:none; background:#000; }
-    .modal-controls{ padding:14px; }
-
-    /* Scroll feed overlay (Instagram-like) */
-    #scrollFeedOverlay { position:fixed; inset:0; display:none; z-index:9998; background:#000; color:#fff; overflow:hidden; }
-    #scrollFeedContainer { height:100vh; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-    .scroll-card { width:100%; max-width:720px; margin:0 auto; display:flex; flex-direction:column; align-items:center; gap:8px; padding:12px; }
-    .scroll-player { width:100%; height:80vh; background:#000; border-radius:8px; overflow:hidden; }
-    .scroll-controls { display:flex; gap:8px; justify-content:center; margin-top:8px; }
-
-    /* Misc */
-    .grid{ display:grid; gap:20px; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); }
-    h2{ color:var(--primary-color); margin:0 0 10px 0; font-size:1.1rem; }
-    footer{ padding:18px;text-align:center;color:var(--muted); }
-  </style>
-
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: data:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:;" />
-</head>
-
-<body>
-  <header class="site" role="banner">
-    <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
-        <div style="display:flex;align-items:center;gap:12px;">
-          <img src="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" alt="Dareloom Hub Logo" class="logo-img" width="44" height="44" loading="eager" fetchpriority="high">
-          <div>
-            <div style="display:flex;align-items:center;gap:8px">
-              <h1 class="title" style="margin:0;font-size:1rem;">Dareloom Hub</h1>
-              <span style="color:var(--muted);font-size:.8rem;">(18+)</span>
-            </div>
-            <div style="font-size:12px;color:var(--muted);">Trailers • Series • Clips</div>
-          </div>
-        </div>
-
-        <nav class="nav" aria-label="Main navigation" style="display:flex;align-items:center;gap:8px;">
-          <input type="search" id="searchInput" placeholder="Search titles..." aria-label="Search titles" oninput="if(window.filterVideos) filterVideos(this.value)">
-          <button id="startScrollBtn" class="menu-toggle" aria-label="Open Random Scroll">⤵ Scroll Trailers</button>
-          <button class="menu-toggle" aria-label="Random Pick" onclick="if(window.showRandomPick) showRandomPick()">🎲</button>
-        </nav>
-    </div>
-  </header>
-
-  <main id="mainWrap" class="wrap" role="main">
-    <section class="hero section" aria-labelledby="nowTitle" style="margin-top:18px;">
-      <div style="display:flex;flex-direction:column;align-items:center;gap:10px;">
-        <h2 id="nowTitle" class="now-title" style="margin:0;">Ready to watch the latest series?</h2>
-        <div id="controlsContainer" style="display:flex;gap:10px;align-items:center;">
-          <div id="count" class="pill">0 items</div>
-          <a href="/Movies/" class="watch-movies-btn" style="text-decoration:none;background:var(--secondary-color);padding:10px 16px;border-radius:10px;color:#fff;font-weight:700;">🎬 Watch Erotic Movies Here →</a>
-        </div>
-      </div>
+    <section class="seo-content section">  
+      <h2 style="font-size: 1.4rem;">Welcome to Dareloom Hub (18+)</h2>  
+      <p style="color:var(--muted);font-size:0.9rem;">Dareloom Hub provides curated erotic and romantic web series, trailers, and uncut clips in HD streaming quality. Content is updated daily with working links and a fast, mobile-first player. This platform is intended for adult audiences (18+).</p>  
     </section>
 
-    <!-- Latest (Homepage thumbnails) -->
-    <section class="section" id="latestSection" style="margin-top:20px;">
-      <h2>📺 Latest Full Series Episodes</h2>
-      <!-- 8 thumbnails will be populated here by script.js (use trailer column for thumbnails) -->
-      <div id="latestList" class="latest-list" aria-live="polite" role="list"></div>
-      <div id="pager" class="pager" style="margin-top:12px;"></div>
-    </section>
-
-    <!-- Random grid (used for static random picks and for fallback) -->
-    <section class="section" id="randomSection" style="margin-top:28px;">
-      <h2>🔥 Trending Erotic & Romantic Picks</h2>
-      <div id="randomGrid" class="grid"></div>
-    </section>
-
-    <section id="categorySection" style="display:none;margin-top:28px;" class="section">
-      <h2 id="categoryTitle">All Videos</h2>
-      <div id="categoryGrid" class="grid"></div>
-    </section>
-
-    <section class="seo-content section" style="margin-top:28px;">
-      <h2 style="font-size: 1.1rem;">Welcome to Dareloom Hub (18+)</h2>
-      <p style="color:var(--muted);font-size:0.95rem;">Dareloom Hub provides curated erotic and romantic web series, trailers, and uncut clips in HD streaming quality. Content is updated daily with working links and a fast, mobile-first player. This platform is intended for adult audiences (18+).</p>
-    </section>
-  </main>
-
-  <footer>
-    © Dareloom Hub — <a href="mailto:dareloom.official@gmail.com" style="color:var(--secondary-color);">dareloom.official@gmail.com</a>
-  </footer>
-
-  <!-- Modal (Watch-only). script.js will populate modal player + control buttons -->
-  <div id="videoModal" class="full-screen-modal" role="dialog" aria-modal="true" aria-labelledby="modalVideoTitle" style="display:none;">
-    <div class="modal-content player-content" role="document">
-      <button aria-label="Close" onclick="closePlayerModal()" class="close-btn">✖</button>
-
-      <div id="modalPlayerWrap" style="background:#000; display:block; min-height:240px;">
-        Loading Video Player...
-      </div>
-
-      <div class="modal-controls">
-        <h3 id="modalVideoTitle" style="margin:0 0 6px 0">Loading...</h3>
-        <p id="modalVideoDescription" style="color:var(--muted);font-size:0.95rem;margin:0 0 12px 0"></p>
-        <div id="modalControlsContainer" style="display:flex;flex-wrap:wrap;gap:10px;"></div>
-      </div>
-    </div>
+  </main>    
+  
+  <footer style="padding:14px;text-align:center;color:var(--muted);">  
+    © Dareloom Hub — <a href="mailto:dareloom.official@gmail.com" style="color:var(--secondary-color);">dareloom.official@gmail.com</a>  
+  </footer>    
+  
+  <div id="reelsPlayer" style="display:none;" role="dialog" aria-modal="true">
+    <button aria-label="Close Reels" id="reelsCloseBtn" class="close-btn" style="position: fixed; top: 15px; right: 15px; z-index: 10001; background: rgba(255, 75, 145, 0.8);">✖</button>
   </div>
-
-  <!-- Scroll feed overlay (Instagram-like). Script will control visibility and load 8 random trailer items sequentially -->
-  <div id="scrollFeedOverlay" aria-hidden="true" style="display:none;">
-    <div id="scrollFeedContainer">
-      <div style="width:100%;max-width:900px;padding:12px;display:flex;justify-content:space-between;align-items:center;">
-        <div style="color:var(--muted);font-weight:600;">Random Trailers</div>
-        <div>
-          <button class="menu-toggle" onclick="closeScrollFeed()">Close</button>
-          <button class="menu-toggle" onclick="skipToNextScroll()">Next</button>
-        </div>
-      </div>
-
-      <div id="scrollFeedViewport" style="width:100%;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;">
-        <!-- The script will inject one .scroll-card at a time with embedded trailer (YouTube or porn iframe) -->
-      </div>
-
-      <div style="padding:14px;text-align:center;color:var(--muted);font-size:13px;">Scroll/Next through 8 random trailers — after 8 the feed resets.</div>
-    </div>
-  </div>
-
-  <script>
-    // Small helpers for modal cleanup (used by script.js too)
-    function closePlayerModal(){
-      const modal = document.getElementById('videoModal');
-      if(!modal) return;
-      modal.style.display = 'none';
-      document.body.style.overflow = 'auto';
-      const wrap = document.getElementById('modalPlayerWrap');
-      if(wrap){
-        // Stop iframe/video playback and clear DOM
-        const iframe = wrap.querySelector('iframe');
-        if(iframe) iframe.src = 'about:blank';
-        const video = wrap.querySelector('video');
-        if(video){ video.pause(); video.src = ''; }
-        wrap.innerHTML = 'Loading Video Player...';
-      }
-    }
-
-    // Scroll feed controls (script.js should expose the real functions; these are fallbacks)
-    function openScrollFeed(){ document.getElementById('scrollFeedOverlay').style.display = 'flex'; document.body.style.overflow = 'hidden'; }
-    function closeScrollFeed(){ document.getElementById('scrollFeedOverlay').style.display = 'none'; document.body.style.overflow = 'auto'; }
-    function skipToNextScroll(){ if(window._scrollNext) window._scrollNext(); }
-
-    // Wire the header Scroll button to open overlay (script.js can override behavior)
-    document.getElementById('startScrollBtn').addEventListener('click', (e) => {
-      e.preventDefault();
-      if(window.startScrollFeed) return window.startScrollFeed();
-      openScrollFeed();
-    });
-
-    // Make sure search input triggers filterVideos if script loaded
-    (function(){
-      const s = document.getElementById('searchInput');
-      s.addEventListener('keydown', (e) => {
-        if(e.key === 'Enter' && window.filterVideos) filterVideos(s.value);
-      });
-    })();
-  </script>
-
-  <!-- Your script.js will be loaded here. Replace the src below with your real script path. -->
-  <script src="/script.js?v=20251015" defer></script>
-</body>
-</html>
+  
+  <script src="/script.js?v=20251017" defer></script>  
+</body>  
+    </html>
+    
