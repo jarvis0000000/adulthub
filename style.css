@@ -1,5 +1,5 @@
 /*
-style.css - Unique, Dark-Themed, Fully Responsive Design
+style.css - Unique, Dark-Themed, Fully Responsive Design + REELS PLAYER
 */
 
 :root {
@@ -176,7 +176,7 @@ font-size: 1.05rem;
 color: var(--primary-color);
 }
 
-/* --- LATEST LIST (The Fix for Overlap!) --- */
+/* --- LATEST LIST --- */
 .latest-list {
     /* 🛑 FIX: Reverting to Flexbox Column for List view (CLS Fix) */
     display: flex;
@@ -279,93 +279,95 @@ background: #555;
 border-color: var(--primary-color);
 }
 
-/* === MODAL & PLAYER FIX === */
-.full-screen-modal {
-position: fixed;
-inset: 0;
-background: rgba(0,0,0,0.95);
-display: flex;
-justify-content: center;
-align-items: center;
-z-index: 9999;
-padding: 0;
-overflow-y: auto;
+/* === MODAL/REELS PLAYER STYLES (NEW) === */
+#reelsPlayer {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-y: scroll; /* Enable scrolling */
+    scroll-snap-type: y mandatory; /* Enable smooth snap scrolling */
+    background: #000;
+    z-index: 10000;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
-.modal-content.player-content {
-background: #111;
-padding: 0;
-border-radius: var(--border-radius-base);
-max-width: 900px;
-width: 95%;
-max-height: 98vh;
-overflow-y: auto;
-position: relative;
-display: flex;
-flex-direction: column;
+.reel-slide {
+    flex-shrink: 0; /* Prevents slides from shrinking */
+    width: 100%;
+    height: 100vh; /* One viewport height per slide */
+    scroll-snap-align: start; /* Snap to the top of each slide */
+    position: relative;
 }
 
-.close-btn {
-position: absolute;
-top: 10px;
-right: 10px;
-background: rgba(0, 0, 0, 0.5);
-color: #fff;
-border: none;
-border-radius: 50%;
-width: 30px;
-height: 30px;
-font-size: 18px;
-cursor: pointer;
-z-index: 100;
+.reel-player-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #000;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
-/* Fixed Full Height Video */
-#modalPlayerWrap {
-width: 100%;
-aspect-ratio: 16 / 9; 
-height: auto; 
-max-height: 80vh;
-position: relative;
-background: #000;
-}
-#modalPlayerWrap iframe,
-#modalPlayerWrap video {
-width: 100%;
-height: 100%;
-border: none;
-display: block;
-/* 🛑 FIX: Use contain to prevent cropping and see the full video */
-object-fit: contain; 
-}
-
-.modal-controls {
-padding: 15px;
-background: var(--card-bg);
-}
-
-/* NEW: PERSISTENT AD STYLES */
-/* CLS Fix: Minimum height for Ad to prevent layout shift */
-#modalPersistentAd {
-    min-height: 90px; 
+.reel-video {
+    width: 100%;
+    height: 100%;
     display: block;
-    padding: 10px 15px 0 15px; 
-}
-#modalPersistentAd iframe,
-#modalPersistentAd .persistent-ad {
-max-width: 100%;
-width: 100%;
-height: 90px;
-display: block;
+    object-fit: contain; /* Ensure the video fits within the screen */
 }
 
-#modalPersistentAd .ad-label {
-color: #aaa;
-font-size: 12px;
-margin-bottom: 6px;
-display:block;
-text-align: center;
+/* Info and Controls Overlay */
+.reel-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0));
+    color: #fff;
+    z-index: 100;
 }
+
+.reel-title {
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    margin: 0 0 5px 0;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+}
+
+.reel-tags .tag-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.reel-buttons-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+}
+.reel-buttons-group .btn {
+    min-width: 140px;
+    flex-grow: 1;
+}
+
+/* Close Button (Fixed on top of Reels Player) */
+.close-btn {
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 10001;
+    position: fixed; /* Fixed position in reels player */
+}
+
 
 /* --- RESPONSIVENESS --- */
 @media (max-width: 768px) {
@@ -389,51 +391,23 @@ header.site { padding: 10px 0; }
     min-width: 100%;  
 }  
   
-/* Fullscreen Video Fix Mobile */  
-.full-screen-modal {  
-  align-items: flex-start;  
-}  
-.modal-content.player-content {  
-  width: 100%;  
-  height: 100vh;  
-  max-height: none;  
-  border-radius: 0;  
-  overflow-y: hidden;  
-}  
-
-#modalPlayerWrap {  
-  height: 100%; 
-  max-height: none;   
-  aspect-ratio: auto;
-}  
-#modalPlayerWrap iframe,  
-#modalPlayerWrap video {  
-  height: 100%; 
-  object-fit: contain; /* Ensure no cropping */
-}  
-
-.modal-controls {  
-  position: absolute; 
-  bottom: 0;  
-  left: 0;  
-  right: 0;  
-  padding: 10px;  
-  background: rgba(0, 0, 0, 0.9); /* Opaque background */  
-  text-align: center;  
-  z-index: 50;   
-}  
-.close-btn {  
-    top: 10px;  
-    right: 10px;  
-}  
-
-/* Responsive Ad Adjustment */
-#modalPersistentAd {
-    min-height: 80px; 
+/* Reels Player Mobile Adjustments */  
+.reel-slide {
+    height: 100dvh; /* Use dynamic height for better mobile fit */
 }
-#modalPersistentAd iframe,
-#modalPersistentAd .persistent-ad {
-height: 80px;
+
+.reel-info {
+    padding: 15px 10px 80px 10px; /* More padding at bottom for button group */
 }
-                            }
-    
+.reel-buttons-group .btn {
+    font-size: 0.8rem;
+    min-width: 100px;
+    padding: 6px 10px;
+}
+
+/* Ensure fixed close button is visible */
+#reelsCloseBtn {
+    top: 10px;
+    right: 10px;
+}
+}
