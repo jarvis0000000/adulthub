@@ -3,7 +3,7 @@
 # ===============================
 
 # -------------------------------
-# 1) Block AI & Scraper Bots 
+# Block AI & Scraper Bots
 # -------------------------------
 User-agent: GPTBot
 Disallow: /
@@ -32,10 +32,8 @@ Disallow: /
 User-agent: meta-externalagent
 Disallow: /
 
-# Note: Google-Extended is ALLOWED below to maintain SEO health.
-
 # -------------------------------
-# 2) Major Search Engines & Google-Extended (SEO Optimized)
+# Major Search Engines
 # -------------------------------
 User-agent: Googlebot
 Allow: /
@@ -54,7 +52,7 @@ User-agent: Yandex
 Allow: /
 
 # -------------------------------
-# 3) Default Rules (for all other bots)
+# Default Rules
 # -------------------------------
 User-agent: *
 Disallow: /admin/
@@ -68,8 +66,6 @@ Disallow: /*?*filter=*
 Disallow: /*?*session=*
 Disallow: /*?*ref=*
 Disallow: /*?*utm_*
-
-# Removed Crawl-delay as it is deprecated by Google.
 
 # -------------------------------
 # Sitemap Location
