@@ -21,18 +21,36 @@ jobs:
       - name: 📦 Install Dependencies
         run: npm ci
 
-      - name: 🗺️ Generate SEO Files (sitemap, robots, meta)
+      # -------------------------------
+      # Generate SEO files (main sitemap)
+      # -------------------------------
+      - name: 🗺️ Generate Global SEO Files
         env:
           SHEET_KEY: ${{ secrets.SHEET_KEY }}
         run: |
-          echo "⚙️ Generating SEO files..."
+          echo "⚙️ Generating main SEO files..."
           node generate-sitemap.js
 
+      # -------------------------------
+      # Generate Actress Pages + Sitemap
+      # -------------------------------
+      - name: 🎬 Generate Actress Pages & Sitemap
+        run: |
+          echo "🎥 Creating actress pages and sitemaps..."
+          node generate-actresses.js
+
+      # -------------------------------
+      # Commit SEO File Updates
+      # -------------------------------
       - name: 💾 Commit SEO File Updates
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f sitemap.xml sitemap.xml.gz robots.txt seo-meta.json _headers indexnow-key.txt || true
+
+          # Force add all generated SEO + actress files
+          git add -f sitemap.xml sitemap.xml.gz robots.txt seo-meta.json \
+            sitemap-actors.xml seo-meta-actors.json sitemap-index.xml actors/ _headers indexnow-key.txt || true
+
           if git diff --cached --quiet; then
             echo "✅ No changes detected."
           else
@@ -41,6 +59,9 @@ jobs:
             git push
           fi
 
+      # -------------------------------
+      # Trigger Cloudflare Pages Deploy
+      # -------------------------------
       - name: 🚀 Trigger Cloudflare Pages Deploy
         if: success()
         env:
@@ -57,6 +78,9 @@ jobs:
           --show-error \
           --data '{"branch":"main"}'
 
+      # -------------------------------
+      # Purge Cloudflare Cache
+      # -------------------------------
       - name: 🧹 Purge Cloudflare Cache (Sitemap + Robots)
         if: success()
         env:
@@ -67,4 +91,4 @@ jobs:
           curl -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
           -H "Authorization: Bearer ${CF_API_TOKEN}" \
           -H "Content-Type: application/json" \
-          --data '{"files":["https://dareloom.fun/sitemap.xml","https://dareloom.fun/robots.txt"]}'
+          --data '{"files":["https://dareloom.fun/sitemap.xml","https://dareloom.fun/robots.txt","https://dareloom.fun/sitemap-actors.xml"]}'
