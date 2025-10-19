@@ -236,7 +236,7 @@ footer{text-align:center;padding:15px;color:var(--muted-color);font-size: 0.9rem
 
         // 3. Video URL Parsing and rendering
         const params = new URLSearchParams(window.location.search);
-        let raw = params.get("target"); // 🛑 UPDATED: 'url' to 'target' for script.js sync
+        let raw = params.get("target"); // Looking for 'target' parameter
         const videoWrap = document.getElementById("videoWrap");
         const controlsContainer = document.getElementById("controls-container");
         
@@ -247,12 +247,21 @@ footer{text-align:center;padding:15px;color:var(--muted-color);font-size: 0.9rem
             let telegramLink = '';
             let embedLink = fullUrl;
             
-            // Check if the URL is a Telegram link and separate it
-            if (fullUrl.includes("t.me") || fullUrl.includes("telegram.me")) {
+            // If the URL contains a comma, it means it has multiple links (Streamtape, Telegram)
+            if (fullUrl.includes(',')) {
+                const parts = fullUrl.split(',').map(l => l.trim()).filter(Boolean);
+                telegramLink = parts.find(l => l.includes("t.me") || l.includes("telegram.me")) || '';
+                // The main embed link is the one that's NOT Telegram
+                embedLink = parts.find(l => !l.includes("t.me") && !l.includes("telegram.me")) || '';
+            } else if (fullUrl.includes("t.me") || fullUrl.includes("telegram.me")) {
+                // If only Telegram link is passed
                 telegramLink = fullUrl;
                 embedLink = ''; 
+            } else {
+                // If only a single, non-comma URL is passed
+                embedLink = fullUrl;
             }
-            
+
             // --- Handle specific link types for embedding ---
             
             // MEGA Link: Cannot be embedded
@@ -262,36 +271,44 @@ footer{text-align:center;padding:15px;color:var(--muted-color);font-size: 0.9rem
                 </h3>`;
                 controlsContainer.innerHTML += `<button class="btn" style="background:#007bff;" onclick="openAdsterraPop(); window.open('${embedLink}', '_blank')">Open MEGA Link in New Tab</button>`;
             }
-            // Other Embed Links (Streamtape / Drive / Other iframe-friendly URL)
+            // Streamtape and General Embed Links
             else if (embedLink){
                 let finalEmbedUrl = embedLink;
                 
-                // Streamtape /v/ to /e/ conversion (safety check, even though script.js does it)
+                // 🛑 CRITICAL: Convert Streamtape /v/ (view) to /e/ (embed)
                 if (finalEmbedUrl.includes("streamtape.com/v/")){
                     const m = finalEmbedUrl.match(/\/v\/([0-9A-Za-z_-]+)/);
-                    if (m && m[1]) finalEmbedUrl = `https://streamtape.com/e/${m[1]}/`;
+                    if (m && m[1]) {
+                        finalEmbedUrl = `https://streamtape.com/e/${m[1]}/`;
+                    }
                 }
                 
-                // Check if it's a non-embeddable direct link
+                // 💡 NEW: Check for common embed indicators of other sites.
                 const isEmbeddable = finalEmbedUrl.includes("iframe") || 
                                      finalEmbedUrl.includes("embed") || 
                                      finalEmbedUrl.includes("streamtape.com/e/") || 
-                                     finalEmbedUrl.includes("drive.google.com/preview");
+                                     finalEmbedUrl.includes("drive.google.com/preview") ||
+                                     // Common embed patterns of other hosts
+                                     finalEmbedUrl.includes("/embed-") || 
+                                     finalEmbedUrl.includes("/v/") ||
+                                     finalEmbedUrl.includes("/watch?") ||
+                                     finalEmbedUrl.includes("/play/"); 
 
                 if (!isEmbeddable) {
+                     // Treat as external player required (e.g., direct link or unknown non-embed)
                      videoWrap.innerHTML = `<h3 style='color:white;text-align:center;margin-top:40px;'>
                         ⚠️ This link requires an external player.
                     </h3>`;
                      controlsContainer.innerHTML += `<button class="btn" style="background:var(--secondary);" onclick="openAdsterraPop(); window.open('${finalEmbedUrl}', '_blank')">Open External Player</button>`;
                 } else {
-                    // Inject iframe for embeddable content
+                    // Inject iframe for embeddable content (Streamtape or others)
                     videoWrap.innerHTML = `<iframe src="${finalEmbedUrl}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>`;
                 }
             } else {
                 videoWrap.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20px;'>⚠️ No valid video link found for player.</h3>";
             }
             
-            // Telegram Download Button (Always available if link is found)
+            // Telegram Download Button
             if(telegramLink){
                 controlsContainer.innerHTML += `<button class="btn" style="background:#0088cc;" onclick="openAdsterraPop(); window.open('${telegramLink}', '_blank')">⬇️ Download / Watch on Telegram</button>`;
             }
