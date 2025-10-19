@@ -1,0 +1,120 @@
+name: 🤖 Auto SEO + IndexNow + Cloudflare Deploy
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"    # ⏰ Every 12 hours
+  workflow_dispatch:           # Manual trigger allowed
+
+jobs:
+  auto-seo:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ----------------------------------------
+      # 1️⃣ Checkout repo
+      # ----------------------------------------
+      - name: 🧾 Checkout Repository
+        uses: actions/checkout@v4
+
+      # ----------------------------------------
+      # 2️⃣ Setup Node.js
+      # ----------------------------------------
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # ----------------------------------------
+      # 3️⃣ Install dependencies
+      # ----------------------------------------
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      # ----------------------------------------
+      # 4️⃣ Generate global sitemap + meta
+      # ----------------------------------------
+      - name: 🌐 Generate Main SEO Files
+        env:
+          SHEET_KEY: ${{ secrets.SHEET_KEY }}
+        run: |
+          echo "🗺️ Generating main sitemap..."
+          node generate-sitemap.js
+
+      # ----------------------------------------
+      # 5️⃣ Generate actress sitemap + meta
+      # ----------------------------------------
+      - name: 🎬 Generate Actress Pages + Sitemap
+        run: |
+          echo "🎥 Creating actress pages and SEO data..."
+          node generate-actresses.js
+
+      # ----------------------------------------
+      # 6️⃣ Commit and push changes
+      # ----------------------------------------
+      - name: 💾 Commit SEO Updates
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add -f sitemap.xml sitemap.xml.gz robots.txt seo-meta.json \
+            sitemap-actors.xml seo-meta-actors.json sitemap-index.xml \
+            actors/ _headers indexnow-key.txt || true
+
+          if git diff --cached --quiet; then
+            echo "✅ No changes detected."
+          else
+            TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+            git commit -m "🤖 Auto SEO + IndexNow update: ${TIMESTAMP}"
+            git push
+          fi
+
+      # ----------------------------------------
+      # 7️⃣ Trigger Cloudflare deploy
+      # ----------------------------------------
+      - name: 🚀 Deploy to Cloudflare Pages
+        if: success()
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_PROJECT_NAME: ${{ secrets.CF_PROJECT_NAME }}
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+        run: |
+          echo "🚀 Deploying to Cloudflare..."
+          curl -X POST "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PROJECT_NAME}/deployments" \
+          -H "Authorization: Bearer ${CF_API_TOKEN}" \
+          -H "Content-Type: application/json" \
+          --data '{"branch":"main"}' \
+          --fail --silent --show-error
+
+      # ----------------------------------------
+      # 8️⃣ Purge Cloudflare cache
+      # ----------------------------------------
+      - name: 🧹 Purge Cloudflare Cache
+        if: success()
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+        run: |
+          echo "🧹 Clearing Cloudflare cache..."
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
+          -H "Authorization: Bearer ${CF_API_TOKEN}" \
+          -H "Content-Type: application/json" \
+          --data '{"files":["https://dareloom.fun/sitemap.xml","https://dareloom.fun/sitemap-actors.xml","https://dareloom.fun/robots.txt"]}'
+
+      # ----------------------------------------
+      # 9️⃣ Ping IndexNow + Google
+      # ----------------------------------------
+      - name: 🔔 Notify Search Engines (IndexNow + Google)
+        if: success()
+        run: |
+          INDEXNOW_KEY=$(cat indexnow-key.txt | tr -d '\n')
+          DOMAIN="https://dareloom.fun"
+          echo "🔔 Pinging IndexNow and Google for sitemap refresh..."
+
+          curl -s -X POST "https://api.indexnow.org/indexnow" \
+            -H "Content-Type: application/json" \
+            -d "{\"host\": \"dareloom.fun\", \"key\": \"${INDEXNOW_KEY}\", \"urlList\": [\"${DOMAIN}/sitemap.xml\", \"${DOMAIN}/sitemap-actors.xml\"]}"
+
+          curl -s "https://www.google.com/ping?sitemap=${DOMAIN}/sitemap.xml"
+          curl -s "https://www.google.com/ping?sitemap=${DOMAIN}/sitemap-actors.xml"
+
+          echo "✅ IndexNow + Google notified successfully!"
