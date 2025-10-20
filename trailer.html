@@ -26,6 +26,7 @@
       padding: 20px;
     }
     .video-player-container {
+      /* Use max-width and margin-bottom to ensure layout works */
       aspect-ratio: 16/9;
       background: #333;
       margin-bottom: 20px;
@@ -87,6 +88,12 @@
         font-size: 0.9rem;
         display: inline-block;
     }
+    /* Mobile adjustments */
+    @media (max-width: 600px) {
+        .action-buttons button, .action-buttons a {
+            flex: 1 1 100%; /* Stack buttons on small screens */
+        }
+    }
   </style>
 </head>  
 
@@ -109,22 +116,27 @@
     </div>
 
     <script>
-        // --- Helper Functions (Copied from script.js) ---
+        // --- Helper Functions (From script.js) ---
         const qs = sel => document.querySelector(sel);
+        
         function getParam(name) {
             return new URLSearchParams(window.location.search).get(name);
         }
+        
         function extractYouTubeID(url) {
             if (!url) return null;
             const m = url.match(/(?:v=|youtu.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
             return m ? m[1] : null;
         }
+        
+        // 🛑 NEW: Added 'origin' for YouTube API to ensure playback
         function toEmbedUrl(url){
             if (!url) return '';
             url = url.trim();
             const y = extractYouTubeID(url);
-            // Autoplay is sometimes blocked, but this is the trailer page (not reels)
-            if (y) return `https://www.youtube.com/embed/${y}?autoplay=0&rel=0`; 
+            if (y) return `https://www.youtube.com/embed/${y}?autoplay=0&rel=0&origin=${window.location.origin}`; 
+            
+            // Streamtape embed logic
             if (url.includes('streamtape.com') && url.includes('/v/')){
                 const id = url.split('/v/')[1]?.split('/')[0];
                 if (id) return `https://streamtape.com/e/${id}/`;
@@ -132,7 +144,9 @@
             if (url.startsWith('http')) return url;
             return '';
         }
-        // Use the openWatchPage function from script.js to ensure ad-gate logic is followed
+        
+        // 🛑 NEW: Simple placeholder for openWatchPage as the ad-gate logic is on the homepage.
+        // For a full solution, you should put your full openWatchPage() function here as well.
         function openWatchPage(targetUrl){
             if (!targetUrl) return;
             let final = targetUrl;
@@ -141,25 +155,26 @@
                 if (m && m[1]) final = `https://streamtape.com/e/${m[1]}/`;
             }
             const redirectPage = `/go.html?target=${encodeURIComponent(final)}`;  
-            window.open(redirectPage, '_blank'); 
+            // 🛑 Use window.location.href for immediate navigation if no pop-up logic is used
+            window.location.href = redirectPage; 
         }
+
         function renderTagsForItem(it){
             if (!it.category || !it.category.trim()) return '';
             const parts = it.category.split(',').map(p => p.trim()).filter(Boolean);
-            // Tags are rendered as simple buttons/spans here for static display
             return parts.map(p => `<span class="tag-btn" data-tag="${p}">#${p}</span>`).join(' ');
         }
 
         // --- Main Trailer Page Logic ---
         async function loadTrailerPage() {
             const id = getParam('id');
-            // 🛑 Load data saved by script.js from the homepage
+            // 🛑 CRITICAL LINE: Requires the homepage script.js to save data first.
             const allItems = JSON.parse(localStorage.getItem('dareloom_items') || '[]');
             const item = allItems.find(i => i.id === id);
 
             if (!id || !item) {
                 qs('#videoTitle').textContent = 'Error: Video details not found.';
-                qs('#description').textContent = 'Please make sure you access this page from the homepage.';
+                qs('#description').textContent = 'Please return to the homepage and select a video.';
                 return;
             }
 
@@ -167,11 +182,13 @@
             document.title = item.title + " | Details";
             qs('#videoTitle').textContent = item.title;
             
-            // 2. Set Description (Show fallback if empty)
+            // 2. Set Description 
             qs('#description').textContent = item.description || 'No description available.';
 
             // 3. Embed Player: Prioritize Trailer, then Watch Link
+            // 🛑 FIX: The embed URL should prioritize the TRAILER, as this is the trailer page.
             const embedUrl = toEmbedUrl(item.trailer || item.watch);
+            
             if (embedUrl) {
                 qs('#playerEmbed').innerHTML = `
                     <iframe src="${embedUrl}" 
@@ -180,22 +197,22 @@
                     </iframe>
                 `;
             } else {
-                 // 🛑 Trailer ni chl rha h aagr discription nhi h n show kre trailer
-                qs('#playerEmbed').innerHTML = '<div style="padding: 20px; text-align: center; color: #ff4b91; font-weight: bold;">Trailer/Video cannot be embedded here. Use the "Open Player" button below.</div>';
+                 // Fallback if no embeddable trailer or video is available
+                qs('#playerEmbed').innerHTML = '<div style="padding: 20px; text-align: center; color: var(--primary-color); font-weight: bold; font-size: 1.1rem; height: 100%; display: flex; align-items: center; justify-content: center;">Trailer/Video cannot be embedded here. Please use the "Open Player" button below.</div>';
             }
 
             // 4. Render Buttons
             const buttonsContainer = qs('.action-buttons');
             buttonsContainer.innerHTML = '';
             
-            // 🛑 1. Open Player Button (Uses the ad-gate logic)
+            // 🛑 1. Open Player Button (Always uses the full watch link for ad-gate)
             if (item.watch) {
                 buttonsContainer.innerHTML += `<button id="watchButton" onclick="openWatchPage('${item.watch}')">Open Player</button>`;
             }
 
-            // 🛑 2. Open Streamtape Button (If streamtape is the watch link)
-            if (item.watch.includes('streamtape.com') || item.watch.includes('/e/') || item.watch.includes('/v/')) {
-                 // Use direct link for Streamtape button
+            // 🛑 2. Open Streamtape Button (Use direct link if applicable)
+            // Use the item.watch, which already prioritizes Streamtape in the parsing.
+            if (item.watch.includes('streamtape.com') || item.watch.includes('/v/')) {
                  buttonsContainer.innerHTML += `<a href="${item.watch}" target="_blank" id="streamtapeButton">Open Streamtape</a>`;
             }
 
@@ -204,13 +221,11 @@
                 buttonsContainer.innerHTML += `<a href="${item.telegram}" target="_blank" id="telegramButton">Download Telegram</a>`;
             }
             
-            // Fallback message if no links are present
             if (!item.watch && !item.telegram) {
                 buttonsContainer.innerHTML = '<p style="text-align:center; width:100%; color:#aaa;">No watch or download links available for this title.</p>';
             }
 
             // 5. Render Tags
-            // 🛑 Tags should also be visible
             qs('#tagsContainer').innerHTML = renderTagsForItem(item);
         }
 
