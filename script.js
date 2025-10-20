@@ -1,6 +1,6 @@
 // script.js
 // Dareloom Hub - Complete player + sheet + pagination + preview/watch + tags + random
-// 2025-10-20 (UPDATED: Pagination, Unlimited Reels, Tag/Search Filter Fix)
+// 2025-10-20 (UPDATED: Pagination newest first, Unlimited Reels, Tag/Search Filter Fix)
 
 // ------------- CONFIG -------------
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
@@ -20,10 +20,11 @@ let initialPopFired = false;
 let items = [];        
 let filteredItems = []; 
 let currentPage = 1;
-// 🛑 Reels State: Tracks which reels have been shown in the current session/queue
+
+// 🛑 Reels State
 let reelsQueue = []; 
 let reelsShownIndices = new Set();
-let allReelCandidates = []; // Full list of items suitable for reels
+let allReelCandidates = [];
 let reelsObserver; 
 
 // ------------- UTIL HELPERS -------------
@@ -102,7 +103,6 @@ function parseRows(values){
         return -1;
     };
 
-    // Use your custom column indices based on your previous description
     const TI = find(['title','name']) !== -1 ? find(['title','name']) : 0;
     const TR = find(['trailer','youtube']) !== -1 ? find(['trailer','youtube']) : 2;
     const WA = find(['watch','watch link']) !== -1 ? find(['watch','watch link']) : 6; 
@@ -181,24 +181,25 @@ function renderRandom(){
     });
 }
 
+// ------------- LATEST / PAGINATION (NEWEST FIRST) -------------
 function renderLatest(page = 1){
     const list = qs('#latestList');
     if (!list) return;
     list.innerHTML = '';
 
-    const total = filteredItems.length;
+    // Reverse for newest first
+    const reversed = filteredItems.slice().reverse();
+    const total = reversed.length;
     const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
-    
-    // 🛑 Ensure page stays within bounds
+
     if (page < 1) page = 1;
     if (page > totalPages) page = totalPages;
     currentPage = page;
 
     const start = (page - 1) * PER_PAGE;
-    const slice = filteredItems.slice(start, start + PER_PAGE);
+    const slice = reversed.slice(start, start + PER_PAGE);
 
     if (slice.length === 0 && total > 0 && page > 1) {
-        // If the current page is empty (e.g., after filtering), go to page 1
         currentPage = 1;
         renderLatest(1);
         return;
@@ -207,7 +208,6 @@ function renderLatest(page = 1){
     if (slice.length === 0) {
         list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--muted);">No videos found matching your criteria.</div>';
     }
-
 
     slice.forEach(it => {
         const div = document.createElement('div');
@@ -239,7 +239,6 @@ function renderPagination(totalPages, page){
     pager.innerHTML = '';
     if (totalPages <= 1) return;
 
-    // 🛑 Simple, standard pagination logic
     const windowSize = 5;
     let startPage, endPage;
 
@@ -247,16 +246,11 @@ function renderPagination(totalPages, page){
         startPage = 1;
         endPage = totalPages;
     } else {
-        // Show current page centered
         startPage = Math.max(1, page - Math.floor(windowSize / 2));
         endPage = Math.min(totalPages, page + Math.floor(windowSize / 2));
-
         if (endPage - startPage < windowSize - 1) {
-            if (startPage === 1) {
-                endPage = Math.min(totalPages, windowSize);
-            } else if (endPage === totalPages) {
-                startPage = Math.max(1, totalPages - windowSize + 1);
-            }
+            if (startPage === 1) endPage = Math.min(totalPages, windowSize);
+            else if (endPage === totalPages) startPage = Math.max(1, totalPages - windowSize + 1);
         }
     }
 
@@ -305,7 +299,6 @@ function renderPagination(totalPages, page){
         pager.appendChild(b);
     }
 
-
     if (page < totalPages){
         const next = document.createElement('button');
         next.className = 'page-btn';
@@ -331,7 +324,6 @@ function attachLatestListeners(){
         btn.removeEventListener('click', onWatchClick);
         btn.addEventListener('click', onWatchClick);
     });
-    // 🛑 Attach listener to tags in the current list
     qsa('.tag-btn').forEach(tagbtn => {
         tagbtn.removeEventListener('click', onTagClick);
         tagbtn.addEventListener('click', onTagClick);
@@ -341,7 +333,7 @@ function attachLatestListeners(){
 function onPreviewClick(e){
     markUserGesture();
     const id = e.currentTarget.dataset.id;
-    const it = items.find(x => x.id === id); // Find in main list
+    const it = items.find(x => x.id === id);
     if (!it) return;
     openTrailerPage(it);
 }
@@ -360,61 +352,40 @@ function onTagClick(e){
     applyTagFilter(tag);
 }
 
-// ------------- FILTER LOGIC (UPDATED) -------------
-
-/**
- * 🛑 NEW: Filters the main list based on search query or tag.
- */
+// ------------- FILTER LOGIC -------------
 function filterVideos(queryOrTag){
     const query = (queryOrTag || '').toLowerCase().trim();
     if (query.length < 2 && !query.length) {
-        filteredItems = items.slice(); 
+        filteredItems = items.slice();
     } else {
         filteredItems = items.filter(it => {
             const titleMatch = it.title.toLowerCase().includes(query);
             const categoryMatch = it.category.toLowerCase().split(',').map(t => t.trim()).includes(query);
-
             return titleMatch || categoryMatch;
         });
     }
-    
-    // Update counter
     updateCount(filteredItems.length);
-    
-    // Reset and render to page 1
-    renderLatest(1); 
+    renderLatest(1); // Always newest first
 }
 
-/**
- * Helper to handle tag clicks.
- */
 function applyTagFilter(tag){
     const s = qs('#searchInput');
-    if (s) s.value = tag; // Put the tag in the search box
+    if (s) s.value = tag;
     filterVideos(tag);
 }
 
-
-// ------------- TRAILER/WATCH PAGE LOGIC (UNCHANGED) -------------
-
+// ------------- TRAILER/WATCH LOGIC -------------
 function openTrailerPage(it){
     markUserGesture();
     openAdsterraPop();
     const trailerURL = `/trailer.html?id=${encodeURIComponent(it.id)}`;
-    setTimeout(()=> {
-        try {
-            window.location.href = trailerURL; 
-        } catch(e){
-            console.error("Failed to open trailer page", e);
-        }
-    }, 120);
+    setTimeout(()=> { window.location.href = trailerURL; }, 120);
 }
 
 function openWatchPage(targetUrl){
     if (!targetUrl) return;
     markUserGesture();
     openAdsterraPop();
-
     setTimeout(()=> {
         try {
             let final = targetUrl;
@@ -422,221 +393,31 @@ function openWatchPage(targetUrl){
                 const m = final.match(/\/v\/([0-9A-Za-z_-]+)/);
                 if (m && m[1]) final = `https://streamtape.com/e/${m[1]}/`;
             }
-
-            const redirectPage = `/go.html?target=${encodeURIComponent(final)}`;  
-
-            const w = window.open(redirectPage, '_blank');  
+            const redirectPage = `/go.html?target=${encodeURIComponent(final)}`;
+            const w = window.open(redirectPage, '_blank');
             if (!w || w.closed || typeof w.closed === 'undefined'){  
                 alert("Please allow pop-ups to open the link in a new tab!");  
-            }  
-        } catch(e){  
-            console.error(e);  
-        }
-
+            }
+        } catch(e){ console.error(e); }
     }, 120);
 }
 
-// ------------- REELS PLAYER LOGIC (UNCHANGED) -------------
-
-function shuffleArray(array) {
-    const arr = array.slice();
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-    return arr;
-}
-
-function toEmbedUrlForReels(url){
-    if (!url) return '';
-    url = url.trim();
-    const y = extractYouTubeID(url);
-    if (y) return `https://www.youtube.com/embed/${y}?autoplay=1&rel=0&mute=1&controls=0&enablejsapi=1`; 
-
-    if (url.includes('streamtape.com') && url.includes('/v/')){
-        const id = url.split('/v/')[1]?.split('/')[0];
-        if (id) return `https://streamtape.com/e/${id}/`;
-    }
-    
-    if (url.startsWith('http')) {
-        return url;
-    }
-    return '';
-}
-
-function openReelsPlayer() {
-    markUserGesture();
-    openAdsterraPop();
-    
-    if (allReelCandidates.length === 0) {
-        allReelCandidates = items.filter(it => toEmbedUrlForReels(it.trailer || it.watch));
-    }
-    
-    reelsQueue = shuffleArray(allReelCandidates); 
-    
-    const container = qs('#reelsContainer');
-    container.innerHTML = ''; 
-
-    loadReelsBatch(0);
-    
-    qs('#reelsPlayer').style.display = 'block';
-    document.body.style.overflow = 'hidden'; 
-    
-    setupReelsObserver();
-}
-
-
-function loadReelsBatch(startIndex) {
-    const container = qs('#reelsContainer');
-    let itemsToLoad = [];
-    let loadCount = 0;
-    
-    while (loadCount < REELS_LOAD_COUNT) {
-        if (reelsQueue.length === 0) {
-            // Re-shuffle and start a new cycle when queue is exhausted
-            if (allReelCandidates.length > 0) {
-                 reelsQueue = shuffleArray(allReelCandidates);
-            } else {
-                 break;
-            }
-        }
-
-        if (reelsQueue.length > 0) {
-            itemsToLoad.push(reelsQueue.shift()); 
-            loadCount++;
-        }
-    }
-    
-    if (reelsObserver) reelsObserver.disconnect(); 
-
-    itemsToLoad.forEach(it => {
-        const embedUrl = toEmbedUrlForReels(it.trailer || it.watch);
-        if (!embedUrl) return; 
-        
-        const reelDiv = document.createElement('div');
-        reelDiv.className = 'reel';
-        
-        const telegramBtn = it.telegram ? 
-            `<button onclick="window.open('${it.telegram}', '_blank')">Download Telegram</button>` : '';
-
-        const streamtapeBtn = it.watch.includes('streamtape.com') ? 
-            `<button onclick="openWatchPage('${it.watch}')">Open Streamtape</button>` : '';
-
-        const openPlayerBtn = it.watch ?
-            `<button onclick="openWatchPage('${it.watch}')">Open Player</button>` :
-            `<button onclick="openTrailerPage('${it.id}')">View Details</button>`;
-
-        const iframeType = embedUrl.includes('youtube') ? 'youtube' : 'other';
-
-        reelDiv.innerHTML = `
-            <div class="reel-video-embed">
-                <iframe src="${escapeHtml(embedUrl)}" 
-                        frameborder="0" 
-                        data-type="${iframeType}"
-                        allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-                        allowfullscreen 
-                        loading="lazy">
-                </iframe>
-            </div>
-            <div class="reel-buttons">
-                <div style="padding: 0 0 10px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600;">${escapeHtml(it.title)}</div>
-                <div class="reel-buttons-group">
-                    ${openPlayerBtn}
-                    ${streamtapeBtn}
-                    ${telegramBtn}
-                </div>
-            </div>
-            <div class="reel-load-more-marker" style="height:1px;"></div> 
-        `;
-        container.appendChild(reelDiv);
-        
-        if (reelsObserver) reelsObserver.observe(reelDiv); 
-    });
-
-    setupInfiniteScrollObserver();
-}
-
-function closeReelsPlayer(){
-    const player = qs('#reelsPlayer');
-    if(player) player.style.display = 'none';
-    document.body.style.overflow = '';
-    
-    qsa('#reelsPlayer iframe').forEach(iframe => {
-        iframe.src = 'about:blank';
-    });
-    
-    if (reelsObserver) {
-        reelsObserver.disconnect();
-        reelsObserver = null;
-    }
-}
-
-function setupReelsObserver() {
-    if (reelsObserver) {
-        reelsObserver.disconnect();
-    }
-
-    const options = {
-        root: qs('#reelsPlayer'), 
-        rootMargin: '0px',
-        threshold: 0.9 
-    };
-
-    reelsObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.target.classList.contains('reel-load-more-marker')) return; 
-
-            const iframe = entry.target.querySelector('iframe');
-            if (!iframe) return;
-            
-            // Check if iframe source is valid for playback control
-            const validSrc = iframe.src && iframe.src !== 'about:blank';
-
-            if (iframe.dataset.type === 'youtube') {
-                if (entry.isIntersecting && validSrc) {
-                    iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
-                } else {
-                    iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-                }
-            } else {
-                if (entry.isIntersecting && validSrc) {
-                    iframe.src = iframe.src; 
-                } else if (!entry.isIntersecting) {
-                    iframe.src = 'about:blank';
-                }
-            }
-        });
-    }, options);
-
-    qsa('#reelsContainer .reel').forEach(reel => {
-        reelsObserver.observe(reel);
-    });
-}
-
-function setupInfiniteScrollObserver() {
-    const lastReel = qsa('#reelsContainer .reel').pop();
-
-    if (lastReel) {
-        const loadMoreObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    observer.unobserve(entry.target); 
-                    loadReelsBatch(qsa('#reelsContainer .reel').length); 
-                }
-            });
-        }, { root: qs('#reelsPlayer'), threshold: 0.5 }); 
-        
-        loadMoreObserver.observe(lastReel);
-    }
-}
-
+// ------------- REELS PLAYER LOGIC -------------
+function shuffleArray(array){ const arr = array.slice(); for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; }
+function toEmbedUrlForReels(url){ if(!url) return ''; const y=extractYouTubeID(url); if(y) return `https://www.youtube.com/embed/${y}?autoplay=1&rel=0&mute=1&controls=0&enablejsapi=1`; if(url.includes('streamtape.com') && url.includes('/v/')){ const id=url.split('/v/')[1]?.split('/')[0]; if(id) return `https://streamtape.com/e/${id}/`; } return url.startsWith('http') ? url : ''; }
+function openReelsPlayer(){ markUserGesture(); openAdsterraPop(); if(allReelCandidates.length===0) allReelCandidates=items.filter(it=>toEmbedUrlForReels(it.trailer||it.watch)); reelsQueue=shuffleArray(allReelCandidates); const container=qs('#reelsContainer'); container.innerHTML=''; loadReelsBatch(0); qs('#reelsPlayer').style.display='block'; document.body.style.overflow='hidden'; setupReelsObserver(); }
+function closeReelsPlayer(){ const player=qs('#reelsPlayer'); if(player) player.style.display='none'; document.body.style.overflow=''; qsa('#reelsPlayer iframe').forEach(iframe=>{iframe.src='about:blank';}); if(reelsObserver){ reelsObserver.disconnect(); reelsObserver=null; } }
 
 // ------------- INIT / BOOT -------------
 async function loadAll(){
     const raw = await fetchSheet();
-    const parsed = parseRows(raw);
-
-    // 🛑 CRITICAL SORTING FIX: Sort new -> old by date
+    items = parseRows(raw);
+    filteredItems = items.slice(); // initial filtered
+    renderLatest(1); 
+    const s = qs('#searchInput'); 
+    if(s){ s.addEventListener('input', e=>filterVideos(e.target
+   
+// 🛑 CRITICAL SORTING FIX: Sort new -> old by date
     parsed.forEach(p => p._sortDate = (p.date ? Date.parse(p.date) || 0 : 0));
     parsed.sort((a,b) => (b._sortDate || 0) - (a._sortDate || 0)); 
     items = parsed;
@@ -689,3 +470,5 @@ function showRandomPick(){
 }
 
 loadAll();
+          
+                                                    
