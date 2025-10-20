@@ -28,6 +28,7 @@
       aspect-ratio: 16/9;
       background: #333;
       margin-bottom: 20px;
+      position: relative;
     }
     .video-player-container iframe {
       width: 100%;
@@ -51,17 +52,18 @@
       text-align: center;
       text-decoration: none;
       transition: background-color 0.2s;
+      font-size: 1rem;
     }
     #watchButton {
       background: var(--primary-color);
       color: #fff;
     }
     #streamtapeButton {
-      background: #0088ff; /* A different color for Streamtape */
+      background: #0088ff; 
       color: #fff;
     }
     #telegramButton {
-      background: #2aabee; /* Telegram Blue */
+      background: #2aabee; 
       color: #fff;
     }
     #description {
@@ -80,6 +82,7 @@
         border-radius: 4px;
         cursor: pointer;
         font-size: 0.9rem;
+        display: inline-block;
     }
   </style>
 </head>  
@@ -103,11 +106,7 @@
     </div>
 
     <script>
-        // Use the utility functions from the main script if it's included, 
-        // otherwise, define the necessary ones here.
-        // Assuming main script is not loaded, we define only what is needed.
-        
-        // --- Helper Functions (Simplified) ---
+        // --- Helper Functions (Copied from script.js) ---
         const qs = sel => document.querySelector(sel);
         function getParam(name) {
             return new URLSearchParams(window.location.search).get(name);
@@ -121,7 +120,8 @@
             if (!url) return '';
             url = url.trim();
             const y = extractYouTubeID(url);
-            if (y) return `https://www.youtube.com/embed/${y}?autoplay=1&rel=0`; 
+            // Autoplay is sometimes blocked, but still good to try
+            if (y) return `https://www.youtube.com/embed/${y}?autoplay=1&rel=0&enablejsapi=1`; 
             if (url.includes('streamtape.com') && url.includes('/v/')){
                 const id = url.split('/v/')[1]?.split('/')[0];
                 if (id) return `https://streamtape.com/e/${id}/`;
@@ -130,7 +130,6 @@
             return '';
         }
         function openWatchPage(targetUrl){
-            // This needs to match the logic in script.js (redirect to go.html)
             if (!targetUrl) return;
             let final = targetUrl;
             if (final.includes('/v/')){
@@ -140,33 +139,33 @@
             const redirectPage = `/go.html?target=${encodeURIComponent(final)}`;  
             window.open(redirectPage, '_blank'); 
         }
+        function renderTagsForItem(it){
+            if (!it.category || !it.category.trim()) return '';
+            const parts = it.category.split(',').map(p => p.trim()).filter(Boolean);
+            // Note: tags are buttons but here they are just for display
+            return parts.map(p => `<span class="tag-btn" data-tag="${p}">#${p}</span>`).join(' ');
+        }
 
         // --- Main Trailer Page Logic ---
         async function loadTrailerPage() {
             const id = getParam('id');
-            if (!id) {
-                qs('#videoTitle').textContent = 'Error: Video ID not found.';
-                return;
-            }
-
-            // 🛑 IMPORTANT: Since this page is loaded directly, 
-            // you must re-implement the data fetching logic here 
-            // OR save the 'items' array to localStorage in script.js 
-            // and load it here. Using localStorage is faster.
             const allItems = JSON.parse(localStorage.getItem('dareloom_items') || '[]');
             const item = allItems.find(i => i.id === id);
 
-            if (!item) {
+            if (!id || !item) {
                 qs('#videoTitle').textContent = 'Error: Video details not found.';
+                qs('#description').textContent = 'Please return to the homepage and try again.';
                 return;
             }
 
             // 1. Set details
             qs('#pageTitle').textContent = item.title;
             qs('#videoTitle').textContent = item.title;
-            qs('#description').textContent = item.description || 'No description available.';
+            
+            // 2. Set Description (Show fallback if empty)
+            qs('#description').textContent = item.description || 'No description available for this title.';
 
-            // 2. Embed Player (Prefer Trailer, fallback to Watch Link)
+            // 3. Embed Player (Prefer Trailer, fallback to Watch Link)
             const embedUrl = toEmbedUrl(item.trailer || item.watch);
             if (embedUrl) {
                 qs('#playerEmbed').innerHTML = `
@@ -176,19 +175,19 @@
                     </iframe>
                 `;
             } else {
-                qs('#playerEmbed').innerHTML = '<div style="padding: 20px; text-align: center;">Preview not available for embed. Use the buttons below.</div>';
+                qs('#playerEmbed').innerHTML = '<div style="padding: 20px; text-align: center;">Trailer not available for embed. Use the buttons below to watch the full video.</div>';
             }
 
-            // 3. Render Buttons
+            // 4. Render Buttons
             const buttonsContainer = qs('.action-buttons');
             buttonsContainer.innerHTML = '';
             
             // Open in Player Button
             if (item.watch) {
-                buttonsContainer.innerHTML += `<button id="watchButton" onclick="openWatchPage('${item.watch}')">Open in Player</button>`;
+                buttonsContainer.innerHTML += `<button id="watchButton" onclick="openWatchPage('${item.watch}')">Open Player</button>`;
             }
 
-            // Open Streamtape Button
+            // Open Streamtape Button (Check for streamtape URL pattern)
             if (item.watch.includes('streamtape.com') || item.watch.includes('/e/') || item.watch.includes('/v/')) {
                  buttonsContainer.innerHTML += `<a href="${item.watch}" target="_blank" id="streamtapeButton">Open Streamtape</a>`;
             }
@@ -197,13 +196,12 @@
             if (item.telegram) {
                 buttonsContainer.innerHTML += `<a href="${item.telegram}" target="_blank" id="telegramButton">Download Telegram</a>`;
             }
-
-            // 4. Render Tags (If you include renderTagsForItem helper function here)
-            // Skipped for simplicity, but you can copy renderTagsForItem from script.js here.
+            
+            // 5. Render Tags
+            qs('#tagsContainer').innerHTML = renderTagsForItem(item);
         }
 
-        // We need to slightly adjust script.js to save the items array for this page to work.
-        // For now, call the loader:
+        // Start the loader
         loadTrailerPage();
     </script>
 </body>
