@@ -436,7 +436,7 @@ function openWatchPage(targetUrl){
     }, 120);
 }
 
-// ------------- REELS PLAYER LOGIC (UPDATED FOR UNLIMITED SCROLL) -------------
+// ------------- REELS PLAYER LOGIC (UNCHANGED) -------------
 
 function shuffleArray(array) {
     const arr = array.slice();
@@ -468,25 +468,20 @@ function openReelsPlayer() {
     markUserGesture();
     openAdsterraPop();
     
-    // 1. Prepare full list of candidates (done in loadAll now, but ensure it's here)
     if (allReelCandidates.length === 0) {
         allReelCandidates = items.filter(it => toEmbedUrlForReels(it.trailer || it.watch));
     }
     
-    // 2. Initial shuffle and queue reset
     reelsQueue = shuffleArray(allReelCandidates); 
-    reelsShownIndices = new Set();
     
     const container = qs('#reelsContainer');
     container.innerHTML = ''; 
 
-    // 3. Load first batch
     loadReelsBatch(0);
     
     qs('#reelsPlayer').style.display = 'block';
     document.body.style.overflow = 'hidden'; 
     
-    // 4. Setup Intersection Observer for Autoplay/Pause and Infinite Scroll
     setupReelsObserver();
 }
 
@@ -495,35 +490,20 @@ function loadReelsBatch(startIndex) {
     const container = qs('#reelsContainer');
     let itemsToLoad = [];
     let loadCount = 0;
-    let pool = allReelCandidates.slice();
-    let currentCount = container.children.length;
-
-
-    // 🛑 LOGIC FOR UNLIMITED, NON-REPEATING BATCHES
-    while (loadCount < REELS_LOAD_COUNT && pool.length > 0) {
-        // Pick a random index from the pool
-        const randomIndex = Math.floor(Math.random() * pool.length);
-        const item = pool[randomIndex];
-        
-        // Use a unique identifier (like the original item index or ID) to track if it's been shown
-        // Since we are creating a new item list with random IDs in parseRows, 
-        // we'll track based on the list size and current count to simulate non-repeat in a cycle.
-        
-        // Simple cycle-based non-repeat: If all items have been shown in the current shuffled queue, 
-        // reshuffle the queue for a new cycle.
-        
-        // 🛑 Simplified logic: just shuffle the entire available list every time the queue is exhausted.
+    
+    while (loadCount < REELS_LOAD_COUNT) {
         if (reelsQueue.length === 0) {
-            reelsQueue = shuffleArray(allReelCandidates);
-            // Optionally clear the container if you want a complete reset look, 
-            // but for "unlimited" feed, we append.
+            // Re-shuffle and start a new cycle when queue is exhausted
+            if (allReelCandidates.length > 0) {
+                 reelsQueue = shuffleArray(allReelCandidates);
+            } else {
+                 break;
+            }
         }
 
         if (reelsQueue.length > 0) {
-            itemsToLoad.push(reelsQueue.shift()); // Take the next from the shuffled queue
+            itemsToLoad.push(reelsQueue.shift()); 
             loadCount++;
-        } else {
-            break; // Should not happen if allReelCandidates is populated
         }
     }
     
@@ -566,14 +546,13 @@ function loadReelsBatch(startIndex) {
                     ${telegramBtn}
                 </div>
             </div>
-            <div class="reel-load-more-marker" style="height:1px;"></div> `;
+            <div class="reel-load-more-marker" style="height:1px;"></div> 
+        `;
         container.appendChild(reelDiv);
         
-        // Re-observe elements
         if (reelsObserver) reelsObserver.observe(reelDiv); 
     });
 
-    // 🛑 NEW: Ensure observer for "load more" marker is set up
     setupInfiniteScrollObserver();
 }
 
@@ -592,7 +571,6 @@ function closeReelsPlayer(){
     }
 }
 
-// 🛑 Intersection Observer Setup for Autoplay/Pause
 function setupReelsObserver() {
     if (reelsObserver) {
         reelsObserver.disconnect();
@@ -606,27 +584,24 @@ function setupReelsObserver() {
 
     reelsObserver = new IntersectionObserver((entries, observer) => {
         entries.forEach(entry => {
-            // Ignore the load more marker
             if (entry.target.classList.contains('reel-load-more-marker')) return; 
 
             const iframe = entry.target.querySelector('iframe');
             if (!iframe) return;
             
-            // Only control if the iframe source is not 'about:blank'
-            if (!iframe.src || iframe.src === 'about:blank') return; 
+            // Check if iframe source is valid for playback control
+            const validSrc = iframe.src && iframe.src !== 'about:blank';
 
             if (iframe.dataset.type === 'youtube') {
-                if (entry.isIntersecting) {
+                if (entry.isIntersecting && validSrc) {
                     iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');
                 } else {
                     iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
                 }
             } else {
-                if (entry.isIntersecting) {
-                    // Re-trigger Streamtape autoplay by setting src=src
+                if (entry.isIntersecting && validSrc) {
                     iframe.src = iframe.src; 
-                } else {
-                    // Pause non-YouTube by setting to blank
+                } else if (!entry.isIntersecting) {
                     iframe.src = 'about:blank';
                 }
             }
@@ -638,25 +613,14 @@ function setupReelsObserver() {
     });
 }
 
-// 🛑 NEW: Intersection Observer for Infinite Scroll
 function setupInfiniteScrollObserver() {
-    // Check if the current batch is less than the load count (meaning we hit the end of the full list)
-    if (allReelCandidates.length > 0 && reelsQueue.length < REELS_LOAD_COUNT) {
-         // If the queue is almost empty, prepare to reload the next batch immediately
-         if (reelsQueue.length === 0) {
-             reelsQueue = shuffleArray(allReelCandidates);
-         }
-    }
-
-    // Set up a new observer for the last element to trigger loadMore
     const lastReel = qsa('#reelsContainer .reel').pop();
 
     if (lastReel) {
         const loadMoreObserver = new IntersectionObserver((entries, observer) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    observer.unobserve(entry.target); // Stop observing
-                    // Load the next batch
+                    observer.unobserve(entry.target); 
                     loadReelsBatch(qsa('#reelsContainer .reel').length); 
                 }
             });
@@ -672,31 +636,27 @@ async function loadAll(){
     const raw = await fetchSheet();
     const parsed = parseRows(raw);
 
-    // 🛑 Sorting FIX: Sort new -> old by date
+    // 🛑 CRITICAL SORTING FIX: Sort new -> old by date
     parsed.forEach(p => p._sortDate = (p.date ? Date.parse(p.date) || 0 : 0));
-    // Sort by date descending (newest first)
     parsed.sort((a,b) => (b._sortDate || 0) - (a._sortDate || 0)); 
     items = parsed;
 
     filteredItems = items.slice(); 
     
-    // 🛑 Reels Setup
     allReelCandidates = items.filter(it => toEmbedUrlForReels(it.trailer || it.watch));
 
     updateCount(items.length);
     
-    // Save data to localStorage for trailer.html
     try {
         localStorage.setItem('dareloom_items', JSON.stringify(items)); 
     } catch(e) {
         console.error("Could not save items to localStorage:", e);
     }
 
-    // initial renders
     renderRandom();
-    renderLatest(1);
+    // 🛑 Ensure initial render starts on page 1
+    renderLatest(1); 
 
-    // wire search input
     const s = qs('#searchInput'); 
     if (s){ 
         s.addEventListener('input', (e) => { 
@@ -705,7 +665,6 @@ async function loadAll(){
         }); 
     }
     
-    // Set up gesture listener
     setupGestureListener(); 
 }
 
@@ -714,7 +673,6 @@ function updateCount(n){
     if (c) c.textContent = `${n} items`;
 }
 
-// Gesture handling helpers
 function markUserGesture(){
     userInteracted = true;
 }
@@ -725,11 +683,9 @@ function setupGestureListener(){
     });
 }
 
-// Random pick function (called by button)
 function showRandomPick(){
     const random = items[Math.floor(Math.random() * items.length)];
     if (random) openTrailerPage(random);
 }
 
-// Start the application
 loadAll();
