@@ -1,12 +1,11 @@
 // script.js
 // Dareloom Hub - Complete player + sheet + pagination + preview/watch + tags + random
-// 2025-10-20 (UPDATED: Pagination, Unlimited Reels, Tag/Search Filter Fix)
+// 2025-10-21 (FINAL FIX: Full Duration Reels, Unmute, LocalStorage Scope)
 
 // ------------- CONFIG -------------
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 const PER_PAGE = 5;
-// 🛑 RANDOM_COUNT: Hata diya gaya hai, par code mein koi badlav nahi.
-const RANDOM_COUNT = 4; // Abhi bhi rakha hai par 'showRandomPick' ko call nahi karenge.
+const RANDOM_COUNT = 4;
 // Reels Config
 const REELS_LOAD_COUNT = 8; // Number of reels to load initially/per batch
 
@@ -21,7 +20,6 @@ let initialPopFired = false;
 let items = [];
 let filteredItems = [];
 let currentPage = 1;
-// 🛑 Reels State: Tracks which reels have been shown in the current session/queue
 let reelsQueue = [];
 let reelsShownIndices = new Set();
 let allReelCandidates = []; // Full list of items suitable for reels
@@ -155,9 +153,7 @@ for (let r of rows){
         description: description || ''  
     });  
 }  
-// 🛑 NEW TO OLD: Since Google Sheets usually adds new data at the bottom, 
-// reversing the array here ensures the newest (lowest index in the sheet data) is first.
-// If your Google Sheet is sorted NEWEST-TO-OLDEST (top-down), REMOVE the .reverse().
+// NEW TO OLD: Reversing ensures the newest data (at the bottom of the sheet) is first.
 return out.reverse(); 
 
 }
@@ -230,7 +226,7 @@ slice.forEach(it => {
             </div>   
         </div>  
     `;  
-    // 🛑 CLICK LISTENER: Add click to item for details
+    // CLICK LISTENER: Add click to item for details
     div.addEventListener('click', (e) => {
         if (!e.target.closest('.preview-btn, .watch-btn, .tag-btn')) {
             openTrailerPage(it);
@@ -246,6 +242,7 @@ attachLatestListeners();
 }
 
 function renderPagination(totalPages, page){
+// ... (Pagination logic remains the same) ...
 const pager = qs('#pager');
 if (!pager) return;
 pager.innerHTML = '';
@@ -323,6 +320,7 @@ if (page < totalPages){
     next.addEventListener('click', ()=> changePage(page + 1));  
     pager.appendChild(next);  
 }
+// ... (End of Pagination logic) ...
 
 }
 
@@ -350,7 +348,7 @@ tagbtn.addEventListener('click', onTagClick);
 
 function onPreviewClick(e){
 markUserGesture();
-e.stopPropagation(); // 🛑 Stop propagation to prevent item click from firing twice
+e.stopPropagation(); // Stop propagation to prevent item click from firing twice
 const id = e.currentTarget.dataset.id;
 const it = items.find(x => x.id === id); 
 if (!it) return;
@@ -359,7 +357,7 @@ openTrailerPage(it);
 
 function onWatchClick(e){
 markUserGesture();
-e.stopPropagation(); // 🛑 Stop propagation
+e.stopPropagation(); // Stop propagation
 const url = e.currentTarget.dataset.url;
 if (!url) return;
 openWatchPage(url);
@@ -367,7 +365,7 @@ openWatchPage(url);
 
 function onTagClick(e){
 markUserGesture();
-e.stopPropagation(); // 🛑 Stop propagation
+e.stopPropagation(); // Stop propagation
 const tag = e.currentTarget.dataset.tag;
 if (!tag) return;
 applyTagFilter(tag);
@@ -403,7 +401,7 @@ filterVideos(tag);
 function openTrailerPage(it){
 markUserGesture();
 openAdsterraPop();
-// 🛑 Using full relative path to ensure navigation works
+// Using full relative path to ensure navigation works
 const trailerURL = `/trailer.html?id=${encodeURIComponent(it.id)}`; 
 setTimeout(()=> {
 try {
@@ -456,8 +454,8 @@ function toEmbedUrlForReels(url){
 if (!url) return '';
 url = url.trim();
 const y = extractYouTubeID(url);
-// 🛑 YouTube embed: added 'origin' for security/API compatibility
-if (y) return `https://www.youtube.com/embed/${y}?autoplay=1&rel=0&mute=1&controls=0&enablejsapi=1&playsinline=1&origin=${window.location.origin}`; 
+// 🛑 FIX: autoplay=0 (rely on API), removed mute=1 (allows sound), controls=1 (user control)
+if (y) return `https://www.youtube.com/embed/${y}?autoplay=0&rel=0&controls=1&enablejsapi=1&playsinline=1&origin=${window.location.origin}`; 
 
 if (url.includes('streamtape.com') && url.includes('/v/')){  
     const id = url.split('/v/')[1]?.split('/')[0];  
@@ -475,11 +473,11 @@ markUserGesture();
 openAdsterraPop();
 
 if (allReelCandidates.length === 0) {  
-    // 🛑 Filter for items that actually have a usable trailer/watch link for reels
+    // Filter for items that actually have a usable trailer/watch link for reels
     allReelCandidates = items.filter(it => toEmbedUrlForReels(it.trailer || it.watch));  
 }  
 
-// 🛑 Initial shuffle and reset queue
+// Initial shuffle and reset queue
 reelsQueue = shuffleArray(allReelCandidates);   
 if (reelsQueue.length === 0) {
     alert("No videos available for Reels playback.");
@@ -506,7 +504,7 @@ let loadCount = 0;
 
 while (loadCount < REELS_LOAD_COUNT) {  
     if (reelsQueue.length === 0) {  
-        // 🛑 Re-shuffle and start a new cycle when queue is exhausted (infinite scroll)
+        // Re-shuffle and start a new cycle when queue is exhausted (infinite scroll)
         if (allReelCandidates.length > 0) {  
              reelsQueue = shuffleArray(allReelCandidates);  
         } else {  
@@ -544,7 +542,7 @@ itemsToLoad.forEach(it => {
             <iframe src="${escapeHtml(embedUrl)}"   
                     frameborder="0"   
                     data-type="${iframeType}"  
-                    allow="autoplay; fullscreen; encrypted-media; picture-in-picture"  
+                    data-original-src="${escapeHtml(embedUrl)}"  allow="autoplay; fullscreen; encrypted-media; picture-in-picture"  
                     allowfullscreen   
                     loading="lazy">  
             </iframe>  
@@ -561,7 +559,7 @@ itemsToLoad.forEach(it => {
     `;  
     container.appendChild(reelDiv);  
       
-    // 🛑 Attach observer only to the reel div
+    // Attach observer only to the reel div
     if (reelsObserver) reelsObserver.observe(reelDiv);   
 });  
 
@@ -573,7 +571,7 @@ if(player) player.style.display = 'none';
 document.body.style.overflow = '';
 
 qsa('#reelsPlayer iframe').forEach(iframe => {  
-    // 🛑 Stop playback for YouTube iframes specifically
+    // Stop playback for YouTube iframes specifically
     if (iframe.dataset.type === 'youtube' && iframe.contentWindow) {
         iframe.contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
     }
@@ -594,8 +592,8 @@ if (reelsObserver) {
 const options = {  
     root: qs('#reelsPlayer'),   
     rootMargin: '0px',  
-    // 🛑 Threshold lowered to 0.5 for better performance on scroll snap
-    threshold: 0.5   
+    // 🛑 Threshold set to 0.7 for reliable play/pause
+    threshold: 0.7   
 };  
 
 reelsObserver = new IntersectionObserver((entries, observer) => {  
@@ -605,24 +603,22 @@ reelsObserver = new IntersectionObserver((entries, observer) => {
         const iframe = entry.target.querySelector('iframe');  
         if (!iframe) return;  
         
-        // 🛑 NEW: Use the actual embedded URL for streamtape/other iframes
-        const validSrc = iframe.src && iframe.src !== 'about:blank' && iframe.dataset.url;
-        
+        const originalUrl = iframe.dataset.originalSrc; // Get the original URL
+
         if (entry.isIntersecting) {
             // Video is visible
             if (iframe.dataset.type === 'youtube') {  
                 iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');  
-            } else if (iframe.src === 'about:blank') {
+            } else if (iframe.src === 'about:blank' && originalUrl) {
                 // For Streamtape/Other: reload the source if cleared
-                iframe.src = iframe.dataset.url;
+                iframe.src = originalUrl;
             }
         } else {  
             // Video is not visible (scrolled away)
             if (iframe.dataset.type === 'youtube') {  
                 iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');  
-            } else {
-                // For Streamtape/Other: clear the source to stop playback/save resources
-                iframe.dataset.url = iframe.src; // Save the original URL
+            } else if (iframe.src !== 'about:blank') {
+                         // For Streamtape/Other: clear the source to stop playback/save resources
                 iframe.src = 'about:blank';
             }
         }  
@@ -654,25 +650,26 @@ function setupInfiniteScrollObserver() {
 
 // ------------- INIT / BOOT -------------
 async function loadAll(){
-const raw = await fetchSheet();
-const parsed = parseRows(raw);
-items = parsed;
-filteredItems = parsed; // Initial filter is all items
-// 🛑 ADD THIS LINE TO SAVE DATA FOR trailer.html
-    localStorage.setItem('dareloom_items', JSON.stringify(items)); 
-}
-renderLatest(1);   
-renderRandom(); // Keep rendering random section
+    const raw = await fetchSheet();
+    const parsed = parseRows(raw);
+    items = parsed;
+    filteredItems = parsed; // Initial filter is all items
 
-const s = qs('#searchInput');   
-if (s){   
-    s.addEventListener('input', (e) => {   
-        const q = e.target.value || "";   
-        filterVideos(q);   
-    });   
-}  
-  
-setupGestureListener();
+    // 🛑 CORRECT LOCATION: Save data for trailer.html after fetching.
+    localStorage.setItem('dareloom_items', JSON.stringify(items)); 
+
+    renderLatest(1);   
+    renderRandom(); // Keep rendering random section
+
+    const s = qs('#searchInput');   
+    if (s){   
+        s.addEventListener('input', (e) => {   
+            const q = e.target.value || "";   
+            filterVideos(q);   
+        });   
+    }  
+    
+    setupGestureListener();
 }
 
 function updateCount(n){
