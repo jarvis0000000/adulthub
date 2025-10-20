@@ -292,19 +292,63 @@ border-color: var(--primary-color);
     -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
+/* 🛑 NEW: REELS HEADER AND BACK BUTTON STYLING */
+#reelsHeader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 60px; /* Space for the button */
+    padding: 0 15px;
+    z-index: 10001; /* Must be above all slides */
+    display: flex;
+    align-items: center;
+    /* Gradient for better visibility over video */
+    background: linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0)); 
+}
+
+#closeReelsBtn {
+    /* Matches your existing menu-toggle style for familiarity, but darker */
+    background: rgba(255, 255, 255, 0.2); 
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 50%; 
+    font-size: 18px;
+    cursor: pointer;
+    line-height: 1;
+    transition: background 0.2s;
+    /* Use Font Awesome or simple text for the arrow */
+    font-family: 'Font Awesome 5 Free', sans-serif; 
+}
+
+#closeReelsBtn i {
+    /* If using Font Awesome, ensure it looks like a left arrow */
+    content: "\f060"; /* This is the Font Awesome left arrow code */
+    font-weight: 900;
+}
+
+#closeReelsBtn:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+/* END OF NEW HEADER STYLING */
+
+
 .reel-slide {
     flex-shrink: 0; /* Prevents slides from shrinking */
     width: 100%;
     height: 100vh; /* One viewport height per slide */
     scroll-snap-align: start; /* Snap to the top of each slide */
     position: relative;
+    /* Added padding-top to account for the fixed #reelsHeader */
+    padding-top: 60px; 
 }
 
 .reel-player-container {
     width: 100%;
     height: 100%;
     position: absolute;
-    top: 0;
+    top: 0; /* Start from the top of the slide, below the fixed header */
     left: 0;
     background-color: #000;
     background-size: contain;
@@ -354,7 +398,7 @@ border-color: var(--primary-color);
     flex-grow: 1;
 }
 
-/* Close Button (Fixed on top of Reels Player) */
+/* Close Button (Fixed on top of Reels Player) - This is the old one, but I kept the style for consistency if you use it elsewhere */
 .close-btn {
     background: rgba(0, 0, 0, 0.5);
     color: #fff;
@@ -394,6 +438,7 @@ header.site { padding: 10px 0; }
 /* Reels Player Mobile Adjustments */  
 .reel-slide {
     height: 100dvh; /* Use dynamic height for better mobile fit */
+    padding-top: 60px; /* Ensure content starts below the fixed header */
 }
 
 .reel-info {
