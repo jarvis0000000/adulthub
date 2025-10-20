@@ -658,7 +658,9 @@ const raw = await fetchSheet();
 const parsed = parseRows(raw);
 items = parsed;
 filteredItems = parsed; // Initial filter is all items
-
+// 🛑 ADD THIS LINE TO SAVE DATA FOR trailer.html
+    localStorage.setItem('dareloom_items', JSON.stringify(items)); 
+}
 renderLatest(1);   
 renderRandom(); // Keep rendering random section
 
