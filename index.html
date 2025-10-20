@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="/style.css?v=20251017" />  
 
   <style>
+    /* 🛑 NOTE: Inline styles yahan hain, but ideally ye sab style.css mein hone chahiye. */
     :root {
       --primary-color: #ff4b91;
       --secondary-color: #1e90ff;
@@ -257,8 +258,7 @@
       <nav class="nav">  
         <input type="search" id="searchInput" placeholder="Search titles..." aria-label="Search titles">  
         <button class="menu-toggle" aria-label="Scroll Reels" onclick="openReelsPlayer()">Scroll⬆️</button>  
-        <button class="menu-toggle" aria-label="Random Pick" onclick="showRandomPick()">🎲</button>  
-      </nav>  
+        </nav>  
     </div>  
   </header>  
 
@@ -286,7 +286,6 @@
     © Dareloom Hub — <a href="mailto:dareloom.official@gmail.com" style="color:var(--secondary-color);">Contact</a>  
   </footer>  
 
-  <!-- 🎥 REELS PLAYER OVERLAY -->
   <div id="reelsPlayer">
     <button id="reelsCloseBtn" onclick="closeReelsPlayer()">←</button>
     <div id="reelsContainer"></div>
