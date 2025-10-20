@@ -279,79 +279,36 @@ background: #555;
 border-color: var(--primary-color);
 }
 
-/* === MODAL/REELS PLAYER STYLES (NEW) === */
+/* === REELS PLAYER STYLES (UPDATED) === */
+
+/* 🛑 The #reelsPlayer itself becomes the scrollable container */
 #reelsPlayer {
     position: fixed;
     inset: 0;
-    display: flex;
-    flex-direction: column;
-    overflow-y: scroll; /* Enable scrolling */
-    scroll-snap-type: y mandatory; /* Enable smooth snap scrolling */
+    display: block; /* Important: The JS opens it, but CSS sets it as a block container */
+    overflow: hidden; /* Prevent #reelsPlayer from scrolling itself */
     background: #000;
     z-index: 10000;
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
-/* 🛑 NEW: REELS HEADER AND BACK BUTTON STYLING */
-#reelsHeader {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 60px; /* Space for the button */
-    padding: 0 15px;
-    z-index: 10001; /* Must be above all slides */
-    display: flex;
-    align-items: center;
-    /* Gradient for better visibility over video */
-    background: linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0)); 
-}
-
-#closeReelsBtn {
-    /* Matches your existing menu-toggle style for familiarity, but darker */
-    background: rgba(255, 255, 255, 0.2); 
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 50%; 
-    font-size: 18px;
-    cursor: pointer;
-    line-height: 1;
-    transition: background 0.2s;
-    /* Use Font Awesome or simple text for the arrow */
-    font-family: 'Font Awesome 5 Free', sans-serif; 
-}
-
-#closeReelsBtn i {
-    /* If using Font Awesome, ensure it looks like a left arrow */
-    content: "\f060"; /* This is the Font Awesome left arrow code */
-    font-weight: 900;
-}
-
-#closeReelsBtn:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
-/* END OF NEW HEADER STYLING */
-
-
+/* 🛑 The JS will inject #reelSlides inside #reelsPlayer, and that element will scroll */
+/* Here we define the slides, assuming #reelSlides is the scrollable parent */
 .reel-slide {
     flex-shrink: 0; /* Prevents slides from shrinking */
     width: 100%;
-    height: 100vh; /* One viewport height per slide */
+    height: 100vh; /* One viewport height per slide (100dvh on mobile) */
     scroll-snap-align: start; /* Snap to the top of each slide */
     position: relative;
-    /* Added padding-top to account for the fixed #reelsHeader */
-    padding-top: 60px; 
 }
 
 .reel-player-container {
     width: 100%;
     height: 100%;
     position: absolute;
-    top: 0; /* Start from the top of the slide, below the fixed header */
+    top: 0;
     left: 0;
     background-color: #000;
-    background-size: contain;
+    background-size: cover; /* Cover the whole container */
     background-position: center;
     background-repeat: no-repeat;
 }
@@ -360,7 +317,8 @@ border-color: var(--primary-color);
     width: 100%;
     height: 100%;
     display: block;
-    object-fit: contain; /* Ensure the video fits within the screen */
+    object-fit: cover; /* Fill the whole screen with the video */
+    aspect-ratio: auto;
 }
 
 /* Info and Controls Overlay */
@@ -370,7 +328,7 @@ border-color: var(--primary-color);
     left: 0;
     width: 100%;
     padding: 20px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0));
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0) 100%);
     color: #fff;
     z-index: 100;
 }
@@ -398,20 +356,32 @@ border-color: var(--primary-color);
     flex-grow: 1;
 }
 
-/* Close Button (Fixed on top of Reels Player) - This is the old one, but I kept the style for consistency if you use it elsewhere */
-.close-btn {
-    background: rgba(0, 0, 0, 0.5);
-    color: #fff;
-    border: none;
+/* 🛑 CRITICAL: CLOSE BUTTON (REELS BACK BUTTON) */
+#reelsCloseBtn {
+    /* Use the same style as menu-toggle for consistency, but fixed and distinct */
+    background: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    color: white;
+    border: 2px solid var(--primary-color);
     border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    font-size: 18px;
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
     cursor: pointer;
-    z-index: 10001;
-    position: fixed; /* Fixed position in reels player */
+    z-index: 10002; /* Highest Z-index */
+    position: fixed; 
+    top: 15px;
+    right: 15px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-shadow: 0 0 10px rgba(0,0,0,0.8);
 }
-
+#reelsCloseBtn:hover {
+    background: var(--primary-color);
+    border-color: #fff;
+}
 
 /* --- RESPONSIVENESS --- */
 @media (max-width: 768px) {
@@ -437,12 +407,12 @@ header.site { padding: 10px 0; }
   
 /* Reels Player Mobile Adjustments */  
 .reel-slide {
-    height: 100dvh; /* Use dynamic height for better mobile fit */
-    padding-top: 60px; /* Ensure content starts below the fixed header */
+    /* Use 100dvh for better compatibility with mobile address bars */
+    height: 100dvh; 
 }
 
 .reel-info {
-    padding: 15px 10px 80px 10px; /* More padding at bottom for button group */
+    padding: 15px 10px 30px 10px; 
 }
 .reel-buttons-group .btn {
     font-size: 0.8rem;
@@ -450,9 +420,11 @@ header.site { padding: 10px 0; }
     padding: 6px 10px;
 }
 
-/* Ensure fixed close button is visible */
+/* Ensure fixed close button is visible on mobile */
 #reelsCloseBtn {
     top: 10px;
     right: 10px;
+    width: 40px;
+    height: 40px;
 }
 }
