@@ -104,6 +104,75 @@
       background: var(--primary-color);
     }
 
+    /* === LATEST LIST (vertical flex) === */
+    #latestList {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .latest-item {
+      display: flex;
+      background: var(--card-bg);
+      border-radius: var(--border-radius-base);
+      overflow: hidden;
+      gap: 15px;
+      padding: 10px;
+      align-items: center;
+      border: 1px solid #222;
+      transition: border-color 0.3s;
+      cursor: pointer;
+    }
+    .latest-item:hover { border-color: var(--primary-color); }
+    .latest-thumb {
+      width: 180px;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .latest-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .latest-info h4 {
+      margin: 0 0 5px 0;
+      color: var(--primary-color);
+    }
+    .latest-info p {
+      margin: 0;
+      color: #999;
+      font-size: 0.9rem;
+    }
+
+    /* --- PAGINATION --- */
+    #pager {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin: 20px 0;
+    }
+    .page-btn {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 8px 14px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .page-btn.active {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      color: #fff;
+    }
+    .page-btn:hover:not(.active) {
+      background: #555;
+      border-color: var(--primary-color);
+    }
+
     /* 🎥 REELS PLAYER OVERLAY */
     #reelsPlayer {
       display: none;
@@ -169,6 +238,12 @@
       cursor: pointer;
       z-index: 10000;
     }
+
+    @media (max-width: 768px){
+      .latest-item { flex-direction: column; align-items: flex-start; }
+      .latest-thumb { width: 100%; height: auto; }
+      #latestList { gap: 12px; }
+    }
   </style>
 </head>  
 
@@ -181,7 +256,7 @@
       </div>  
       <nav class="nav">  
         <input type="search" id="searchInput" placeholder="Search titles..." aria-label="Search titles">  
-        <button class="menu-toggle" aria-label="Scroll Reels" onclick="openReelsPlayer()">⬆️</button>  
+        <button class="menu-toggle" aria-label="Scroll Reels" onclick="openReelsPlayer()">Scroll⬆️</button>  
         <button class="menu-toggle" aria-label="Random Pick" onclick="showRandomPick()">🎲</button>  
       </nav>  
     </div>  
@@ -197,7 +272,8 @@
 
     <section id="latestSection">  
       <h2>📺 Latest Full Series Episodes</h2>  
-      <div id="latestList" class="grid"></div>  
+      <div id="latestList"></div>
+      <div id="pager"></div>
     </section>  
 
     <section id="randomSection">  
