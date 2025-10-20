@@ -1,190 +1,181 @@
 /*
-style.css - Unique, Dark-Themed, Fully Responsive Design + REELS PLAYER
+style.css - Unique, Dark-Themed, Fully Responsive Design + REELS PLAYER (Optimized)
 */
 
 :root {
---primary-color: #ff4b91;
---secondary-color: #1e90ff;
---bg-color: #000;
---card-bg: #111;
---muted: #999;
---text-color: #fff;
---section-padding: 16px;
---border-radius-base: 12px;
---shadow-color: rgba(255, 75, 145, 0.3);
+    --primary-color: #ff4b91;
+    --secondary-color: #1e90ff;
+    --bg-color: #000;
+    --card-bg: #111;
+    --muted: #999;
+    --text-color: #fff;
+    --section-padding: 16px;
+    --border-radius-base: 12px;
+    --shadow-color: rgba(255, 75, 145, 0.3);
 }
 
-/* 🛑 CLS FIX: Basic Reset for better control and performance */
+/* 🛑 CLS FIX & Basic Reset */
 * {
     box-sizing: border-box; 
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
-background: var(--bg-color);
-color: var(--text-color);
-font-family: "Poppins", sans-serif;
-margin: 0;
-padding: 0;
-line-height: 1.6;
+    background: var(--bg-color);
+    color: var(--text-color);
+    font-family: "Poppins", sans-serif;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
 }
 
 a {
-color: var(--secondary-color);
-text-decoration: none;
-transition: color 0.3s;
+    color: var(--secondary-color);
+    text-decoration: none;
+    transition: color 0.3s;
 }
 a:hover { color: var(--primary-color); }
 
 /* --- HEADER AND NAVIGATION --- */
 header.site {
-display: flex;
-justify-content: center; /* Centering content wrap */
-align-items: center;
-background: var(--card-bg);
-padding: 10px 0; /* Padding is handled by .wrap inside */
-position: sticky;
-top: 0;
-z-index: 99;
-border-bottom: 2px solid var(--primary-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--card-bg);
+    padding: 10px 0;
+    position: sticky;
+    top: 0;
+    z-index: 99;
+    border-bottom: 2px solid var(--primary-color);
 }
 
 .brand { display: flex; align-items: center; gap: 10px; }
 
 .logo-img {
-/* 🛑 LCP FIX: width/height defined in HTML */
-height: 40px;
-width: 40px;
-border-radius: 50%;
-box-shadow: 0 0 10px var(--shadow-color);
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--shadow-color);
 }
 
 .title {
-font-size: 1.4rem;
-color: var(--primary-color);
-margin: 0;
-text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+    font-size: 1.4rem;
+    color: var(--primary-color);
+    margin: 0;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
 }
 
 .nav { display: flex; align-items: center; gap: 10px; } 
 
 .nav input {
-padding: 8px 15px;
-border: 1px solid #333;
-border-radius: 25px;
-outline: none;
-background: #222;
-color: var(--text-color);
-width: 150px;
-transition: width 0.3s ease;
+    padding: 8px 15px;
+    border: 1px solid #333;
+    border-radius: 25px;
+    outline: none;
+    background: #222;
+    color: var(--text-color);
+    width: 150px;
+    transition: width 0.3s ease;
 }
 .nav input:focus { width: 200px; border-color: var(--primary-color); }
 
 .menu-toggle {
-background: var(--primary-color);
-border: none;
-color: #fff;
-font-size: 18px;
-border-radius: 50%;
-width: 38px;
-height: 38px;
-cursor: pointer;
-transition: transform 0.2s, background 0.3s;
+    background: var(--primary-color);
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    border-radius: 50%;
+    width: 38px;
+    height: 38px;
+    cursor: pointer;
+    transition: transform 0.2s, background 0.3s;
 }
 .menu-toggle:hover {
-transform: rotate(180deg) scale(1.1);
-background: var(--secondary-color);
+    transform: rotate(180deg) scale(1.1);
+    background: var(--secondary-color);
 }
 
 /* --- GENERAL LAYOUT AND TITLES --- */
 .wrap {
-padding: var(--section-padding);
-max-width: 1200px;
-margin: 0 auto;
-width: 100%; 
+    padding: var(--section-padding);
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%; 
 }
 
 h2 {
-color: var(--primary-color);
-margin-bottom: 20px;
-border-left: 4px solid var(--secondary-color);
-padding-left: 10px;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+    border-left: 4px solid var(--secondary-color);
+    padding-left: 10px;
 }
 
 .section { margin-bottom: 50px; }
 
 .hero-actions {
-padding: 15px;
-background: var(--card-bg);
-border-radius: var(--border-radius-base);
-border: 1px solid #333;
-display: flex;
-justify-content: space-between;
-align-items: center;
+    padding: 15px;
+    background: var(--card-bg);
+    border-radius: var(--border-radius-base);
+    border: 1px solid #333;
+    display: flex;
+    flex-direction: column; 
+    align-items: center;
+    text-align: center;
 }
+.hero-actions h2 { border-left: none; padding-left: 0; }
 
-.now-title { font-size: 1.1rem; font-weight: 500; }
-
-.pill {
-background: var(--secondary-color);
-color: #fff;
-padding: 4px 10px;
-border-radius: 20px;
-font-size: 0.8rem;
-font-weight: 600;
-}
 
 /* --- GRID CARDS (Trending Picks) --- */
 .grid {
-display: grid;
-grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-gap: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
 }
 
 .card {
-background: var(--card-bg);
-border-radius: var(--border-radius-base);
-overflow: hidden;
-cursor: pointer;
-box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-transition: transform 0.3s, box-shadow 0.3s;
-border: 1px solid #222;
+    background: var(--card-bg);
+    border-radius: var(--border-radius-base);
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: 1px solid #222;
 }
 .card:hover {
-transform: translateY(-5px);
-box-shadow: 0 8px 25px var(--shadow-color);
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px var(--shadow-color);
 }
 
 .thumb {
-width: 100%;
-/* CLS Fix: Use aspect-ratio for modern CLS control */
-aspect-ratio: 16 / 9; 
-object-fit: cover;
-display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9; 
+    object-fit: cover;
+    display: block;
 }
 
 .meta {
-padding: 12px;
-font-size: 0.95rem;
-color: var(--text-color);
+    padding: 12px;
 }
 .meta h4 {
-white-space: nowrap;
-overflow: hidden;
-text-overflow: ellipsis;
-margin: 0;
-font-size: 1.05rem;
-color: var(--primary-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin: 0;
+    font-size: 1.05rem;
+    color: var(--primary-color);
 }
 
-/* --- LATEST LIST --- */
-.latest-list {
-    /* 🛑 FIX: Reverting to Flexbox Column for List view (CLS Fix) */
+/* --- 🛑 LATEST LIST FIX: Ensure it's always a vertical list --- */
+#latestList { /* Use the ID to target the container precisely */
     display: flex;
     flex-direction: column;
     gap: 16px;
     max-width: 900px; 
     margin: 0 auto;
-    min-height: 500px; /* CLS Improvement: reserve space */
+    min-height: 500px;
 }
 .latest-item {
     display: flex;
@@ -205,8 +196,9 @@ color: var(--primary-color);
     min-width: 180px;
     object-fit: cover;
     border-radius: 8px;
+    cursor: pointer;
 }
-
+/* 🛑 FIX: Ensure the info section takes remaining space */
 .latest-info {
     flex: 1;
     display: flex;
@@ -227,188 +219,192 @@ color: var(--primary-color);
 
 /* --- BUTTONS & PAGINATION --- */
 .btn, .watch-btn, .tag-btn {
-background: var(--primary-color);
-color: #fff;
-border: none;
-padding: 8px 15px;
-border-radius: 8px;
-margin-right: 8px;
-cursor: pointer;
-font-weight: 500;
-transition: opacity 0.2s, background 0.3s;
-text-transform: uppercase;
-font-size: 0.9rem;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: opacity 0.2s, background 0.3s;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    text-decoration: none; 
 }
+.btn {
+    background: var(--primary-color);
+    color: #fff;
+}
+.watch-btn { background: var(--secondary-color); color: #fff; }
 .btn:hover, .watch-btn:hover { opacity: 0.9; }
-.watch-btn { background: var(--secondary-color); }
 
 .tag-btn {
-background: #333;
-color: var(--muted);
-padding: 4px 8px;
-margin: 0 5px 5px 0;
-font-size: 0.75rem;
-border-radius: 5px;
-text-transform: none;
-transition: background 0.3s, color 0.3s;
+    background: #333;
+    color: var(--muted);
+    padding: 4px 8px;
+    margin: 0 5px 5px 0;
+    font-size: 0.75rem;
+    border-radius: 5px;
+    text-transform: none;
+    display: inline-block;
 }
 .tag-btn:hover { background: var(--primary-color); color: #fff; }
 
 .pager {
-display: flex;
-justify-content: center;
-gap: 8px;
-margin-top: 30px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 30px;
 }
 .page-btn {
-background: #333;
-color: var(--text-color);
-border: 1px solid #555;
-padding: 8px 14px;
-border-radius: 5px;
-cursor: pointer;
-transition: background 0.3s, border-color 0.3s;
+    background: #333;
+    color: var(--text-color);
+    border: 1px solid #555;
+    padding: 8px 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s, border-color 0.3s;
 }
 .page-btn.active {
-background: var(--primary-color);
-border-color: var(--primary-color);
-color: #fff;
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: #fff;
 }
 .page-btn:hover:not(.active) {
-background: #555;
-border-color: var(--primary-color);
+    background: #555;
+    border-color: var(--primary-color);
 }
 
-/* === MODAL/REELS PLAYER STYLES (NEW) === */
+/* === REELS PLAYER STYLES (CRITICAL UPDATE FOR SCROLL SNAP) === */
 #reelsPlayer {
+    display: none; 
     position: fixed;
-    inset: 0;
+    inset: 0; 
+    z-index: 10000;
+    background: #000;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch; 
+}
+
+/* 🛑 REEL CONTAINER (used in script.js to inject slides) */
+#reelsContainer {
     display: flex;
     flex-direction: column;
-    overflow-y: scroll; /* Enable scrolling */
-    scroll-snap-type: y mandatory; /* Enable smooth snap scrolling */
-    background: #000;
-    z-index: 10000;
-    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+    /* This container holds the reels, allowing the parent (#reelsPlayer) to scroll */
 }
 
-.reel-slide {
-    flex-shrink: 0; /* Prevents slides from shrinking */
+.reel { /* Changed from .reel-slide to .reel to match your previous script */
+    flex-shrink: 0;
     width: 100%;
-    height: 100vh; /* One viewport height per slide */
-    scroll-snap-align: start; /* Snap to the top of each slide */
+    max-width: 480px; /* Optional: Keep reel width mobile-friendly */
+    margin: 0 auto;
+    height: 100vh;
+    height: 100dvh; 
+    
+    scroll-snap-align: start;
     position: relative;
+    display: flex; 
+    flex-direction: column;
+    justify-content: flex-end; 
+    padding-bottom: 20px; /* Space for info at the bottom */
 }
 
-.reel-player-container {
-    width: 100%;
-    height: 100%;
+.reel iframe {
+    /* Full-screen video iframe/element */
     position: absolute;
     top: 0;
     left: 0;
-    background-color: #000;
-    background-size: contain;
-    background-position: center;
-    background-repeat: no-repeat;
-}
-
-.reel-video {
     width: 100%;
     height: 100%;
-    display: block;
-    object-fit: contain; /* Ensure the video fits within the screen */
+    background-color: #000;
+    z-index: 1;
 }
 
 /* Info and Controls Overlay */
-.reel-info {
-    position: absolute;
-    bottom: 0;
-    left: 0;
+.reel-buttons { /* Matches the class used in your script.js */
     width: 100%;
-    padding: 20px;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.9), rgba(0, 0, 0, 0));
-    color: #fff;
-    z-index: 100;
-}
-
-.reel-title {
-    font-size: 1.5rem;
-    color: var(--primary-color);
-    margin: 0 0 5px 0;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
-}
-
-.reel-tags .tag-btn {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
+    padding: 0 20px 20px 20px; /* Move buttons higher from the bottom edge */
+    background: #000a;
+    z-index: 5; 
 }
 
 .reel-buttons-group {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column; 
     gap: 10px;
     margin-top: 15px;
 }
-.reel-buttons-group .btn {
-    min-width: 140px;
+.reel-buttons button {
+    min-width: 100%;
     flex-grow: 1;
+    text-align: center;
+    /* Use button styles from the main section */
+    background: var(--primary-color); 
+    color: #fff;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 700;
+}
+.reel-buttons button:nth-child(2) {
+    background: #0088ff; /* Streamtape blue */
+}
+.reel-buttons button:nth-child(3) {
+    background: #2aabee; /* Telegram blue */
 }
 
-/* Close Button (Fixed on top of Reels Player) */
-.close-btn {
+
+#reelsCloseBtn {
     background: rgba(0, 0, 0, 0.5);
-    color: #fff;
-    border: none;
+    color: white;
+    border: 2px solid var(--primary-color);
     border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    font-size: 18px;
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
     cursor: pointer;
-    z-index: 10001;
-    position: fixed; /* Fixed position in reels player */
+    z-index: 10002;
+    position: fixed; 
+    top: 15px;
+    left: 15px; /* Changed to left side as in your first image */
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    box-shadow: 0 0 10px rgba(0,0,0,0.8);
+}
+#reelsCloseBtn:hover {
+    background: var(--primary-color);
+    border-color: #fff;
 }
 
 
 /* --- RESPONSIVENESS --- */
 @media (max-width: 768px) {
-header.site { padding: 10px 0; } 
+    .nav input { width: 100px; }  
+    .nav input:focus { width: 120px; }  
+    .wrap { padding: 10px; }  
+    
+    .latest-item {  
+        flex-direction: column;  
+        align-items: flex-start;  
+        gap: 10px;  
+    }  
+    .latest-thumb {  
+        width: 100%;  
+        height: auto; 
+        min-width: 100%;  
+    }  
+    
+    .reel {
+        height: 100dvh; 
+    }
 
-.nav input { width: 100px; }  
-.nav input:focus { width: 120px; }  
-  
-.wrap { padding: 10px; }  
-  
-.latest-item {  
-    /* Reverting to stacked layout on mobile */
-    flex-direction: column;  
-    align-items: flex-start;  
-    gap: 10px;  
-}  
-.latest-thumb {  
-    width: 100%;  
-    aspect-ratio: 16 / 9;
-    height: auto; 
-    min-width: 100%;  
-}  
-  
-/* Reels Player Mobile Adjustments */  
-.reel-slide {
-    height: 100dvh; /* Use dynamic height for better mobile fit */
-}
-
-.reel-info {
-    padding: 15px 10px 80px 10px; /* More padding at bottom for button group */
-}
-.reel-buttons-group .btn {
-    font-size: 0.8rem;
-    min-width: 100px;
-    padding: 6px 10px;
-}
-
-/* Ensure fixed close button is visible */
-#reelsCloseBtn {
-    top: 10px;
-    right: 10px;
-}
+    /* Ensure fixed close button is visible on mobile */
+    #reelsCloseBtn {
+        top: 10px;
+        left: 10px;
+        width: 40px;
+        height: 40px;
+    }
     }
     
