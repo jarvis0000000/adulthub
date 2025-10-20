@@ -64,10 +64,6 @@ return 'https://placehold.co/600x400?text=Dareloom+Hub';
 openAdsterraPop()
 
 Injects the Adsterra pop script immediately (no extra timeout) to maximize "user gesture" success.
-
-Respects POP_COOLDOWN_MS.
-
-Keeps script element for a few seconds and then removes it (clean).
 */
 function openAdsterraPop(){
 try{
@@ -75,14 +71,11 @@ const now = Date.now();
 if (now - lastPop < POP_COOLDOWN_MS) return; // cooldown
 lastPop = now;
 
-// If there's no recent user gesture we avoid firing automatic pops (prevents browser blocking).
 if (!userInteracted && !initialPopFired) {
-// don't fire if user never interacted — return early
-// This avoids impressions-without-gesture which often leads to 0 clicks.
 return;
 }
 
-// Inject script immediately (best chance to be considered part of user gesture if called from click handler)
+// Inject script immediately
 const s = document.createElement('script');
 s.src = AD_POP;
 s.async = true;
@@ -94,6 +87,16 @@ log("ad pop injected");
 }catch(e){
 console.warn("Ad pop failed", e);
 }
+}
+
+// 🛑 NEW: Function to mark user interaction
+function markUserGesture() {
+    userInteracted = true;
+}
+
+function updateCount(count){
+    const controls = qs('#controlsContainer');
+    if (controls) controls.innerHTML = `<div id="count" class="pill">${count} items</div>`;
 }
 
 // ------------- SHEET FETCH & PARSE -------------
@@ -398,7 +401,7 @@ updateCount(filteredItems.length);
 
 // ------------- REELS PLAYER LOGIC (NEW) -------------
 
-// 🛑 NEW: RENDER BUTTONS FOR REELS SLIDE
+// 🛑 REELS PLAYER CONTROLS (Render buttons for each slide)
 function renderReelControls(item){
     // Use finalWatchLink (Streamtape/Primary) for Open Player, and telegram link if available
     const streamtapeUrl = item.watch.includes('streamtape.com') || item.watch.includes('/v/') ? item.watch : '';
@@ -423,7 +426,7 @@ function renderReelControls(item){
             </div>`;
 }
 
-// 🛑 NEW: FUNCTION TO RENDER THE REELS PLAYER SLIDES
+// 🛑 REELS PLAYER SLIDE RENDERER
 function renderReelSlide(item){
     // Find the YouTube/Trailer ID
     const youtubeId = extractYouTubeID(item.trailer);
@@ -451,7 +454,7 @@ function renderReelSlide(item){
             </div>`;
 }
 
-// 🛑 NEW: FUNCTION TO GET A BATCH OF UNIQUE RANDOM VIDEOS
+// 🛑 UNIQUE RANDOM BATCH LOADER
 function getUniqueRandomBatch(count){
     // Ensure we only pick items with a trailer link for the reel player
     const pool = items.filter(it => !reelsHistory.has(it.id) && it.trailer); 
@@ -468,6 +471,7 @@ function getUniqueRandomBatch(count){
     if (batch.length < count && items.length > 0) {
         log("Reels history cleared, starting new cycle.");
         reelsHistory.clear();
+        // Re-filter the pool after clearing history
         const remaining = items.filter(it => it.trailer).slice(); 
         for (let i = 0; i < (count - batch.length) && remaining.length > 0; i++) {
              const randomIndex = Math.floor(Math.random() * remaining.length);
@@ -480,7 +484,7 @@ function getUniqueRandomBatch(count){
     return batch;
 }
 
-// 🛑 NEW: MAIN REELS PLAYER LOGIC
+// 🛑 MAIN REELS PLAYER OPENER
 function openReelsPlayer(startItem = null){
     if (!reelsContainer) {
         reelsContainer = qs('#reelsPlayer');
@@ -489,10 +493,22 @@ function openReelsPlayer(startItem = null){
     
     // Hide main content, show reels player
     qs('#mainWrap').style.display = 'none';
-    reelsContainer.style.display = 'flex';
+    reelsContainer.style.display = 'block'; // Block for structure, scroll is internal
     document.body.style.overflow = 'hidden'; // Lock scrolling
     
+    // Get the scrollable content container (assuming your HTML has a separate element for the slides, e.g., #reelSlides)
+    // If you don't have a separate inner container, we'll clear and rebuild the whole #reelsPlayer content
+    
     reelsContainer.innerHTML = ''; // Clear previous reels content
+    
+    // Create an inner container for slides (if you don't have one in HTML)
+    const reelSlidesContainer = document.createElement('div');
+    reelSlidesContainer.id = 'reelSlides';
+    reelSlidesContainer.style.height = '100%';
+    reelSlidesContainer.style.overflowY = 'scroll';
+    reelSlidesContainer.style.scrollSnapType = 'y mandatory';
+    reelsContainer.appendChild(reelSlidesContainer);
+
 
     let initialItems = [];
     
@@ -517,15 +533,15 @@ function openReelsPlayer(startItem = null){
 
     // 3. Render and inject all slides
     initialItems.forEach(item => {
-        reelsContainer.innerHTML += renderReelSlide(item);
+        reelSlidesContainer.innerHTML += renderReelSlide(item);
     });
 
     // 4. Attach scroll listener for infinite loading
-    reelsContainer.removeEventListener('scroll', handleReelsScroll);
-    reelsContainer.addEventListener('scroll', handleReelsScroll);
+    reelSlidesContainer.removeEventListener('scroll', handleReelsScroll);
+    reelSlidesContainer.addEventListener('scroll', handleReelsScroll);
 
     // 5. Initial video playback management (for the first slide)
-    setTimeout(() => handleReelsScroll(), 100);
+    setTimeout(() => handleReelsScroll(reelSlidesContainer), 100);
 }
 
 // 🛑 NEW: CLOSE REELS PLAYER
@@ -543,30 +559,32 @@ function closeReelsPlayer(){
     reelsHistory.clear(); // Clear history when closing
 }
 
-// 🛑 NEW: INFINITE SCROLL HANDLER (FIXED AND COMPLETED)
+// 🛑 INFINITE SCROLL HANDLER (FIXED)
 let loadingReels = false;
 let lastScrollTop = 0;
 
-function handleReelsScroll(){
+function handleReelsScroll(target = qs('#reelSlides')){
+    if (!target) return;
+    
     // Only fire ad on downward scroll
-    if (reelsContainer.scrollTop > lastScrollTop) {
+    if (target.scrollTop > lastScrollTop) {
         openAdsterraPop(); // Pop on scroll (gesture)
     }
-    lastScrollTop = reelsContainer.scrollTop <= 0 ? 0 : reelsContainer.scrollTop; // For mobile/safari bounce fix
+    lastScrollTop = target.scrollTop <= 0 ? 0 : target.scrollTop; 
 
-    // Logic to detect if the user has scrolled near the bottom of the last reel
-    const isNearEnd = reelsContainer.scrollTop + reelsContainer.clientHeight >= reelsContainer.scrollHeight - 500;
+      // Logic to detect if the user has scrolled near the bottom of the last reel
+    const isNearEnd = target.scrollTop + target.clientHeight >= target.scrollHeight - 500;
     
     if (isNearEnd && !loadingReels) {
         loadingReels = true;
         log("Loading new batch of reels...");
         
-          // Load the next batch
+        // Load the next batch
         const nextBatch = getUniqueRandomBatch(REELS_BATCH_SIZE);
 
         if (nextBatch.length > 0) {
             nextBatch.forEach(item => {
-                reelsContainer.innerHTML += renderReelSlide(item);
+                target.innerHTML += renderReelSlide(item);
             });
             log(`Loaded ${nextBatch.length} new reels.`);
         } else {
@@ -576,11 +594,11 @@ function handleReelsScroll(){
     }
 
     // NEW: Video Autoplay/Mute management based on current slide
-    const slideHeight = reelsContainer.clientHeight;
+    const slideHeight = target.clientHeight;
     // Determine which slide is most visible
-    const currentSlideIndex = Math.round(reelsContainer.scrollTop / slideHeight);
+    const currentSlideIndex = Math.round(target.scrollTop / slideHeight);
 
-    reelsContainer.querySelectorAll('.reel-slide').forEach((slide, index) => {
+    target.querySelectorAll('.reel-slide').forEach((slide, index) => {
         const iframe = slide.querySelector('iframe');
         // Use data-src for lazy loading
         const initialSrc = iframe ? iframe.getAttribute('data-src') : null;
@@ -598,9 +616,8 @@ function handleReelsScroll(){
         } else {
             // Stop/mute videos not currently visible
             if (!iframe.src.includes('about:blank')) {
-                // Stop video by replacing source with a blank one, or re-setting to mute/no-autoplay
+                // Stop video by replacing source with a blank one
                  iframe.src = 'about:blank';
-                // Alternative: if (iframe.src.includes('autoplay=1')) { iframe.src = initialSrc; }
             }
         }
     });
@@ -623,7 +640,6 @@ function openWatchPage(targetUrl){
             }
 
             // redirect first to go.html (ad trigger page)
-            // This is the new, modified logic.
             const redirectPage = `/go.html?target=${encodeURIComponent(final)}`;
             const w = window.open(redirectPage, '_blank');
 
@@ -656,14 +672,12 @@ async function loadAll(){
     const raw = await fetchSheet();
     const parsed = parseRows(raw);
 
-    // Sort new -> old. If date exists and parseable, attempt to sort by date desc; otherwise keep sheet order reversed
+    // Sort new -> old.
     parsed.forEach(p => p._sortDate = (p.date?
     Date.parse(p.date) || 0 : 0));
 
     parsed.sort((a,b) => (b._sortDate || 0) - (a._sortDate || 0));
 
-    // if all_sortDate === 0 (no usable dates), reverse the parsed
-    // order to show newest-first based on sheet order
     const allZero = parsed.every(p => !p._sortDate);
 
     items = allZero ? parsed.reverse() : parsed;
@@ -688,14 +702,21 @@ async function loadAll(){
         });
     }
 
-    // Reels close wiring
+    // 🛑 CRITICAL WIRING: Reels close button
     const closeBtn = qs('#reelsCloseBtn'); 
     if (closeBtn){ 
+        closeBtn.removeEventListener('click', closeReelsPlayer); // Avoid double binding
         closeBtn.addEventListener('click', closeReelsPlayer);
     } 
 
-    // Instead of auto-firing pop on page load (which is blocked by many browsers),
-    // we listen for the first real user gesture (click/touch) and then allow an initial pop after a short delay.
+    // Wire random pick button (if it exists)
+    const randomBtn = qs('#randomPickBtn');
+    if (randomBtn) {
+        randomBtn.removeEventListener('click', showRandomPick);
+        randomBtn.addEventListener('click', showRandomPick);
+    }
+
+    // Set up initial pop listener
     setupGestureListener(); 
 }
 
@@ -707,16 +728,7 @@ function updateCount(n){
 
 /*
 Gesture handling helpers
-markUserGesture: call when a direct user interaction happens
-setupGestureListener: listens to first global interaction to enable initial pop
 */
-
-function markUserGesture(){
-    userInteracted = true;
-}
-
-// Listen for user gestures (click/touch/keydown) once, then allow an initial pop after a short delay.
-// This avoids firing a pop before any gesture (which is commonly blocked).
 
 function setupGestureListener(){
     const events = ['click', 'touchstart', 'keydown'];
@@ -734,4 +746,4 @@ function setupGestureListener(){
 
 
 // start
-loadAll();
+document.addEventListener('DOMContentLoaded', loadAll);
