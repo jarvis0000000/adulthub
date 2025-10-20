@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">  
+<head>  
+  <meta charset="utf-8" />  
+  <meta name="viewport" content="width=device-width,initial-scale=1" />  
+  <title id="pageTitle">Trailer & Watch Details</title>  
+  <link rel="stylesheet" href="/style.css?v=20251020" />  
+  <style>
+    :root {
+      --primary-color: #ff4b91;
+      --secondary-color: #1e90ff;
+      --bg-color: #000;
+      --card-bg: #111;
+      --text-color: #fff;
+    }
+    body {
+      margin: 0;
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Poppins', sans-serif;
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .video-player-container {
+      aspect-ratio: 16/9;
+      background: #333;
+      margin-bottom: 20px;
+    }
+    .video-player-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .action-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin: 20px 0;
+      justify-content: center;
+    }
+    .action-buttons button, .action-buttons a {
+      flex: 1 1 200px;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      transition: background-color 0.2s;
+    }
+    #watchButton {
+      background: var(--primary-color);
+      color: #fff;
+    }
+    #streamtapeButton {
+      background: #0088ff; /* A different color for Streamtape */
+      color: #fff;
+    }
+    #telegramButton {
+      background: #2aabee; /* Telegram Blue */
+      color: #fff;
+    }
+    #description {
+      color: #aaa;
+      margin-top: 10px;
+    }
+    #tagsContainer {
+      margin-top: 15px;
+    }
+    .tag-btn {
+        background: #333;
+        color: #aaa;
+        border: none;
+        padding: 5px 10px;
+        margin-right: 5px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+  </style>
+</head>  
+
+<body>  
+    <div class="wrap">
+        <h1 id="videoTitle">Loading...</h1>
+        <div class="video-player-container">
+            <div id="playerEmbed">
+                </div>
+        </div>
+
+        <div class="action-buttons">
+            </div>
+
+        <h2>Details</h2>
+        <p id="description">Loading description...</p>
+        <div id="tagsContainer"></div>
+
+        <a href="/" style="display:block; text-align:center; margin-top:30px; color:var(--secondary-color);">← Back to Homepage</a>
+    </div>
+
+    <script>
+        // Use the utility functions from the main script if it's included, 
+        // otherwise, define the necessary ones here.
+        // Assuming main script is not loaded, we define only what is needed.
+        
+        // --- Helper Functions (Simplified) ---
+        const qs = sel => document.querySelector(sel);
+        function getParam(name) {
+            return new URLSearchParams(window.location.search).get(name);
+        }
+        function extractYouTubeID(url) {
+            if (!url) return null;
+            const m = url.match(/(?:v=|youtu.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
+            return m ? m[1] : null;
+        }
+        function toEmbedUrl(url){
+            if (!url) return '';
+            url = url.trim();
+            const y = extractYouTubeID(url);
+            if (y) return `https://www.youtube.com/embed/${y}?autoplay=1&rel=0`; 
+            if (url.includes('streamtape.com') && url.includes('/v/')){
+                const id = url.split('/v/')[1]?.split('/')[0];
+                if (id) return `https://streamtape.com/e/${id}/`;
+            }
+            if (url.startsWith('http')) return url;
+            return '';
+        }
+        function openWatchPage(targetUrl){
+            // This needs to match the logic in script.js (redirect to go.html)
+            if (!targetUrl) return;
+            let final = targetUrl;
+            if (final.includes('/v/')){
+                const m = final.match(/\/v\/([0-9A-Za-z_-]+)/);
+                if (m && m[1]) final = `https://streamtape.com/e/${m[1]}/`;
+            }
+            const redirectPage = `/go.html?target=${encodeURIComponent(final)}`;  
+            window.open(redirectPage, '_blank'); 
+        }
+
+        // --- Main Trailer Page Logic ---
+        async function loadTrailerPage() {
+            const id = getParam('id');
+            if (!id) {
+                qs('#videoTitle').textContent = 'Error: Video ID not found.';
+                return;
+            }
+
+            // 🛑 IMPORTANT: Since this page is loaded directly, 
+            // you must re-implement the data fetching logic here 
+            // OR save the 'items' array to localStorage in script.js 
+            // and load it here. Using localStorage is faster.
+            const allItems = JSON.parse(localStorage.getItem('dareloom_items') || '[]');
+            const item = allItems.find(i => i.id === id);
+
+            if (!item) {
+                qs('#videoTitle').textContent = 'Error: Video details not found.';
+                return;
+            }
+
+            // 1. Set details
+            qs('#pageTitle').textContent = item.title;
+            qs('#videoTitle').textContent = item.title;
+            qs('#description').textContent = item.description || 'No description available.';
+
+            // 2. Embed Player (Prefer Trailer, fallback to Watch Link)
+            const embedUrl = toEmbedUrl(item.trailer || item.watch);
+            if (embedUrl) {
+                qs('#playerEmbed').innerHTML = `
+                    <iframe src="${embedUrl}" 
+                            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                            allowfullscreen>
+                    </iframe>
+                `;
+            } else {
+                qs('#playerEmbed').innerHTML = '<div style="padding: 20px; text-align: center;">Preview not available for embed. Use the buttons below.</div>';
+            }
+
+            // 3. Render Buttons
+            const buttonsContainer = qs('.action-buttons');
+            buttonsContainer.innerHTML = '';
+            
+            // Open in Player Button
+            if (item.watch) {
+                buttonsContainer.innerHTML += `<button id="watchButton" onclick="openWatchPage('${item.watch}')">Open in Player</button>`;
+            }
+
+            // Open Streamtape Button
+            if (item.watch.includes('streamtape.com') || item.watch.includes('/e/') || item.watch.includes('/v/')) {
+                 buttonsContainer.innerHTML += `<a href="${item.watch}" target="_blank" id="streamtapeButton">Open Streamtape</a>`;
+            }
+
+            // Download Telegram Button
+            if (item.telegram) {
+                buttonsContainer.innerHTML += `<a href="${item.telegram}" target="_blank" id="telegramButton">Download Telegram</a>`;
+            }
+
+            // 4. Render Tags (If you include renderTagsForItem helper function here)
+            // Skipped for simplicity, but you can copy renderTagsForItem from script.js here.
+        }
+
+        // We need to slightly adjust script.js to save the items array for this page to work.
+        // For now, call the loader:
+        loadTrailerPage();
+    </script>
+</body>
+</html>
