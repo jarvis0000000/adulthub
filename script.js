@@ -96,11 +96,6 @@ console.warn("Ad pop failed", e);
 }
 }
 
-// 🛑 NEW: Function to mark user interaction (used by click handlers)
-function markUserGesture() {
-    userInteracted = true;
-}
-
 // ------------- SHEET FETCH & PARSE -------------
 async function fetchSheet(){
 try{
@@ -164,7 +159,6 @@ let telegramLink = '';
 let streamtapeLink = '';
 const links = rawWatch.split(',').map(l => l.trim()).filter(Boolean);
 
-// The 'watch' column can contain multiple links, so we try to separate them.
 links.forEach(link => {
 if (link.includes('t.me') || link.includes('telegram')) {
 telegramLink = link;
@@ -174,8 +168,7 @@ streamtapeLink = link;
 });
 
 // Set 'watch' to the Streamtape/primary link for 'Open in Player' button
-// If there are multiple links, 'finalWatchLink' will be the first non-telegram one (streamtape if present, otherwise the first in the list)
-const finalWatchLink = streamtapeLink || links.find(l => l !== telegramLink) || rawWatch;
+const finalWatchLink = streamtapeLink || rawWatch; // Fallback to rawWatch if Streamtape not found
 
 // skip rows with no playable link
 if ((!trailer || trailer.length === 0) && (!finalWatchLink || finalWatchLink.length === 0)) continue;
@@ -186,8 +179,8 @@ out.push({
 id,
 title: title || 'Untitled',
 trailer: trailer || '',
-watch: finalWatchLink || '', // The primary link for the Open Player button (Streamtape/Other embed)
-telegram: telegramLink || '', // The link for the Download Telegram button
+watch: finalWatchLink || '',
+telegram: telegramLink || '',
 poster: poster || '',
 date: date || '',
 category: category || '',
@@ -247,7 +240,7 @@ const div = document.createElement('div');
 div.className = 'latest-item';
 const thumb = makeThumbnail(it);
 // 🛑 UX TWEAK: Changed button text for better CTR
-div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(thumb)}" loading="lazy" alt="${escapeHtml(it.title)}"> <div class="latest-info"> <div style="font-weight:700">${escapeHtml(it.title)}</div> <div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date || '')}</div> <div class="tag-container" style="margin-top:6px">${renderTagsForItem(it)}</div> <div style="margin-top:8px"> <button class="btn preview-btn" data-id="${escapeHtml(it.id)}">Trailer</button> <button class="watch-btn" data-url="${escapeHtml(it.watch || it.trailer)}" ${it.watch ? '' : 'disabled'}>Watch Now</button> </div> </div>`;
+div.innerHTML = `<img class="latest-thumb" src="${escapeHtml(thumb)}" loading="lazy" alt="${escapeHtml(it.title)}"> <div class="latest-info"> <div style="font-weight:700">${escapeHtml(it.title)}</div> <div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date || '')}</div> <div class="tag-container" style="margin-top:6px">${renderTagsForItem(it)}</div> <div style="margin-top:8px"> <button class="btn preview-btn" data-id="${escapeHtml(it.id)}">Trailer</button> <button class="watch-btn" data-url="${escapeHtml(it.watch || it.trailer)}">Watch Now</button> </div> </div>`;
 list.appendChild(div);
 });
 
@@ -358,22 +351,7 @@ if (!tag) return;
 applyTagFilter(tag);
 }
 
-// Function to open the video in a new page (go.html)
-function openWatchPage(url) {
-    // 🛑 CRITICAL: Pass the primary watch link AND the telegram link if available
-    const item = items.find(i => i.watch === url) || filteredItems.find(i => i.watch === url);
-    let targetUrl = url;
-    if (item && item.telegram) {
-        // If Telegram link is present, pass both links separated by a comma
-        targetUrl = `${url},${item.telegram}`;
-    }
-    
-    // Encode the full target string before passing to go.html
-    window.open(`/go.html?target=${encodeURIComponent(targetUrl)}`, '_blank');
-}
-
-
-// ------------- SEARCH & FILTER -------------
+// ------------- SEARCH & FILTER (No change) -------------
 function applyTagFilter(tag){
 if (!tag) return;
 filteredItems = items.filter(it => (it.category||'').toLowerCase().split(',').map(s=>s.trim()).includes(tag.toLowerCase()));
@@ -418,64 +396,9 @@ renderLatest(1);
 updateCount(filteredItems.length);
 }
 
-function updateCount(count){
-    const controls = qs('#controlsContainer');
-    if (controls) controls.innerHTML = `<div id="count" class="pill">${count} items</div>`;
-}
+// ------------- REELS PLAYER LOGIC (NEW) -------------
 
-// ------------- MODAL PLAYER LOGIC (for Trailer button) -------------
-// This function handles the separate modal for the 'Trailer' button in the latest list
-function showPlayerModal(videoUrl, title) {
-    const modal = qs('#videoModal');
-    const modalContent = qs('#modalContent');
-    const modalTitle = qs('#modalTitle');
-    
-    if (!modal || !modalContent || !modalTitle) return;
-
-    // Check if the link is Streamtape /v/ and convert it to /e/ for embed
-    let finalEmbedUrl = videoUrl;
-    if (finalEmbedUrl.includes("streamtape.com/v/")) {
-        const m = finalEmbedUrl.match(/\/v\/([0-9A-Za-z_-]+)/);
-        if (m && m[1]) {
-            finalEmbedUrl = `https://streamtape.com/e/${m[1]}/`;
-        }
-    }
-
-    modalTitle.textContent = "Trailer: " + title;
-    
-    // Set the modal content with an iframe and the new Back button
-    modalContent.innerHTML = `
-        <div class="modal-controls">
-            <button id="modalBackBtn" class="modal-btn">
-                ← Back to Feed
-            </button>
-        </div>
-        <iframe src="${finalEmbedUrl}" frameborder="0" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>
-    `;
-
-    // 🛑 Back button implementation for Trailer Modal
-    const modalBackBtn = document.getElementById('modalBackBtn');
-    modalBackBtn.onclick = () => {
-        // Close the modal
-        modal.style.display = "none";
-        // Show the reels player again
-        document.getElementById('reelsPlayer').style.display = 'flex';
-        document.body.style.overflow = 'hidden'; // Restore feed scroll
-    };
-
-    // Show modal and hide the reels player
-    modal.style.display = "block";
-    document.getElementById('reelsPlayer').style.display = 'none';
-    document.body.style.overflow = 'auto'; // Allow scrolling in modal/iframe area
-    
-    openAdsterraPop(); // Pop-up Ad
-
-}
-
-
-// ------------- REELS PLAYER LOGIC -------------
-
-// 🛑 REELS PLAYER CONTROLS (Render buttons for each slide)
+// 🛑 NEW: RENDER BUTTONS FOR REELS SLIDE
 function renderReelControls(item){
     // Use finalWatchLink (Streamtape/Primary) for Open Player, and telegram link if available
     const streamtapeUrl = item.watch.includes('streamtape.com') || item.watch.includes('/v/') ? item.watch : '';
@@ -489,20 +412,18 @@ function renderReelControls(item){
                         Open Player
                     </button>
                     ${streamtapeUrl ? 
-                        // Note: Streamtape button uses the same link as Open Player if it's the primary link.
-                        // I will update this to just be Open Streamtape if the link is streamtape for clarity.
                         `<button class="btn" onclick="openWatchPage('${escapeHtml(streamtapeUrl)}')">
                             Open Streamtape
                         </button>` : ''}
                     ${telegramUrl ? 
-                        `<button class="btn watch-btn" onclick="openWatchPage('${escapeHtml(telegramUrl)}')" style="background:#0088cc;">
+                        `<button class="btn watch-btn" onclick="openWatchPage('${escapeHtml(telegramUrl)}')">
                             Download Telegram
                         </button>` : ''}
                 </div>
             </div>`;
 }
 
-// 🛑 REELS PLAYER SLIDE RENDERER
+// 🛑 NEW: FUNCTION TO RENDER THE REELS PLAYER SLIDES
 function renderReelSlide(item){
     // Find the YouTube/Trailer ID
     const youtubeId = extractYouTubeID(item.trailer);
@@ -519,7 +440,6 @@ function renderReelSlide(item){
                 </div>`;
     }
 
-    // data-src is used to store the full autoplay URL which is swapped when centered
     return `<div class="reel-slide">
                 <div class="reel-player-container">
                     <iframe class="reel-video" data-src="${embedUrl}" 
@@ -531,7 +451,7 @@ function renderReelSlide(item){
             </div>`;
 }
 
-// 🛑 UNIQUE RANDOM BATCH LOADER
+// 🛑 NEW: FUNCTION TO GET A BATCH OF UNIQUE RANDOM VIDEOS
 function getUniqueRandomBatch(count){
     // Ensure we only pick items with a trailer link for the reel player
     const pool = items.filter(it => !reelsHistory.has(it.id) && it.trailer); 
@@ -544,80 +464,274 @@ function getUniqueRandomBatch(count){
         reelsHistory.add(item.id);
     }
 
-    // Load the next batch
-        const nextBatch = getUniqueRandomBatch(REELS_BATCH_SIZE);
+    // If pool is exhausted, clear history and start over
+    if (batch.length < count && items.length > 0) {
+        log("Reels history cleared, starting new cycle.");
+        reelsHistory.clear();
+        const remaining = items.filter(it => it.trailer).slice(); 
+        for (let i = 0; i < (count - batch.length) && remaining.length > 0; i++) {
+             const randomIndex = Math.floor(Math.random() * remaining.length);
+             const item = remaining.splice(randomIndex, 1)[0];
+             batch.push(item);
+             reelsHistory.add(item.id);
+        }
+    }
+    
+    return batch;
+}
+
+// 🛑 NEW: MAIN REELS PLAYER LOGIC
+function openReelsPlayer(startItem = null){
+    if (!reelsContainer) {
+        reelsContainer = qs('#reelsPlayer');
+        if (!reelsContainer) return;
+    }
+    
+    // Hide main content, show reels player
+    qs('#mainWrap').style.display = 'none';
+    reelsContainer.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // Lock scrolling
+    
+    reelsContainer.innerHTML = ''; // Clear previous reels content
+
+    let initialItems = [];
+    
+    // 1. Determine starting item and initial batch
+    if (startItem && startItem.trailer) {
+        initialItems.push(startItem);
+        reelsHistory.add(startItem.id);
+    }
+    
+    // 2. Get the rest of the batch (REELS_BATCH_SIZE - initialItems.length)
+    const count = REELS_BATCH_SIZE - initialItems.length;
+    const batch = getUniqueRandomBatch(count);
+    initialItems = initialItems.concat(batch);
+    
+    // If no videos can be found, show alert and exit
+    if (initialItems.length === 0) {
+        alert("No videos with trailers found to start the Reels player.");
+        closeReelsPlayer();
+        return;
+    }
+
+
+    // 3. Render and inject all slides
+    initialItems.forEach(item => {
+        reelsContainer.innerHTML += renderReelSlide(item);
+    });
+
+    // 4. Attach scroll listener for infinite loading
+    reelsContainer.removeEventListener('scroll', handleReelsScroll);
+    reelsContainer.addEventListener('scroll', handleReelsScroll);
+
+    // 5. Initial video playback management (for the first slide)
+    setTimeout(() => handleReelsScroll(), 100);
+}
+
+// 🛑 NEW: CLOSE REELS PLAYER
+function closeReelsPlayer(){
+    if (!reelsContainer) return;
+
+    // Stop all videos before closing
+    reelsContainer.querySelectorAll('iframe').forEach(iframe => {
+        iframe.src = 'about:blank'; // Stop playback
+    });
+
+    qs('#mainWrap').style.display = 'block';
+    reelsContainer.style.display = 'none';
+    document.body.style.overflow = 'auto';
+    reelsHistory.clear(); // Clear history when closing
+}
+
+// 🛑 NEW: INFINITE SCROLL HANDLER (FIXED AND COMPLETED)
+let loadingReels = false;
+let lastScrollTop = 0;
+
+function handleReelsScroll(){
+    // Only fire ad on downward scroll
+    if (reelsContainer.scrollTop > lastScrollTop) {
+        openAdsterraPop(); // Pop on scroll (gesture)
+    }
+    lastScrollTop = reelsContainer.scrollTop <= 0 ? 0 : reelsContainer.scrollTop; // For mobile/safari bounce fix
+
+    // Logic to detect if the user has scrolled near the bottom of the last reel
+    const isNearEnd = reelsContainer.scrollTop + reelsContainer.clientHeight >= reelsContainer.scrollHeight - 500;
+    
+    if (isNearEnd && !loadingReels) {
+        loadingReels = true;
+        log("Loading new batch of reels...");
         
+          // Load the next batch
+        const nextBatch = getUniqueRandomBatch(REELS_BATCH_SIZE);
+
         if (nextBatch.length > 0) {
             nextBatch.forEach(item => {
                 reelsContainer.innerHTML += renderReelSlide(item);
             });
             log(`Loaded ${nextBatch.length} new reels.`);
         } else {
-            log("All unique trailers played. Looping will restart next cycle.");
+            log("No more unique videos to load.");
         }
         loadingReels = false;
     }
 
-    // 6. Playback Control (Autoplay the video currently in view)
-    const slides = reelsContainer.querySelectorAll('.reel-slide');
-    const center = reelsContainer.clientHeight / 2;
+    // NEW: Video Autoplay/Mute management based on current slide
+    const slideHeight = reelsContainer.clientHeight;
+    // Determine which slide is most visible
+    const currentSlideIndex = Math.round(reelsContainer.scrollTop / slideHeight);
 
-    slides.forEach(slide => {
-        const video = slide.querySelector('iframe.reel-video');
-        if (!video) return;
+    reelsContainer.querySelectorAll('.reel-slide').forEach((slide, index) => {
+        const iframe = slide.querySelector('iframe');
+        // Use data-src for lazy loading
+        const initialSrc = iframe ? iframe.getAttribute('data-src') : null;
 
-        const rect = slide.getBoundingClientRect();
-        // Check if the slide is mostly visible AND centered enough
-        const isCentered = rect.top < center && rect.bottom > center;
+        if (!iframe || !initialSrc) return;
 
-        if (isCentered) {
-            // Start video playback if not already playing and has a data-src
-            if (video.src.includes('about:blank') && video.dataset.src) {
-                // Swap data-src (autoplay=0) to src (autoplay=1)
-                video.src = video.dataset.src.replace('autoplay=0', 'autoplay=1');
+        // The current video is the one visible
+        if (index === currentSlideIndex) {
+            // Lazy load the current video if it hasn't loaded (src is 'about:blank')
+            if (iframe.src.includes('about:blank')) {
+                // Swap data-src (autoplay=0, mute=1) to src (autoplay=1, mute=0) to play the video with sound
+                let src = initialSrc.replace('autoplay=0', 'autoplay=1').replace('mute=1', 'mute=0');
+                iframe.src = src;
             }
         } else {
-            // Pause/Stop playback for videos that scroll far out of center view
-             if (!video.src.includes('about:blank')) {
-                 // Stop video by replacing source (most reliable way)
-                 video.src = 'about:blank';
+            // Stop/mute videos not currently visible
+            if (!iframe.src.includes('about:blank')) {
+                // Stop video by replacing source with a blank one, or re-setting to mute/no-autoplay
+                 iframe.src = 'about:blank';
+                // Alternative: if (iframe.src.includes('autoplay=1')) { iframe.src = initialSrc; }
             }
         }
     });
 }
 
+// open watch.html (existing file) in new tab with encoded URL param
+function openWatchPage(targetUrl){
+    if (!targetUrl) return;
 
-// ------------- INITIALIZATION -------------
+    markUserGesture();
+    openAdsterraPop();
 
-function init(){
-    // Global listener for any interaction to enable pop-unders
-    document.body.addEventListener('click', markUserGesture, { once: true });
-    document.body.addEventListener('scroll', markUserGesture, { once: true });
-    
-    fetchSheet()
-        .then(rows => {
-            items = parseRows(rows);
-            
-            // 🛑 CRITICAL FIX: REVERSE THE ORDER (Newest to Oldest)
-            // Assuming the sheet data is ordered oldest to newest from top to bottom
-            items.reverse(); 
-            
-            filteredItems = items.slice();
-            log("Parsed items:", items.length);
-            
-            renderLatest(1);
-            renderRandom();
-            updateCount(filteredItems.length);
-            
-            // Re-render random items periodically for freshness (optional)
-            setInterval(renderRandom, 15000); 
+    setTimeout(()=> {
+        try {
+            let final = targetUrl;
+            // convert streamtape /v/ to /e/ for better embedding
+            if (final.includes('/v/')){
+                const m = final.match(/\/v\/([0-9A-Za-z_-]+)/);
+                if (m && m[1]) final = `https://streamtape.com/e/${m[1]}/`;
+            }
 
-            // Handle potential URL search/category parameters after load (optional)
-        })
-        .catch(e => {
-            log("Initialization failed:", e);
-            qs('#latestList').innerHTML = `<p style="color:var(--primary-color);">⚠️ Failed to load content. Please check the API key and sheet link.</p>`;
-        });
+            // redirect first to go.html (ad trigger page)
+            // This is the new, modified logic.
+            const redirectPage = `/go.html?target=${encodeURIComponent(final)}`;
+            const w = window.open(redirectPage, '_blank');
+
+            if (!w || w.closed || typeof w.closed === 'undefined'){
+                alert("Please allow pop-ups to open the link in a new tab!");
+            }
+
+            // Close the Reels player when opening the Watch page
+            closeReelsPlayer();
+        } catch(e){
+            console.error(e);
+        }
+    }, 120);
+
+}
+// Random pick function (called by button)
+
+function showRandomPick(){
+    const random = items[Math.floor(Math.random() * items.length)];
+    if (random) {
+        openAdsterraPop(); // Trigger ad
+        openReelsPlayer(random); // Open reels player starting with the random pick
+    }
 }
 
-document.addEventListener('DOMContentLoaded', init);
+// INIT/BOOT
+async function loadAll(){
+
+    log("loading sheet...");
+    const raw = await fetchSheet();
+    const parsed = parseRows(raw);
+
+    // Sort new -> old. If date exists and parseable, attempt to sort by date desc; otherwise keep sheet order reversed
+    parsed.forEach(p => p._sortDate = (p.date?
+    Date.parse(p.date) || 0 : 0));
+
+    parsed.sort((a,b) => (b._sortDate || 0) - (a._sortDate || 0));
+
+    // if all_sortDate === 0 (no usable dates), reverse the parsed
+    // order to show newest-first based on sheet order
+    const allZero = parsed.every(p => !p._sortDate);
+
+    items = allZero ? parsed.reverse() : parsed;
+
+    filteredItems = items.slice(); // start unfiltered
+
+    log("items loaded", items.length);
+
+    // update count
+    updateCount(items.length);
+    
+    // initial renders
+    renderRandom();
+    renderLatest(1);
+
+    // wire search input
+    const s = qs('#searchInput'); 
+    if (s){ 
+        s.addEventListener('input', (e) => { 
+            const q = e.target.value || ""; 
+            filterVideos(q); 
+        });
+    }
+
+    // Reels close wiring
+    const closeBtn = qs('#reelsCloseBtn'); 
+    if (closeBtn){ 
+        closeBtn.addEventListener('click', closeReelsPlayer);
+    } 
+
+    // Instead of auto-firing pop on page load (which is blocked by many browsers),
+    // we listen for the first real user gesture (click/touch) and then allow an initial pop after a short delay.
+    setupGestureListener(); 
+}
+
+// update item count display
+function updateCount(n){ 
+    const c = qs('#count'); 
+    if (c) c.textContent = `${n} items`; 
+}
+
+/*
+Gesture handling helpers
+markUserGesture: call when a direct user interaction happens
+setupGestureListener: listens to first global interaction to enable initial pop
+*/
+
+function markUserGesture(){
+    userInteracted = true;
+}
+
+// Listen for user gestures (click/touch/keydown) once, then allow an initial pop after a short delay.
+// This avoids firing a pop before any gesture (which is commonly blocked).
+
+function setupGestureListener(){
+    const events = ['click', 'touchstart', 'keydown'];
+    const handler = () => {
+        markUserGesture();
+        // Fire the first pop shortly after the first gesture
+        setTimeout(() => openAdsterraPop(), 500);
+        events.forEach(event =>
+        document.removeEventListener(event, handler, true)); 
+    };
+
+    events.forEach(event =>
+    document.addEventListener(event, handler, true)); 
+}
+
+
+// start
+loadAll();
