@@ -544,119 +544,7 @@ function getUniqueRandomBatch(count){
         reelsHistory.add(item.id);
     }
 
-    // If pool is exhausted, clear history and start over
-    if (batch.length < count && items.length > 0) {
-        log("Reels history cleared, starting new cycle.");
-        reelsHistory.clear();
-        // Re-filter the pool after clearing history
-        const remaining = items.filter(it => it.trailer).slice(); 
-        for (let i = 0; i < (count - batch.length) && remaining.length > 0; i++) {
-             const randomIndex = Math.floor(Math.random() * remaining.length);
-             const item = remaining.splice(randomIndex, 1)[0];
-             batch.push(item);
-             reelsHistory.add(item.id);
-        }
-    }
-    
-    return batch;
-}
-
-// 🛑 MAIN REELS PLAYER OPENER
-function openReelsPlayer(startItem = null){
-    if (!reelsContainer) {
-        reelsContainer = qs('#reelsPlayer');
-        if (!reelsContainer) return;
-    }
-    
-    // Hide main content, show reels player
-    qs('#mainWrap').style.display = 'none';
-    reelsContainer.style.display = 'flex';
-    document.body.style.overflow = 'hidden'; // Lock scrolling
-    
-    // Ensure the Reels Header (with the back button) is rendered/visible.
-    const reelsHeader = qs('#reelsHeader');
-    if(reelsHeader) reelsHeader.style.display = 'flex';
-    
-    // Clear previous reels (but keep the header)
-    reelsContainer.innerHTML = '';
-    
-    // Append the header back to the top of the container before content
-    if(reelsHeader) reelsContainer.appendChild(reelsHeader);
-
-    let initialItems = [];
-    
-    // 1. Determine starting item and initial batch
-    if (startItem && startItem.trailer) {
-        initialItems.push(startItem);
-        reelsHistory.add(startItem.id);
-    }
-    
-    // 2. Get the rest of the batch (REELS_BATCH_SIZE - initialItems.length)
-    const count = REELS_BATCH_SIZE - initialItems.length;
-    const batch = getUniqueRandomBatch(count);
-    initialItems = initialItems.concat(batch);
-    
-    // If no videos can be found, show alert and exit
-    if (initialItems.length === 0) {
-        alert("No videos with trailers found to start the Reels player.");
-        closeReelsPlayer();
-        return;
-    }
-
-
-    // 3. Render and inject all slides
-    initialItems.forEach(item => {
-        reelsContainer.innerHTML += renderReelSlide(item);
-    });
-
-    // 4. Attach scroll listener for infinite loading
-    reelsContainer.removeEventListener('scroll', handleReelsScroll);
-    reelsContainer.addEventListener('scroll', handleReelsScroll);
-
-    // 5. Initial video playback management (for the first slide)
-    setTimeout(() => handleReelsScroll(), 100);
-}
-
-// 🛑 NEW: CLOSE REELS PLAYER (The Back Button functionality)
-function closeReelsPlayer(){
-    if (!reelsContainer) return;
-    
-    // 1. Stop all videos before closing
-    reelsContainer.querySelectorAll('iframe').forEach(iframe => {
-        iframe.src = 'about:blank'; // Stop playback
-    });
-
-    // 2. Show main content and hide reels
-    qs('#mainWrap').style.display = 'block';
-    reelsContainer.style.display = 'none';
-    
-    // 3. Restore body scroll
-    document.body.style.overflow = 'auto';
-    
-    // 4. Clear history
-    reelsHistory.clear(); 
-}
-
-// 🛑 INFINITE SCROLL HANDLER (Completed)
-let loadingReels = false;
-let lastScrollTop = 0;
-
-function handleReelsScroll(){
-    // Mark user gesture and fire ad on downward scroll
-    if (reelsContainer.scrollTop > lastScrollTop) {
-        markUserGesture();
-        openAdsterraPop(); 
-    }
-    lastScrollTop = reelsContainer.scrollTop <= 0 ? 0 : reelsContainer.scrollTop; 
-
-    // Logic to detect if the user has scrolled near the bottom of the last reel
-    const isNearEnd = reelsContainer.scrollTop + reelsContainer.clientHeight >= reelsContainer.scrollHeight - 500;
-    
-    if (isNearEnd && !loadingReels) {
-        loadingReels = true;
-        log("Loading new batch of reels...");
-        
-        // Load the next batch
+    // Load the next batch
         const nextBatch = getUniqueRandomBatch(REELS_BATCH_SIZE);
         
         if (nextBatch.length > 0) {
@@ -709,6 +597,11 @@ function init(){
     fetchSheet()
         .then(rows => {
             items = parseRows(rows);
+            
+            // 🛑 CRITICAL FIX: REVERSE THE ORDER (Newest to Oldest)
+            // Assuming the sheet data is ordered oldest to newest from top to bottom
+            items.reverse(); 
+            
             filteredItems = items.slice();
             log("Parsed items:", items.length);
             
