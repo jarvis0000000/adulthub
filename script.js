@@ -499,7 +499,4 @@ async function loadAll(){
 
 // Start the application
 loadAll();
-                // Add this line inside the loadAll function, right before the initial renders:
-// Save data to localStorage for the trailer.html page to access
-localStorage.setItem('dareloom_items', JSON.stringify(items)); 
-        
+    
