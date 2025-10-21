@@ -3,7 +3,7 @@
 // 2025-10-21 (FINAL FIX: Full Duration Reels, Unmute, LocalStorage Scope)
 
 // ------------- CONFIG -------------
-const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZWo7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
+const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 const PER_PAGE = 5;
 const RANDOM_COUNT = 4;
 // Reels Config
@@ -132,10 +132,10 @@ for (let r of rows){
         }  
     });  
 
-    // 🛑 FIX 1: Removed logic that prioritizes Streamtape or filters links. 
-    // We must store the full string for watch.html to use its priority logic.
+    // 🛑 FIX 1: Removed logic that was prioritizing Streamtape or others. 
+    // We must store the full rawWatch string so watch.html can decide the priority.
+    // If we use 'finalWatchLink', only one link is stored, breaking the multi-button feature.
 
-    // Check for content using the raw, unfiltered watch links
     if ((!trailer || trailer.length === 0) && (!rawWatch || rawWatch.length === 0)) continue;  
 
     const id = `${slugify(title)}|${Math.random().toString(36).slice(2,8)}`;  
@@ -144,8 +144,8 @@ for (let r of rows){
         id,  
         title: title || 'Untitled',  
         trailer: trailer || '',  
-        watch: rawWatch || '',  // 🛑 FIXED: Stores the full comma-separated string
-        telegram: telegramLink || '', // Kept for Reels button
+        watch: rawWatch || '',  // 🛑 FIXED: Stores the full comma-separated string (Telegram, Streamtape, Streamwish, Mixdrop)
+        telegram: telegramLink || '', // Kept for a direct Reels button
         poster: poster || '',  
         date: date || '',  
         category: category || '',  
@@ -417,8 +417,8 @@ function openWatchPage(fullWatchLinks){
     markUserGesture();
     openAdsterraPop();
 
-    // 🛑 CRITICAL FIX 2: Redirect to the watch.html page with the entire link string.
-    // We keep the /go.html ad-gate logic by setting the final destination as the target.
+    // 🛑 FIX 2: Redirect to the watch.html page with the entire link string.
+    // fullWatchLinks is now the full string: link1,link2,link3...
     const finalDestination = `/watch?url=${encodeURIComponent(fullWatchLinks)}`;
     const redirectPage = `/go.html?target=${encodeURIComponent(finalDestination)}`;    
 
@@ -450,21 +450,28 @@ function toEmbedUrlForReels(url){
 if (!url) return '';
 url = url.trim();
 const y = extractYouTubeID(url);
-// 🛑 FIX: autoplay=0 (rely on API), removed mute=1 (allows sound), controls=1 (user control)
+// YouTube Embed
 if (y) return `https://www.youtube.com/embed/${y}?autoplay=0&rel=0&controls=1&enablejsapi=1&playsinline=1&origin=${window.location.origin}`; 
 
-// Check if Streamtape is in the comma-separated list
-if (url.includes('streamtape.com') && url.includes('/v/')){  
-    // This is complex for a comma-separated list, but we'll prioritize the first Streamtape link if multiple are present
-    const streamtapeMatch = url.split(',').find(link => link.includes('streamtape.com') && link.includes('/v/'));
-    if (streamtapeMatch) {
-        const id = streamtapeMatch.split('/v/')[1]?.split('/')[0];  
+// Prioritize the first Streamtape link from the comma-separated list for Reels embed
+const links = url.split(',').map(l => l.trim()).filter(Boolean);
+const streamtapeLink = links.find(link => (link.includes('streamtape.com') || link.includes('/v/')));
+    
+if (streamtapeLink) {
+    // If it's a Streamtape watch link, convert it to the embed link
+    if (streamtapeLink.includes('/v/')) {
+        const id = streamtapeLink.split('/v/')[1]?.split('/')[0];  
         if (id) return `https://streamtape.com/e/${id}/`;  
     }
-}  
+    // If it's already an embed link, use it
+    if (streamtapeLink.includes('/e/')) {
+        return streamtapeLink;
+    }
+}
   
-if (url.startsWith('http')) {  
-    return url.split(',')[0].trim(); // Use the first URL for generic embed
+// Use the first link as a fallback generic embed URL
+if (links.length > 0) {  
+    return links[0];  
 }  
 return '';
 }
@@ -530,7 +537,7 @@ itemsToLoad.forEach(it => {
     const telegramBtn = it.telegram ?   
         `<button onclick="window.open('${it.telegram}', '_blank')">Download Telegram</button>` : '';  
 
-    // Since it.watch now holds ALL links, we pass the full string to openWatchPage
+    // openWatchPage receives the FULL comma-separated string (it.watch)
     const openPlayerBtn = it.watch ?  
         `<button onclick="openWatchPage('${it.watch.replace(/'/g, "\\'")}')">Open Player</button>` :  
         `<button onclick="openTrailerPage('${it.id}')">View Details</button>`;  
@@ -574,7 +581,8 @@ qsa('#reelsPlayer iframe').forEach(iframe => {
     if (iframe.dataset.type === 'youtube' && iframe.contentWindow) {
         iframe.contentWindow.postMessage('{"event":"command","func":"stopVideo","args":""}', '*');
     }
-    iframe.src = 'about:blank'; // Clear other iframes
+    // Clear other iframes to stop them from running in the background
+    iframe.src = 'about:blank'; 
 });  
   
 if (reelsObserver) {  
@@ -605,19 +613,13 @@ reelsObserver = new IntersectionObserver((entries, observer) => {
         const originalUrl = iframe.dataset.originalSrc; // Get the original URL
 
         if (entry.isIntersecting) {
-            // Video is visible
-            if (iframe.dataset.type === 'youtube') {  
-                iframe.contentWindow.postMessage('{"event":"command","func":"playVideo","args":""}', '*');  
-            } else if (iframe.src === 'about:blank' && originalUrl) {
-                // For Streamtape/Other: reload the source if cleared
-                iframe.src = originalUrl;
-            }
-        } else {  
             // Video is not visible (scrolled away)
             if (iframe.dataset.type === 'youtube') {  
                 iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');  
             } 
-            // 🛑 FIX 3: Removed iframe.src = 'about:blank' for non-YouTube players to improve scroll performance.
+            // 🛑 FIX 3 (Reels Scroll): REMOVED clearing source here for non-YouTube players. 
+            // Clearing the source on every scroll out causes lag and scroll jank.
+            // We only clear it on `closeReelsPlayer()`.
         }  
     });  
 }, options);  
@@ -632,6 +634,11 @@ function setupInfiniteScrollObserver() {
     const marker = qs('#reelsContainer .reel:last-child .reel-load-more-marker');
 
     if (marker) {  
+        // Ensure old observer is disconnected if present
+        if (window.loadMoreObserver) {
+            window.loadMoreObserver.disconnect();
+        }
+        
         const loadMoreObserver = new IntersectionObserver((entries, observer) => {  
             entries.forEach(entry => {  
                 if (entry.isIntersecting) {  
@@ -641,7 +648,8 @@ function setupInfiniteScrollObserver() {
             });  
         }, { root: qs('#reelsPlayer'), threshold: 0.5 });   
           
-        loadMoreObserver.observe(marker);  
+        loadMoreObserver.observe(marker);
+        window.loadMoreObserver = loadMoreObserver; // Save observer reference
     }
 }
 
