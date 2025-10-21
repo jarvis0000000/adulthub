@@ -7,25 +7,27 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --primary: #ff4b91;
-  --secondary: #1e90ff;
-  --background: #0d0d0d;
-  --card-bg: #1a1a1a;
-  --text-color: #fff;
-  --muted-color: #aaa;
+    --primary: #ff4b91;
+    --secondary: #1e90ff;
+    --background: #0d0d0d;
+    --card-bg: #1a1a1a;
+    --text-color: #fff;
+    --muted-color: #aaa;
 }
-body,html {
+body,html{
   margin:0;padding:0;height:100%;
   background:var(--background);color:var(--text-color);
-  font-family:'Poppins',sans-serif;
+  font-family: 'Poppins', sans-serif;
   display:flex;flex-direction:column;align-items:center;
 }
-header {
+header{
   background:var(--card-bg);padding:15px 0;text-align:center;
   font-size:24px;font-weight:700;width:100%;
   box-shadow:0 3px 8px rgba(0,0,0,0.6);
   z-index:10;
 }
+
+/* Video Player Styling */
 #videoWrap {
   width:100%;
   max-width:900px;
@@ -37,274 +39,134 @@ header {
   border-radius:10px;
   overflow:hidden;
 }
-iframe {
+iframe{
   position:absolute;
   top:0;left:0;width:100%;height:100%;
   border:none;
   z-index:1;
-  pointer-events:auto;
-  touch-action:manipulation;
+  touch-action:manipulation; /* 🧩 Fix: Touch responsive */
+  pointer-events:auto;       /* 🧩 Fix: Clicks and fullscreen work */
 }
-.ad-box {
+.ad-box{
   margin:15px 0;
   width:100%;text-align:center;
 }
-.btn {
+.btn{
   background:var(--primary);color:#fff;border:none;
   padding:12px 25px;border-radius:25px;
   cursor:pointer;font-weight:600;
-  margin:10px 8px;
-  transition:all 0.3s ease;
-  flex-grow:1;max-width:250px;
+  margin:10px 8px;transition:all 0.3s ease;
+  flex-grow:1;max-width:250px;font-size:1rem;
   box-shadow:0 4px 10px rgba(0,0,0,0.3);
-  font-size:1rem;
 }
 .btn:hover {
-  background:#c2185b;
-  transform:translateY(-2px);
+  background:#c2185b;transform:translateY(-2px);
   box-shadow:0 6px 12px rgba(0,0,0,0.4);
 }
 footer{text-align:center;padding:15px;color:var(--muted-color);font-size:0.9rem;}
 #adblock-warning-overlay {
-  display:none;
-  position:fixed;
-  top:0;left:0;
-  width:100%;height:100%;
-  background:rgba(0,0,0,0.95);
-  color:white;text-align:center;
-  z-index:99999;
-  backdrop-filter:blur(5px);
-  justify-content:center;
-  align-items:center;
-  flex-direction:column;
-  padding:20px;
-  box-sizing:border-box;
+  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+  background:rgba(0,0,0,0.95);color:white;text-align:center;z-index:99999;
+  backdrop-filter:blur(5px);justify-content:center;align-items:center;flex-direction:column;padding:20px;
 }
 #main-content-wrapper {
-  display:none;
-  flex-direction:column;
-  align-items:center;
-  width:95%;
-  max-width:900px;
-  flex-grow:1;
+  display:none;flex-direction:column;align-items:center;width:95%;max-width:900px;flex-grow:1;
 }
 #user-message {
-  background:var(--card-bg);
-  color:var(--primary);
-  padding:15px 20px;
-  border-radius:10px;
-  width:100%;
-  margin-top:20px;
-  text-align:center;
-  font-size:17px;
-  font-weight:600;
-  box-shadow:0 2px 4px rgba(0,0,0,0.5);
+  background:var(--card-bg);color:var(--primary);
+  padding:15px 20px;border-radius:10px;width:100%;margin-top:20px;text-align:center;
+  font-size:17px;font-weight:600;box-shadow:0 2px 4px rgba(0,0,0,0.5);
 }
 #controls-container {
-  display:flex;
-  justify-content:center;
-  width:100%;
-  flex-wrap:wrap;
-  margin-top:20px;
-  margin-bottom:20px;
-  padding:10px;
-  background:var(--card-bg);
-  border-radius:10px;
-  z-index:2;
+  display:flex;justify-content:center;width:100%;flex-wrap:wrap;
+  margin-top:20px;margin-bottom:20px;padding:10px;background:var(--card-bg);
+  border-radius:10px;z-index:2;
 }
 </style>
 </head>
-
 <body>
 <header>🎥 Dareloom Hub</header>
 
-<div id="adblock-warning-overlay" role="alert" aria-live="assertive">
-  <h1 style="color:#FFD700;font-size:2.2rem;margin-top:0;">🚫 Ad Blocker Detected!</h1>
+<div id="adblock-warning-overlay">
+  <h1 style="color:#FFD700; font-size:2.2rem;margin-top:0;">🚫 Ad Blocker Detected!</h1>
   <p style="font-size:18px;margin-top:20px;max-width:600px;">
-    Kripya apna <b>Ad Blocker</b> disable karein aur page ko <b>refresh</b> karein — tabhi video chalega.
+    Humein maaf kijiye, hum aapko video nahi dikha sakte jab tak aap apna **Ad Blocker** disable nahi karte.<br>
+    Kripya Ad Blocker band karein aur page ko **refresh** karein.
   </p>
 </div>
 
 <div id="main-content-wrapper">
-  <div id="user-message">🎉 <b>Enjoy watching!</b> Video loading...</div>
+  <div id="user-message">🎉 **Enjoy watching!** Video loading...</div>
   <div id="videoWrap"></div>
 
-  <div class="ad-box">
-    <script type="text/javascript">
-      atOptions = {
-        'key' : 'd1be46ed95d3e2db572824c531da5082',
-        'format' : 'iframe',
-        'height' : 90,
-        'width' : 728,
-        'params' : {}
-      };
-    </script>
-    <script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>
-  </div>
-
   <div id="controls-container"></div>
-
-  <div class="ad-box">
-    <script type="text/javascript">
-      atOptions = {
-        'key' : 'd1be46ed95d3e2db572824c531da5082',
-        'format' : 'iframe',
-        'height' : 90,
-        'width' : 728,
-        'params' : {}
-      };
-    </script>
-    <script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>
-  </div>
 </div>
 
 <footer>© Dareloom Hub</footer>
 
 <script>
-// ---------- AD POP LOGIC ----------
-const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
-const POP_COOLDOWN_MS = 4000;
-let lastPop = 0;
-let isAdBlockerActive = false;
-
-function openAdsterraPop(){
-  if(isAdBlockerActive) return;
-  const now = Date.now();
-  if(now - lastPop < POP_COOLDOWN_MS) return;
-  lastPop = now;
-  setTimeout(()=>{
-    try{
-      const s=document.createElement('script');
-      s.src=AD_POP; s.async=true;
-      document.body.appendChild(s);
-      setTimeout(()=>{try{s.remove();}catch(e){}},5000);
-    }catch(e){console.warn("Ad pop failed",e);}
-  },500);
-}
-
-// ---------- Adblock Check ----------
-function checkAdBlocker(){
-  return new Promise(resolve=>{
-    const dummy=document.createElement('div');
-    dummy.className='pub_300x250 pub_dummy_ad ads adblock_detected';
-    dummy.style.width='1px';dummy.style.height='1px';
-    dummy.style.position='absolute';dummy.style.left='-1000px';
-    document.body.appendChild(dummy);
-    setTimeout(()=>{
-      const hidden=(dummy.offsetHeight===0||dummy.offsetParent===null||window.getComputedStyle(dummy).display==='none');
-      resolve(hidden); dummy.remove();
-    },300);
-  });
-}
-function showAdBlockerWarning(){
-  isAdBlockerActive=true;
-  document.getElementById('adblock-warning-overlay').style.display='flex';
-  document.getElementById('main-content-wrapper').style.display='none';
-}
-function showContent(){
-  isAdBlockerActive=false;
-  document.getElementById('adblock-warning-overlay').style.display='none';
-  document.getElementById('main-content-wrapper').style.display='flex';
-}
-
-// ---------- Video Parser ----------
+// ------------------------- Helper: Get Video Type --------------------------
 function getVideoDetails(url){
-  url=url.trim();
-  const d={url, isEmbed:false, label:'Open Link', color:'#e91e63', type:'other', priority:10, embedUrl:null};
-  if(!url.startsWith('http')) return d;
-  const u=url.toLowerCase();
+  url = url.trim();
+  if(!url.startsWith('http')) return null;
+  const u = url.toLowerCase();
 
-  // Mixdrop
-  if(u.includes("mixdrop")){
-    d.isEmbed=u.includes('/e/');
-    d.label='Open Mixdrop';
-    d.color='#6a0dad';
-    d.type='mixdrop';
-    d.priority=0;
-    const idMatch=url.match(/\/(f|e)\/([\w-]+)/);
-    d.embedUrl=idMatch?`https://mixdrop.co/e/${idMatch[2]}?autoplay=1`:url;
+  if(u.includes('streamwish.com') || u.includes('sw.fun')){
+    return { type: 'streamwish', label: 'Open Streamwish', color: '#ff6347', isEmbed: true, embedUrl: url.includes('/e/') ? url : url };
   }
-  // Streamwish
-  else if(u.includes("streamwish")||u.includes("sw.fun")){
-    d.isEmbed=true;
-    d.label='Open Streamwish';
-    d.color='#ff6347';
-    d.type='streamwish';
-    d.priority=1;
-    d.embedUrl=url.includes('/e/')?url:`${url.replace('/v/','/e/')}?autoplay=1`;
+  if(u.includes('mixdrop.co') || u.includes('mixdrop.ag')){
+    return { type: 'mixdrop', label: 'Open Mixdrop', color: '#6a0dad', isEmbed: true, embedUrl: url.includes('/e/') ? url : url };
   }
-  // Streamtape
-  else if(u.includes("streamtape")){
-    let id=url.match(/\/(v|e)\/([\w-]+)/);
-    const embed=id?`https://streamtape.com/e/${id[2]}/?autoplay=1`:url;
-    d.isEmbed=true;
-    d.label='Open Streamtape';
-    d.color='#0088ff';
-    d.type='streamtape';
-    d.priority=2;
-    d.embedUrl=embed;
+  if(u.includes('streamtape.com') || u.includes('/v/')){
+    let id = (url.match(/\/v\/([\w-]+)/) || [])[1];
+    let embedUrl = id ? `https://streamtape.com/e/${id}/` : url;
+    return { type: 'streamtape', label: 'Open Streamtape', color: '#0088ff', isEmbed: true, embedUrl };
   }
-  // Telegram
-  else if(u.includes("t.me")||u.includes("telegram.me")){
-    d.isEmbed=false;
-    d.label='Open Telegram';
-    d.color='#2aabee';
-    d.type='telegram';
-    d.priority=4;
+  if(u.includes('t.me') || u.includes('telegram.me')){
+    return { type: 'telegram', label: 'Open Telegram', color: '#2aabee', isEmbed: false, embedUrl: null };
   }
-  return d;
+  return { type: 'other', label: 'Open Link', color: '#e91e63', isEmbed: true, embedUrl: url };
 }
 
-// ---------- Main Loader ----------
+// ------------------------- Main Load Function --------------------------
 async function loadVideo(){
-  const adBlockActive=await checkAdBlocker();
-  if(adBlockActive){showAdBlockerWarning();return;}
-  showContent();
-  openAdsterraPop();
-
-  const params=new URLSearchParams(window.location.search);
-  let raw=params.get("url");
-  const videoWrap=document.getElementById("videoWrap");
-  const controls=document.getElementById("controls-container");
-  controls.innerHTML='';
+  const params = new URLSearchParams(window.location.search);
+  let raw = params.get("url");
+  const videoWrap = document.getElementById("videoWrap");
+  const controls = document.getElementById("controls-container");
 
   if(!raw){
-    videoWrap.innerHTML="<h2 style='color:white;text-align:center;padding:20px;'>⚠️ No video link found.</h2>";
+    videoWrap.innerHTML = "<h2 style='color:white;text-align:center;margin-top:20px;padding:20px;'>⚠️ No video link parameter found in the URL.</h2>";
     return;
   }
 
-  const links=decodeURIComponent(raw).split(',').map(l=>l.trim()).filter(Boolean);
-  const detailsList=links.map(getVideoDetails);
+  const links = decodeURIComponent(raw).split(',').map(x=>x.trim()).filter(Boolean);
+  const videos = links.map(getVideoDetails).filter(Boolean);
 
-  let primaryEmbed=null;
-  let highestPriority=Infinity;
-  const btns=[];
-
-  for(const d of detailsList){
-    if(d.isEmbed && d.priority<highestPriority && d.embedUrl){
-      primaryEmbed=d;
-      highestPriority=d.priority;
-    }
-    if(['mixdrop','streamwish','streamtape','telegram'].includes(d.type)){
-      btns.push(`
-        <button class="btn" style="background:${d.color};"
-          onclick="openAdsterraPop();window.open('${d.url}','_blank')">
-          ${d.label}
-        </button>`);
-    }
+  // Priority order: Streamwish > Mixdrop > Streamtape
+  const priority = ['streamwish','mixdrop','streamtape'];
+  let primary = null;
+  for(const p of priority){
+    primary = videos.find(v=>v.type===p && v.isEmbed);
+    if(primary) break;
   }
 
-  if(primaryEmbed){
-    videoWrap.innerHTML=`<iframe src="${primaryEmbed.embedUrl}" allow="autoplay; fullscreen; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
-    document.getElementById('user-message').innerHTML=`🎬 Playing from <b>${primaryEmbed.label.replace('Open ','')}</b>`;
-  }else{
-    videoWrap.innerHTML="<h3 style='color:white;text-align:center;padding:20px;'>⚠️ No embeddable video found. Use buttons below.</h3>";
+  // Embed primary video
+  if(primary && primary.embedUrl){
+    videoWrap.innerHTML = `<iframe src="${primary.embedUrl}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture; vr"></iframe>`;
+    document.getElementById("user-message").innerText = `🎬 Playing from ${primary.type.toUpperCase()}`;
+  } else {
+    videoWrap.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20px;padding:20px;'>⚠️ No embeddable video found. Use buttons below.</h3>";
   }
 
-  controls.innerHTML=btns.join('');
+  // Generate buttons (only for available links)
+  controls.innerHTML = videos.map(v => `
+    <button class="btn" style="background:${v.color};" onclick="window.open('${v.embedUrl || '#'}','_blank')">${v.label}</button>
+  `).join('');
 }
 
-document.addEventListener('DOMContentLoaded',loadVideo);
+// ------------------------- Init --------------------------
+document.addEventListener('DOMContentLoaded', loadVideo);
 </script>
 </body>
 </html>
