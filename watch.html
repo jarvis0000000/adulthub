@@ -1,47 +1,79 @@
-   <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Now Watching - Dareloom Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-/* CSS is mostly unchanged */
+/* CSS is updated for better aesthetics */
 :root {
-    --primary: #e91e63; /* Pink */
-    --background: #000;
+    --primary: #ff4b91; /* Bright Pink */
+    --secondary: #1e90ff; /* Dodger Blue */
+    --background: #0d0d0d; /* Darker Background */
+    --card-bg: #1a1a1a;
     --text-color: #fff;
     --muted-color: #aaa;
 }
 body,html{
   margin:0;padding:0;height:100%;
-  background:var(--background);color:var(--text-color);font-family:sans-serif;
+  background:var(--background);color:var(--text-color);
+  font-family: 'Poppins', sans-serif; /* Using Poppins */
   display:flex;flex-direction:column;align-items:center;
 }
 header{
-  background:#111;padding:12px 0;text-align:center;
-  font-size:22px;font-weight:bold;width:100%;
-  box-shadow:0 2px 6px rgba(0,0,0,0.5);
+  background:var(--card-bg);padding:15px 0;text-align:center;
+  font-size:24px;font-weight:700;width:100%;
+  box-shadow:0 3px 8px rgba(0,0,0,0.6);
   z-index: 10;
 }
+
+/* Video Player Styling */
+#videoWrap {
+    width: 100%;
+    max-width: 900px; /* Constrain width on large screens */
+    margin-top: 15px;
+    /* 16:9 Aspect Ratio Container */
+    position: relative;
+    padding-top: 56.25%; /* 9 / 16 = 0.5625 (16:9 ratio) */
+    height: 0;
+    background: #000;
+    border-radius: 10px;
+    overflow: hidden;
+}
 iframe{
-  width:100%;height:75vh;border:none;margin-top:10px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
 }
 .ad-box{
-  margin:8px 0;
+  margin:15px 0;
   width:100%;text-align:center;
 }
 .btn{
+  /* Button design update */
   background:var(--primary);color:#fff;border:none;
-  padding:10px 20px;border-radius:8px;
-  cursor:pointer;font-weight:bold;margin:15px 10px;
-  transition: background 0.3s;
+  padding:12px 25px;
+  border-radius:25px; /* Pill-shaped buttons */
+  cursor:pointer;font-weight:600;
+  margin:10px 8px; /* Slightly tighter spacing */
+  transition: all 0.3s ease;
+  flex-grow: 1; /* Allow buttons to grow */
+  max-width: 250px; /* Prevent buttons from getting too wide */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  font-size: 1rem;
 }
 .btn:hover {
     background: #c2185b;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.4);
 }
-footer{text-align:center;padding:10px;color:var(--muted-color);}
+footer{text-align:center;padding:15px;color:var(--muted-color); font-size: 0.9rem;}
 
-/* Ad Block Warning Styling */
+/* Ad Block Warning Styling (Unchanged) */
 #adblock-warning-overlay {
   display:none; 
   position:fixed; 
@@ -61,9 +93,9 @@ footer{text-align:center;padding:10px;color:var(--muted-color);}
   box-sizing: border-box;
 }
 
-/* Main Content Wrapper for visibility control */
+/* Main Content Wrapper for visibility control (Unchanged) */
 #main-content-wrapper {
-    display: none; /* Initially hide content until ad block check is complete */
+    display: none; 
     flex-direction: column;
     align-items: center;
     width: 95%;
@@ -73,23 +105,29 @@ footer{text-align:center;padding:10px;color:var(--muted-color);}
 
 /* User Message Box */
 #user-message {
-    background: #333;
-    color: #fff;
-    padding: 10px 20px;
-    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--primary);
+    padding: 15px 20px;
+    border-radius: 10px;
     width: 100%;
-    margin-top: 10px;
+    margin-top: 20px;
     text-align: center;
-    font-size: 16px;
-    font-weight: 500;
+    font-size: 17px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
+/* Controls Container (Button area) */
 #controls-container {
     display: flex;
     justify-content: center;
     width: 100%;
     flex-wrap: wrap;
-    margin-top: 10px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: var(--card-bg);
+    border-radius: 10px;
 }
 </style>
 </head>
@@ -107,7 +145,7 @@ footer{text-align:center;padding:10px;color:var(--muted-color);}
 
 <div id="main-content-wrapper">
     <div id="user-message">
-        🎉 **Enjoy watching!** For a better experience, click **full screen** to avoid in-player ads.
+        🎉 **Enjoy watching!** Video loading...
     </div>
     
     <div id="videoWrap"></div>
@@ -126,7 +164,20 @@ footer{text-align:center;padding:10px;color:var(--muted-color);}
     </div>
 
     <div id="controls-container">
-        </div>
+    </div>
+    
+    <div class="ad-box">
+      <script type="text/javascript">
+        atOptions = {
+          'key' : 'd1be46ed95d3e2db572824c531da5082',
+          'format' : 'iframe',
+          'height' : 90,
+          'width' : 728,
+          'params' : {}
+        };
+      </script>
+      <script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>
+    </div>
 </div>
 
 <footer>© Dareloom Hub</footer>
@@ -195,7 +246,7 @@ function checkAdBlocker(){
     });
 }
 
-// 🛑 FINAL FIX: Determines Embed URL, Label, and Color (Streamwish is first priority for embeddable check)
+// 🛑 FUNCTIONALITY LOGIC (UNCHANGED from your correct version)
 function getEmbedDetails(url) {
     url = url.trim();
     // priority: 1 is highest embed priority, 10 is default/low.
@@ -205,56 +256,61 @@ function getEmbedDetails(url) {
 
     // 1. Streamwish Embed (HIGHEST PRIORITY EMBED)
     if (url.includes("streamwish.com") || url.includes("sw.fun")) {
-        // Assuming the watch link is already the embed link or close to it (streamwish.com/e/hash)
         details.isEmbed = url.includes('/e/'); 
         details.label = 'Open Streamwish';
-        details.color = '#ff6347'; // Tomato
+        details.color = '#ff6347'; 
         details.priority = 1;
+        details.embedUrl = url; 
     } 
     // 2. Streamtape (High Priority Embed)
     else if (url.includes("streamtape.com/v/")){
         const m = url.match(/\/v\/([0-9A-Za-z_-]+)\/?/);
         if (m && m[1]) {
-            details.url = `https://streamtape.com/e/${m[1]}/`; // Convert to embed URL
+            details.url = `https://streamtape.com/e/${m[1]}/`; 
             details.isEmbed = true; 
             details.label = 'Open Streamtape';
             details.color = '#0088ff';
             details.priority = 2;
+            details.embedUrl = `https://streamtape.com/e/${m[1]}/`; 
         }
     } 
     // 3. Mixdrop (Medium Priority Embed)
     else if (url.includes("mixdrop.co") || url.includes("mixdrop.ag")) {
         details.isEmbed = url.includes('/e/'); 
         details.label = 'Open Mixdrop';
-        details.color = '#6a0dad'; // Deep Purple
+        details.color = '#6a0dad'; 
         details.priority = 3;
+        details.embedUrl = url;
     }
     // 4. Telegram Download Link (Highest Priority NON-EMBED button)
     else if (url.includes("t.me") || url.includes("telegram.me")) {
         details.isEmbed = false;
         details.label = '⬇️ Download Telegram';
-        details.color = '#2aabee'; // Telegram Blue
-        details.priority = 4; // Lower than embeds, but still tracked
+        details.color = '#2aabee'; 
+        details.priority = 4; 
+        details.embedUrl = null;
     }
     // 5. MEGA Link (Non-embed button)
     else if (url.includes("mega.nz")) {
         details.isEmbed = false;
         details.label = 'Open MEGA Link';
-        details.color = '#007bff'; // Blue
+        details.color = '#007bff'; 
         details.priority = 5;
+        details.embedUrl = null;
     }
     // 6. Generic Link (Lowest Priority Embed)
     else if (url.startsWith('http')){
         details.isEmbed = true;
         details.label = 'Open Generic Player';
-        details.color = '#e91e63'; // Pink
+        details.color = '#e91e63'; 
         details.priority = 6;
+        details.embedUrl = url;
     }
 
     return details;
 }
 
-// ------------- VIDEO LOAD LOGIC -------------
+// ------------- VIDEO LOAD LOGIC (UNCHANGED from your correct version) -------------
 async function loadVideo(){
     // 1. Check Ad Blocker
     const adBlockActive = await checkAdBlocker();
@@ -272,31 +328,31 @@ async function loadVideo(){
     let raw = params.get("url");
     const videoWrap = document.getElementById("videoWrap");
     const controlsContainer = document.getElementById("controls-container");
-    controlsContainer.innerHTML = ''; // Clear old buttons
+    controlsContainer.innerHTML = ''; 
 
     if(raw){
         const fullLinks = decodeURIComponent(raw).split(',').map(l => l.trim()).filter(Boolean);
         
         let primaryEmbedUrl = '';
         let primaryEmbedLabel = '';
-        let highestPriority = Infinity; // Start with the lowest priority value
+        let highestPriority = Infinity; 
         
         const buttonsHtml = [];
         
         // 🛑 IMPORTANT: Process all links and store details
         const linkDetails = fullLinks.map(link => getEmbedDetails(link));
 
-        // 🛑 NEW LOGIC: Find the highest priority embeddable link
+        // 🛑 Find the highest priority embeddable link
         for(const details of linkDetails) {
             
             // 1. Check for Primary Embed URL based on priority
-            if (details.isEmbed && details.priority < highestPriority) {
-                primaryEmbedUrl = details.url; 
+            if (details.isEmbed && details.priority < highestPriority && details.embedUrl) {
+                primaryEmbedUrl = details.embedUrl; 
                 primaryEmbedLabel = details.label; 
                 highestPriority = details.priority;
             }
             
-            // 2. Generate button HTML for ALL links (including non-embeds)
+            // 2. Generate button HTML for ALL links
             buttonsHtml.push(`
                 <button class="btn" style="background:${details.color};" 
                         onclick="openAdsterraPop(); window.open('${details.url}', '_blank')">
@@ -308,19 +364,16 @@ async function loadVideo(){
         // 4. Embed the Primary Video
         if (primaryEmbedUrl) {
             videoWrap.innerHTML = `<iframe src="${primaryEmbedUrl}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>`;
-            // Update user message to indicate which player is loaded
             document.getElementById('user-message').innerHTML = `🎉 **Enjoy watching!** Video loaded from **${primaryEmbedLabel.replace('Open ', '').replace(' Player', '')}**.`;
         } else {
-            // Display explicit message if links were present but not embeddable
-            videoWrap.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20px;'>⚠️ No valid embeddable video link found. Use the buttons below to watch.</h3>";
+            videoWrap.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20px;padding:20px;'>⚠️ No valid embeddable video link found. Use the buttons below to watch.</h3>";
         }
 
         // 5. Render Buttons (All buttons, including Telegram/MEGA)
         controlsContainer.innerHTML = buttonsHtml.join('');
         
     } else {
-        // Display explicit message if NO 'url' parameter was found
-        videoWrap.innerHTML = "<h2 style='color:white;text-align:center;margin-top:20px;'>⚠️ No video link parameter found in the URL.</h2>";
+        videoWrap.innerHTML = "<h2 style='color:white;text-align:center;margin-top:20px;padding:20px;'>⚠️ No video link parameter found in the URL.</h2>";
     }
 }
 
