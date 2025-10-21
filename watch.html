@@ -23,47 +23,38 @@ header{
   box-shadow:0 2px 6px rgba(0,0,0,0.5);
   z-index: 10;
 }
-/* --- MODIFIED: Used 16:9 Aspect Ratio container for better video resizing --- */
-#videoWrap {
-  width: 100%;
-  max-width: 1200px; /* Increased max-width for bigger video */
-  margin-top: 15px;
-  position: relative;
-  padding-top: 56.25%; /* Maintains 16:9 aspect ratio */
-  height: 0;
-  background: #000;
-  border-radius: 8px;
-  overflow: hidden;
-}
-/* --- MODIFIED: iframe takes full size of container and enables pointer-events --- */
 iframe{
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border:none;
-  pointer-events: auto; /* Enables touch/gestures */
-  touch-action: manipulation;
+  width:100%;height:75vh;border:none;margin-top:10px;
 }
 .ad-box{
   margin:8px 0;
   width:100%;text-align:center;
 }
 .btn{
-  background:var(--primary);color:#fff;border:none;
-  padding:10px 20px;border-radius:8px;
-  cursor:pointer;font-weight:bold;margin:15px 10px;
-  transition: background 0.3s;
-  flex-grow: 1; 
-  max-width: 250px;
+  /* Base Pink button */
+  background:var(--primary);
+  color:#fff;
+  border:none;
+  padding:12px 20px; /* Thoda bada kiya */
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:bold;
+  margin:8px 10px; /* Margin adjust kiya */
+  transition: background 0.3s, transform 0.1s;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3); /* Shadow add kiya */
+  text-decoration: none; /* A tag ke liye */
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
 }
 .btn:hover {
     background: #c2185b;
+    transform: translateY(-1px); /* Halka lift up effect */
 }
 footer{text-align:center;padding:10px;color:var(--muted-color);}
 
-/* Ad Block Warning Styling */
+/* NEW: Ad Block Warning Styling */
 #adblock-warning-overlay {
   display:none; 
   position:fixed; 
@@ -89,7 +80,7 @@ footer{text-align:center;padding:10px;color:var(--muted-color);}
     flex-direction: column;
     align-items: center;
     width: 95%;
-    max-width: 1200px; /* Matched max-width with #videoWrap */
+    max-width: 900px;
     flex-grow: 1;
 }
 
@@ -113,6 +104,23 @@ footer{text-align:center;padding:10px;color:var(--muted-color);}
     flex-wrap: wrap;
     margin-top: 10px;
 }
+
+/* Custom Button Colors for better design */
+.btn-telegram { background: #0088cc !important; }
+.btn-telegram:hover { background: #0077b3 !important; }
+
+.btn-mixdrop { background: #ff4500 !important; } /* OrangeRed */
+.btn-mixdrop:hover { background: #cc3700 !important; }
+
+.btn-streamwish { background: #1e88e5 !important; } /* Blue */
+.btn-streamwish:hover { background: #1565c0 !important; }
+
+.btn-streamtape { background: #6a0dad !important; } /* Purple */
+.btn-streamtape:hover { background: #5a0a99 !important; }
+
+.btn-mega { background: #007bff !important; }
+.btn-mega:hover { background: #0069d9 !important; }
+
 </style>
 </head>
 
@@ -129,7 +137,7 @@ footer{text-align:center;padding:10px;color:var(--muted-color);}
 
 <div id="main-content-wrapper">
     <div id="user-message">
-        🎉 **Enjoy watching!** Video loading...
+        🎉 **Enjoy watching!** For a better experience, click **full screen** to avoid in-player ads.
     </div>
     
     <div id="videoWrap"></div>
@@ -149,30 +157,17 @@ footer{text-align:center;padding:10px;color:var(--muted-color);}
 
     <div id="controls-container">
         </div>
-        
-    <div class="ad-box">
-        <script type="text/javascript">
-          atOptions = {
-            'key' : 'd1be46ed95d3e2db572824c531da5082',
-            'format' : 'iframe',
-            'height' : 90,
-            'width' : 728,
-            'params' : {}
-          };
-        </script>
-        <script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>
-      </div>
 </div>
 
 <footer>© Dareloom Hub</footer>
 
 <script>
-    // 🛑 POPUNDER LOGIC
+    // 🛑 CTR OPTIMIZATION: Aggressive Timing
     const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
-    const POP_COOLDOWN_MS = 4000; 
-    const POP_DELAY_MS = 500;     
+    const POP_COOLDOWN_MS = 4000; // Reduced from 7000ms
+    const POP_DELAY_MS = 500;     // Reduced from 2000ms
     let lastPop = 0;
-    let isAdBlockerActive = false; 
+    let isAdBlockerActive = false; // State variable
 
     function openAdsterraPop(){
         if (isAdBlockerActive) return; 
@@ -185,12 +180,15 @@ footer{text-align:center;padding:10px;color:var(--muted-color);}
                 s.src = AD_POP;
                 s.async = true;
                 document.body.appendChild(s);
-                setTimeout(()=>{ try{s.remove();}catch(e){} }, 5000); 
+                setTimeout(()=>{ try{s.remove();}catch(e){} }, 5000); // Increased removal time
             }catch(e){ console.warn("Ad pop failed", e); }
         }, POP_DELAY_MS);
     }
+</script>
 
-// ------------- AD BLOCKER & HELPER LOGIC (Kept same) -------------
+
+<script>
+// ------------- AD BLOCKER LOGIC -------------
 function showAdBlockerWarning(){
     isAdBlockerActive = true;
     const warning = document.getElementById('adblock-warning-overlay');
@@ -204,11 +202,12 @@ function showContent(){
     const warning = document.getElementById('adblock-warning-overlay');
     const content = document.getElementById('main-content-wrapper');
     if (warning) warning.style.display = 'none';
-    if (content) content.style.display = 'flex'; 
+    if (content) content.style.display = 'flex'; // Use flex to retain column layout
 }
 
 function checkAdBlocker(){
     return new Promise(resolve => {
+        // Use a common ad class name for detection
         const dummyAd = document.createElement('div');
         dummyAd.className = 'pub_300x250 pub_dummy_ad ads adblock_detected';
         dummyAd.style.width = '1px';
@@ -217,87 +216,68 @@ function checkAdBlocker(){
         dummyAd.style.left = '-1000px';
         document.body.appendChild(dummyAd);
         setTimeout(() => {
+            // Check if the element's size has been collapsed by an ad blocker
             if (dummyAd.offsetHeight === 0 || dummyAd.offsetParent === null || window.getComputedStyle(dummyAd).getPropertyValue('display') === 'none') {
-                resolve(true); 
+                resolve(true); // Ad Blocker is ON
             } else {
-                resolve(false); 
+                resolve(false); // Ad Blocker is OFF
             }
             dummyAd.remove();
         }, 300);
     });
 }
+// ------------- VIDEO LOAD LOGIC (UPDATED) -------------
+/**
+ * @param {string} url 
+ * @returns {string} The embeddable URL for the given host
+ */
+function getEmbedUrl(url) {
+    if (!url) return '';
+    
+    let finalEmbedUrl = url.trim();
 
-// 🛑 MODIFIED: Embed Details with requested PRIORITY: 1. Mixdrop, 2. Streamwish, 3. Streamtape
-function getEmbedDetails(url) {
-    url = url.trim();
-    // priority: lower number = higher embed priority. 
-    const details = { url: url, isEmbed: false, label: 'Open Player', color: '#e91e63', type: 'other', priority: 99, embedUrl: null }; 
-
-    if (!url.startsWith('http')) return details; 
-    const u = url.toLowerCase();
-
-    // 1. Mixdrop (Highest Priority: 0)
-    if (u.includes("mixdrop.co") || u.includes("mixdrop.ag")) {
-        // Look for the ID to create the embed URL if needed
-        const idMatch=url.match(/\/(f|e)\/([\w-]+)/);
-        const id=idMatch?idMatch[2]:null;
-
-        details.isEmbed = !!id; // Only embed if ID is found
-        details.label = 'Open Mixdrop';
-        details.color = '#6a0dad'; // Deep Purple
-        details.type = 'mixdrop';
-        details.priority = 0;
-        details.embedUrl = id ? `https://mixdrop.co/e/${id}?autoplay=1` : null;
-    } 
-    // 2. Streamwish (Second Highest Priority: 1)
-    else if (u.includes("streamwish.com") || u.includes("sw.fun")) {
-        details.isEmbed = u.includes('/e/'); 
-        details.label = 'Open Streamwish';
-        details.color = '#ff6347'; // Tomato
-        details.type = 'streamwish';
-        details.priority = 1;
-        // Construct embed URL if it's a /v/ link
-        details.embedUrl = u.includes('/e/') ? url : `${url.replace('/v/','/e/')}?autoplay=1`;
-    } 
-    // 3. Streamtape (Third Highest Priority: 2)
-    else if (u.includes("streamtape.com")){
-        const idMatch = url.match(/\/(v|e)\/([\w-]+)/);
-        const id = idMatch ? idMatch[2] : null;
-
-        details.isEmbed = !!id; 
-        details.label = 'Open Streamtape';
-        details.color = '#0088ff';
-        details.type = 'streamtape';
-        details.priority = 2;
-        details.embedUrl = id ? `https://streamtape.com/e/${id}/?autoplay=1` : null;
-    } 
-    // 4. Telegram Download Link (Button Only: Priority 3)
-    else if (u.includes("t.me") || u.includes("telegram.me")) {
-        details.isEmbed = false;
-        details.label = '🔗 Open Telegram';
-        details.color = '#2aabee'; // Telegram Blue
-        details.type = 'telegram';
-        details.priority = 3; 
+    // 1. MixDrop (mdy48tn97.com is an example of a MixDrop mirror/domain)
+    if (finalEmbedUrl.includes("mixdrop.") || finalEmbedUrl.includes("mdy48tn97.com")) {
+        const m = finalEmbedUrl.match(/\/f\/([0-9A-Za-z_-]+)/);
+        if (m && m[1]) {
+            return `https://mixdrop.ch/e/${m[1]}`;
+        }
     }
-    // 5. MEGA Link (Button Only: Priority 4)
-    else if (u.includes("mega.nz")) {
-        details.isEmbed = false;
-        details.label = '🔗 Open MEGA Link';
-        details.color = '#007bff'; // Blue
-        details.type = 'mega';
-        details.priority = 4;
+    
+    // 2. Streamwish (dumbalag.com is an example of a Streamwish mirror/domain)
+    if (finalEmbedUrl.includes("streamwish.") || finalEmbedUrl.includes("dumbalag.com")) {
+        const m = finalEmbedUrl.match(/\/([0-9A-Za-z_-]+)/);
+        if (m && m[1]) {
+            return `https://streamwish.com/e/${m[1]}`;
+        }
     }
 
-    return details;
+    // 3. Streamtape
+    if (finalEmbedUrl.includes("streamtape.com/v/")){
+        const m = finalEmbedUrl.match(/\/v\/([0-9A-Za-z_-]+)\//);
+        if (m && m[1]) return `https://streamtape.com/e/${m[1]}/`;
+    }
+
+    // 4. MEGA Link (Not embeddable)
+    if (finalEmbedUrl.includes("mega.nz")) {
+        return 'MEGA'; // Special return to handle in loadVideo
+    }
+    
+    // 5. Google Drive (Only for /view to /preview conversion)
+    if (finalEmbedUrl.includes("drive.google.com") && finalEmbedUrl.includes("/view")) {
+        return finalEmbedUrl.replace("/view", "/preview");
+    }
+
+    // 6. Generic Link (Hope for the best, e.g., direct MP4)
+    return finalEmbedUrl;
 }
 
-// ------------- VIDEO LOAD LOGIC (MODIFIED for button filtering and order) -------------
 async function loadVideo(){
     // 1. Check Ad Blocker
     const adBlockActive = await checkAdBlocker();
     if (adBlockActive) {
         showAdBlockerWarning();
-        return; 
+        return; // Stop execution if blocked
     }
     showContent();
     
@@ -309,71 +289,128 @@ async function loadVideo(){
     let raw = params.get("url");
     const videoWrap = document.getElementById("videoWrap");
     const controlsContainer = document.getElementById("controls-container");
-    controlsContainer.innerHTML = ''; 
-
-    if(!raw){
-        videoWrap.innerHTML = "<h2 style='color:white;text-align:center;margin-top:20px;'>⚠️ No video link parameter found in the URL.</h2>";
-        document.getElementById('user-message').innerHTML = "🚫 **Video Unavailable:** URL mein link nahi mila.";
-        return;
-    }
-
-    const fullLinks = decodeURIComponent(raw).split(',').map(l => l.trim()).filter(Boolean);
-    const linkDetails = fullLinks.map(link => getEmbedDetails(link));
-
-    let primaryEmbed = null;
-    let highestPriority = Infinity; 
     
-    // Use a map to ensure only one button is created per unique host, prioritizing the first link found for that host
-    const buttonMap = {}; 
-
-    // Find the highest priority embeddable link AND populate the button map
-    for(const details of linkDetails) {
+    // Clear existing controls
+    controlsContainer.innerHTML = '';
+    
+    if(raw){
+        const fullUrl = decodeURIComponent(raw).trim();
+        const links = fullUrl.split(',').map(l => l.trim()).filter(Boolean);
         
-        // A. Primary Embed Logic (Priority check)
-        if (details.isEmbed && details.priority < highestPriority && details.embedUrl) {
-            primaryEmbed = details; 
-            highestPriority = details.priority;
+        let telegramLink = '';
+        const hostLinks = {
+            'mixdrop': { url: '', embedUrl: '' },
+            'streamwish': { url: '', embedUrl: '' },
+            'streamtape': { url: '', embedUrl: '' },
+            'mega': { url: '', embedUrl: '' },
+            'other': { url: '', embedUrl: '' },
+        };
+        
+        // Parse all links and categorize them
+        for(const link of links){
+            if (link.includes("t.me") || link.includes("telegram.me")) {
+                telegramLink = link;
+            } else if (link.includes("mixdrop.") || link.includes("mdy48tn97.com")) {
+                hostLinks.mixdrop.url = link;
+                hostLinks.mixdrop.embedUrl = getEmbedUrl(link);
+            } else if (link.includes("streamwish.") || link.includes("dumbalag.com")) {
+                hostLinks.streamwish.url = link;
+                hostLinks.streamwish.embedUrl = getEmbedUrl(link);
+            } else if (link.includes("streamtape.com/")) {
+                hostLinks.streamtape.url = link;
+                hostLinks.streamtape.embedUrl = getEmbedUrl(link);
+            } else if (link.includes("mega.nz")) {
+                hostLinks.mega.url = link;
+                hostLinks.mega.embedUrl = getEmbedUrl(link);
+            } else {
+                // First non-categorized link becomes 'other'
+                if (!hostLinks.other.url) {
+                    hostLinks.other.url = link;
+                    hostLinks.other.embedUrl = getEmbedUrl(link);
+                }
+            }
         }
         
-        // B. Button Map Logic (Ensure button is created if link is present)
-        if (!buttonMap[details.type] || details.priority < buttonMap[details.type].priority) {
-            buttonMap[details.type] = details;
+        let embedLink = null;
+        let isMega = false;
+        
+        // Determine which link to embed based on priority: MixDrop > Streamwish > Streamtape > Other
+        if (hostLinks.mixdrop.embedUrl && hostLinks.mixdrop.embedUrl !== 'MEGA') {
+            embedLink = hostLinks.mixdrop.embedUrl;
+        } else if (hostLinks.streamwish.embedUrl && hostLinks.streamwish.embedUrl !== 'MEGA') {
+            embedLink = hostLinks.streamwish.embedUrl;
+        } else if (hostLinks.streamtape.embedUrl && hostLinks.streamtape.embedUrl !== 'MEGA') {
+            embedLink = hostLinks.streamtape.embedUrl;
+        } else if (hostLinks.other.embedUrl && hostLinks.other.embedUrl !== 'MEGA') {
+            embedLink = hostLinks.other.embedUrl;
+        } else if (hostLinks.mega.embedUrl === 'MEGA') {
+            isMega = true;
+            embedLink = null;
+        } else {
+            // No embeddable link found
+            videoWrap.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20px;'>⚠️ No valid video link found for player.</h3>";
         }
-    }
-    
-    // 4. Embed the Primary Video
-    if (primaryEmbed) {
-        videoWrap.innerHTML = `<iframe src="${primaryEmbed.embedUrl}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>`;
-        document.getElementById('user-message').innerHTML = `🎬 Playing from <b>${primaryEmbed.label.replace('Open ', '')}</b>`;
+        
+        // Render the video player or warning
+        if (isMega) {
+             videoWrap.innerHTML = `<h3 style='color:white;text-align:center;margin-top:40px;'>
+                ⚠️ This video is hosted on MEGA. It cannot be embedded here.
+            </h3>`;
+        } else if (embedLink) {
+            videoWrap.innerHTML = `<iframe src="${embedLink}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>`;
+        }
+        
+        // 4. Render all download/open buttons
+        
+        // Telegram Button (Download)
+        if(telegramLink){
+            controlsContainer.innerHTML += `<a class="btn btn-telegram" href="${telegramLink}" target="_blank" onclick="openAdsterraPop();">
+                ⬇️ Download / Watch on Telegram
+            </a>`;
+        }
+
+        // MixDrop Button
+        if (hostLinks.mixdrop.url) {
+            controlsContainer.innerHTML += `<a class="btn btn-mixdrop" href="${hostLinks.mixdrop.url}" target="_blank" onclick="openAdsterraPop();">
+                🔗 Open MixDrop Link
+            </a>`;
+        }
+
+        // Streamwish Button
+        if (hostLinks.streamwish.url) {
+            controlsContainer.innerHTML += `<a class="btn btn-streamwish" href="${hostLinks.streamwish.url}" target="_blank" onclick="openAdsterraPop();">
+                🔗 Open Streamwish Link
+            </a>`;
+        }
+        
+        // Streamtape Button
+        if (hostLinks.streamtape.url) {
+            controlsContainer.innerHTML += `<a class="btn btn-streamtape" href="${hostLinks.streamtape.url}" target="_blank" onclick="openAdsterraPop();">
+                🔗 Open Streamtape Link
+            </a>`;
+        }
+        
+        // MEGA Button
+        if (hostLinks.mega.url) {
+            controlsContainer.innerHTML += `<a class="btn btn-mega" href="${hostLinks.mega.url}" target="_blank" onclick="openAdsterraPop();">
+                🔗 Open MEGA Link
+            </a>`;
+        }
+        
+        // Other Button (if it was used for embedding and is not a known host)
+        if (hostLinks.other.url && !embedLink) {
+             controlsContainer.innerHTML += `<a class="btn" href="${hostLinks.other.url}" target="_blank" onclick="openAdsterraPop();">
+                🔗 Open Video Source
+            </a>`;
+        }
+        
     } else {
-        // Display explicit message if links were present but not embeddable
-        videoWrap.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20px;'>🚫 Video Unavailable. Please use the buttons below to check alternate sources.</h3>";
-        document.getElementById('user-message').innerHTML = "🚫 **Video Unavailable:** Please check the alternative sources below.";
+        videoWrap.innerHTML = "<h2 style='color:white;text-align:center;'>⚠️ No video link parameter found</h2>";
     }
-
-    // 5. Render Buttons (Using the map to ensure only one of each type, and using a fixed order)
-    const buttonOrder = ['mixdrop', 'streamwish', 'streamtape', 'telegram', 'mega'];
-    let btnsHtml = [];
-    
-    for (const type of buttonOrder) {
-        const details = buttonMap[type];
-        if (details) { 
-            // openAdsterraPop() is called on button click
-            btnsHtml.push(`
-                <button class="btn" style="background:${details.color};" 
-                        onclick="openAdsterraPop(); window.open('${details.url}', '_blank')">
-                    ${details.label}
-                </button>
-            `);
-        }
-    }
-
-    controlsContainer.innerHTML = btnsHtml.join('');
 }
 
-// 6. Initial Load
+// 4. Initial Load
 document.addEventListener('DOMContentLoaded', loadVideo);
 </script>
 </body>
 </html>
-
