@@ -3,7 +3,7 @@
 // 2025-10-21 (FINAL FIX: Full Duration Reels, Unmute, LocalStorage Scope)
 
 // ------------- CONFIG -------------
-const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
+const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZWo7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 const PER_PAGE = 5;
 const RANDOM_COUNT = 4;
 // Reels Config
@@ -117,27 +117,26 @@ for (let r of rows){
     r = Array.isArray(r) ? r : [];  
     const title = (r[TI] || '').toString().trim();  
     const trailer = (r[TR] || '').toString().trim();  
-    const rawWatch = (r[WA] || '').toString().trim();   
+    const rawWatch = (r[WA] || '').toString().trim(); // Full comma-separated links   
     const poster = (TH !== -1 && r[TH]) ? r[TH].toString().trim() : '';  
     const date = (DT !== -1 && r[DT]) ? r[DT].toString().trim() : '';  
     const category = (CA !== -1 && r[CA]) ? r[CA].toString().trim() : '';  
     const description = (DE !== -1 && r[DE]) ? r[DE].toString().trim() : '';  
 
     let telegramLink = '';  
-    let streamtapeLink = '';  
     const links = rawWatch.split(',').map(l => l.trim()).filter(Boolean);  
 
     links.forEach(link => {  
         if (link.includes('t.me') || link.includes('telegram')) {  
             telegramLink = link;  
-        } else if (link.includes('streamtape.com') || link.includes('/v/')) {  
-            streamtapeLink = link;  
         }  
     });  
 
-    const finalWatchLink = streamtapeLink || rawWatch;   
+    // 🛑 FIX 1: Removed logic that prioritizes Streamtape or filters links. 
+    // We must store the full string for watch.html to use its priority logic.
 
-    if ((!trailer || trailer.length === 0) && (!finalWatchLink || finalWatchLink.length === 0)) continue;  
+    // Check for content using the raw, unfiltered watch links
+    if ((!trailer || trailer.length === 0) && (!rawWatch || rawWatch.length === 0)) continue;  
 
     const id = `${slugify(title)}|${Math.random().toString(36).slice(2,8)}`;  
 
@@ -145,8 +144,8 @@ for (let r of rows){
         id,  
         title: title || 'Untitled',  
         trailer: trailer || '',  
-        watch: finalWatchLink || '',  
-        telegram: telegramLink || '',  
+        watch: rawWatch || '',  // 🛑 FIXED: Stores the full comma-separated string
+        telegram: telegramLink || '', // Kept for Reels button
         poster: poster || '',  
         date: date || '',  
         category: category || '',  
@@ -214,6 +213,7 @@ slice.forEach(it => {
     div.className = 'latest-item';  
     const thumb = makeThumbnail(it);  
       
+    // 🛑 Note: data-url now contains the full comma-separated list of links (it.watch)
     div.innerHTML = `  
         <img class="latest-thumb" src="${escapeHtml(thumb)}" loading="lazy" alt="${escapeHtml(it.title)}">   
         <div class="latest-info">   
@@ -358,7 +358,7 @@ openTrailerPage(it);
 function onWatchClick(e){
 markUserGesture();
 e.stopPropagation(); // Stop propagation
-const url = e.currentTarget.dataset.url;
+const url = e.currentTarget.dataset.url; // This now holds the full comma-separated list
 if (!url) return;
 openWatchPage(url);
 }
@@ -412,31 +412,27 @@ console.error("Failed to open trailer page", e);
 }, 120);
 }
 
-function openWatchPage(targetUrl){
-if (!targetUrl) return;
-markUserGesture();
-openAdsterraPop();
+function openWatchPage(fullWatchLinks){
+    if (!fullWatchLinks) return;
+    markUserGesture();
+    openAdsterraPop();
 
-setTimeout(()=> {  
-    try {  
-        let final = targetUrl;  
-        if (final.includes('/v/')){  
-            const m = final.match(/\/v\/([0-9A-Za-z_-]+)/);  
-            if (m && m[1]) final = `https://streamtape.com/e/${m[1]}/`;  
+    // 🛑 CRITICAL FIX 2: Redirect to the watch.html page with the entire link string.
+    // We keep the /go.html ad-gate logic by setting the final destination as the target.
+    const finalDestination = `/watch?url=${encodeURIComponent(fullWatchLinks)}`;
+    const redirectPage = `/go.html?target=${encodeURIComponent(finalDestination)}`;    
+
+    setTimeout(()=> {  
+        try {  
+            // Use window.open to respect the user's pop-up ad-gate monetization flow
+            const w = window.open(redirectPage, '_blank');    
+            if (!w || w.closed || typeof w.closed === 'undefined'){    
+                alert("Please allow pop-ups to open the link in a new tab!");    
+            }    
+        } catch(e){    
+            console.error(e);    
         }  
-
-        const redirectPage = `/go.html?target=${encodeURIComponent(final)}`;    
-
-        const w = window.open(redirectPage, '_blank');    
-        if (!w || w.closed || typeof w.closed === 'undefined'){    
-            alert("Please allow pop-ups to open the link in a new tab!");    
-        }    
-    } catch(e){    
-        console.error(e);    
-    }  
-
-}, 120);
-
+    }, 120);
 }
 
 // ------------- REELS PLAYER LOGIC (UPDATED FOR BETTER SCROLL) -------------
@@ -457,13 +453,18 @@ const y = extractYouTubeID(url);
 // 🛑 FIX: autoplay=0 (rely on API), removed mute=1 (allows sound), controls=1 (user control)
 if (y) return `https://www.youtube.com/embed/${y}?autoplay=0&rel=0&controls=1&enablejsapi=1&playsinline=1&origin=${window.location.origin}`; 
 
+// Check if Streamtape is in the comma-separated list
 if (url.includes('streamtape.com') && url.includes('/v/')){  
-    const id = url.split('/v/')[1]?.split('/')[0];  
-    if (id) return `https://streamtape.com/e/${id}/`;  
+    // This is complex for a comma-separated list, but we'll prioritize the first Streamtape link if multiple are present
+    const streamtapeMatch = url.split(',').find(link => link.includes('streamtape.com') && link.includes('/v/'));
+    if (streamtapeMatch) {
+        const id = streamtapeMatch.split('/v/')[1]?.split('/')[0];  
+        if (id) return `https://streamtape.com/e/${id}/`;  
+    }
 }  
   
 if (url.startsWith('http')) {  
-    return url;  
+    return url.split(',')[0].trim(); // Use the first URL for generic embed
 }  
 return '';
 }
@@ -519,6 +520,7 @@ while (loadCount < REELS_LOAD_COUNT) {
 }  
 
 itemsToLoad.forEach(it => {  
+    // toEmbedUrlForReels uses a single URL (trailer or first watch link)
     const embedUrl = toEmbedUrlForReels(it.trailer || it.watch);  
     if (!embedUrl) return;   
       
@@ -528,11 +530,9 @@ itemsToLoad.forEach(it => {
     const telegramBtn = it.telegram ?   
         `<button onclick="window.open('${it.telegram}', '_blank')">Download Telegram</button>` : '';  
 
-    const streamtapeBtn = it.watch.includes('streamtape.com') ?   
-        `<button onclick="openWatchPage('${it.watch}')">Open Streamtape</button>` : '';  
-
+    // Since it.watch now holds ALL links, we pass the full string to openWatchPage
     const openPlayerBtn = it.watch ?  
-        `<button onclick="openWatchPage('${it.watch}')">Open Player</button>` :  
+        `<button onclick="openWatchPage('${it.watch.replace(/'/g, "\\'")}')">Open Player</button>` :  
         `<button onclick="openTrailerPage('${it.id}')">View Details</button>`;  
 
     const iframeType = embedUrl.includes('youtube') ? 'youtube' : 'other';  
@@ -551,7 +551,6 @@ itemsToLoad.forEach(it => {
             <div style="padding: 0 0 10px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600;">${escapeHtml(it.title)}</div>  
             <div class="reel-buttons-group">  
                 ${openPlayerBtn}  
-                ${streamtapeBtn}  
                 ${telegramBtn}  
             </div>  
         </div>  
@@ -592,7 +591,7 @@ if (reelsObserver) {
 const options = {  
     root: qs('#reelsPlayer'),   
     rootMargin: '0px',  
-    // 🛑 Threshold set to 0.7 for reliable play/pause
+    // Threshold set to 0.7 for reliable play/pause
     threshold: 0.7   
 };  
 
@@ -617,10 +616,8 @@ reelsObserver = new IntersectionObserver((entries, observer) => {
             // Video is not visible (scrolled away)
             if (iframe.dataset.type === 'youtube') {  
                 iframe.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');  
-            } else if (iframe.src !== 'about:blank') {
-                         // For Streamtape/Other: clear the source to stop playback/save resources
-                iframe.src = 'about:blank';
-            }
+            } 
+            // 🛑 FIX 3: Removed iframe.src = 'about:blank' for non-YouTube players to improve scroll performance.
         }  
     });  
 }, options);  
@@ -631,6 +628,7 @@ qsa('#reelsContainer .reel').forEach(reel => {
 }
 
 function setupInfiniteScrollObserver() {
+    // The marker is inside the last added reel.
     const marker = qs('#reelsContainer .reel:last-child .reel-load-more-marker');
 
     if (marker) {  
