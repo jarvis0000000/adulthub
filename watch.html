@@ -41,7 +41,7 @@ iframe{
 }
 footer{text-align:center;padding:10px;color:var(--muted-color);}
 
-/* NEW: Ad Block Warning Styling */
+/* Ad Block Warning Styling */
 #adblock-warning-overlay {
   display:none; 
   position:fixed; 
@@ -134,10 +134,10 @@ footer{text-align:center;padding:10px;color:var(--muted-color);}
 <script>
     // 🛑 CTR OPTIMIZATION: Aggressive Timing
     const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
-    const POP_COOLDOWN_MS = 4000; // Reduced from 7000ms
-    const POP_DELAY_MS = 500;     // Reduced from 2000ms
+    const POP_COOLDOWN_MS = 4000; 
+    const POP_DELAY_MS = 500;     
     let lastPop = 0;
-    let isAdBlockerActive = false; // State variable
+    let isAdBlockerActive = false; 
 
     function openAdsterraPop(){
         if (isAdBlockerActive) return; 
@@ -150,7 +150,7 @@ footer{text-align:center;padding:10px;color:var(--muted-color);}
                 s.src = AD_POP;
                 s.async = true;
                 document.body.appendChild(s);
-                setTimeout(()=>{ try{s.remove();}catch(e){} }, 5000); // Increased removal time
+                setTimeout(()=>{ try{s.remove();}catch(e){} }, 5000); 
             }catch(e){ console.warn("Ad pop failed", e); }
         }, POP_DELAY_MS);
     }
@@ -158,7 +158,7 @@ footer{text-align:center;padding:10px;color:var(--muted-color);}
 
 
 <script>
-// ------------- AD BLOCKER LOGIC -------------
+// ------------- AD BLOCKER & HELPER LOGIC -------------
 function showAdBlockerWarning(){
     isAdBlockerActive = true;
     const warning = document.getElementById('adblock-warning-overlay');
@@ -172,12 +172,11 @@ function showContent(){
     const warning = document.getElementById('adblock-warning-overlay');
     const content = document.getElementById('main-content-wrapper');
     if (warning) warning.style.display = 'none';
-    if (content) content.style.display = 'flex'; // Use flex to retain column layout
+    if (content) content.style.display = 'flex'; 
 }
 
 function checkAdBlocker(){
     return new Promise(resolve => {
-        // Use a common ad class name for detection
         const dummyAd = document.createElement('div');
         dummyAd.className = 'pub_300x250 pub_dummy_ad ads adblock_detected';
         dummyAd.style.width = '1px';
@@ -186,23 +185,94 @@ function checkAdBlocker(){
         dummyAd.style.left = '-1000px';
         document.body.appendChild(dummyAd);
         setTimeout(() => {
-            // Check if the element's size has been collapsed by an ad blocker
             if (dummyAd.offsetHeight === 0 || dummyAd.offsetParent === null || window.getComputedStyle(dummyAd).getPropertyValue('display') === 'none') {
-                resolve(true); // Ad Blocker is ON
+                resolve(true); 
             } else {
-                resolve(false); // Ad Blocker is OFF
+                resolve(false); 
             }
             dummyAd.remove();
         }, 300);
     });
 }
+
+// 🛑 NEW FUNCTION: Determines Embed URL and Button Text
+function getEmbedDetails(url) {
+    url = url.trim();
+    const details = { url: url, isEmbed: false, label: 'Open Player', color: '#e91e63' };
+
+    if (!url.startsWith('http')) return details; // Not a valid URL
+
+    // 1. Streamtape Embed
+    if (url.includes("streamtape.com/v/")){
+        const m = url.match(/\/v\/([0-9A-Za-z_-]+)\/?/);
+        if (m && m[1]) {
+            details.url = `https://streamtape.com/e/${m[1]}/`;
+            details.isEmbed = true;
+            details.label = 'Open Streamtape';
+            details.color = '#0088ff';
+        }
+    } 
+    // 2. Streamwish Embed (Common format, change if yours is different)
+    else if (url.includes("streamwish.com") || url.includes("sw.fun")) {
+        // Assuming the watch link is already the embed link or close to it
+        // A common embed format: streamwish.com/e/hash
+        details.isEmbed = details.url.includes('/e/'); 
+        details.label = 'Open Streamwish';
+        details.color = '#ff6347'; // Tomato
+    }
+    // 3. Mixdrop Embed (Common format)
+    else if (url.includes("mixdrop.co") || url.includes("mixdrop.ag")) {
+        // Assuming the watch link is already the embed link or close to it
+        // A common embed format: mixdrop.co/e/hash
+        details.isEmbed = details.url.includes('/e/'); 
+        details.label = 'Open Mixdrop';
+        details.color = '#6a0dad'; // Deep Purple
+    }
+    // 4. Telegram Download Link
+    else if (url.includes("t.me") || url.includes("telegram.me")) {
+        details.isEmbed = false;
+        details.label = '⬇️ Download Telegram';
+        details.color = '#2aabee'; // Telegram Blue
+    }
+    // 5. MEGA Link (Cannot be embedded)
+    else if (url.includes("mega.nz")) {
+        details.isEmbed = false;
+        details.label = 'Open MEGA Link';
+        details.color = '#007bff'; // Blue
+    }
+    // 6. Generic Link (Embed by default, but button exists)
+    else if (url.startsWith('http')){
+        details.isEmbed = true;
+        details.label = 'Open Generic Player';
+        details.color = '#e91e63'; // Pink
+    }
+
+
+    // Make sure the primary embed uses the actual embed link if detected
+    if (details.isEmbed) {
+        // For Streamwish/Mixdrop, we assume the URL already has the /e/ hash or is directly embeddable
+        if (url.includes("streamtape.com")) {
+             // Use the converted streamtape embed link
+             details.url = details.url; 
+        } else {
+            // For others, use the original URL if it was already marked as embeddable
+            details.url = url; 
+        }
+    } else {
+        // If not embeddable (e.g., Telegram/MEGA), the button will open the raw URL.
+        details.url = url; 
+    }
+
+    return details;
+}
+
 // ------------- VIDEO LOAD LOGIC -------------
 async function loadVideo(){
     // 1. Check Ad Blocker
     const adBlockActive = await checkAdBlocker();
     if (adBlockActive) {
         showAdBlockerWarning();
-        return; // Stop execution if blocked
+        return; 
     }
     showContent();
     
@@ -214,58 +284,46 @@ async function loadVideo(){
     let raw = params.get("url");
     const videoWrap = document.getElementById("videoWrap");
     const controlsContainer = document.getElementById("controls-container");
-    
+    controlsContainer.innerHTML = ''; // Clear old buttons
+
     if(raw){
-        const fullUrl = decodeURIComponent(raw).trim();
+        const fullLinks = decodeURIComponent(raw).split(',').map(l => l.trim()).filter(Boolean);
         
-        // Check for Telegram link embedded within the URL query parameter (as done in script.js)
-        let telegramLink = '';
-        let embedLink = fullUrl;
+        let primaryEmbedUrl = '';
+        let primaryEmbedLabel = '';
+        const buttonsHtml = [];
+
+        // Sort links to prioritize embeddable links (Streamwish/Mixdrop) for the primary player
+        // We'll use the first embeddable link found as the main player
+        for(const link of fullLinks) {
+            const details = getEmbedDetails(link);
+
+            // Add button for ALL links
+            buttonsHtml.push(`
+                <button class="btn" style="background:${details.color};" 
+                        onclick="openAdsterraPop(); window.open('${link}', '_blank')">
+                    ${details.label}
+                </button>
+            `);
+
+            // Find the primary embed URL (first embeddable link)
+            if (details.isEmbed && !primaryEmbedUrl) {
+                primaryEmbedUrl = details.url; 
+                primaryEmbedLabel = details.label; 
+            }
+        }
         
-        // This handles if the watch link contains a comma-separated list (though it shouldn't be used here)
-        if (fullUrl.includes(',')) {
-            const parts = fullUrl.split(',').map(l => l.trim()).filter(Boolean);
-            telegramLink = parts.find(l => l.includes("t.me") || l.includes("telegram.me")) || '';
-            embedLink = parts.find(l => !l.includes("t.me") && !l.includes("telegram.me")) || fullUrl;
-        } else if (fullUrl.includes("t.me") || fullUrl.includes("telegram.me")) {
-            // If only Telegram link is passed, it can't be embedded.
-            telegramLink = fullUrl;
-            embedLink = ''; 
+        // 4. Embed the Primary Video
+        if (primaryEmbedUrl) {
+            videoWrap.innerHTML = `<iframe src="${primaryEmbedUrl}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>`;
+            // Update user message to indicate which player is loaded
+            document.getElementById('user-message').innerHTML = `🎉 **Enjoy watching!** Video loaded from **${primaryEmbedLabel}**.`;
+        } else {
+            videoWrap.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20px;'>⚠️ No valid embeddable video link found. Use the buttons below to watch.</h3>";
         }
 
-        // --- Handle specific link types for embedding ---
-        
-        // MEGA Link
-        if (embedLink.includes("mega.nz")) {
-            videoWrap.innerHTML = `<h3 style='color:white;text-align:center;margin-top:40px;'>
-                ⚠️ This video is hosted on MEGA. It cannot be embedded here.
-            </h3>`;
-            controlsContainer.innerHTML += `<button class="btn" style="background:#007bff;" onclick="openAdsterraPop(); window.open('${embedLink}', '_blank')">Open MEGA Link in New Tab</button>`;
-        }
-        // General Embed (Streamtape / Drive / Other HTTP/S)
-        else if (embedLink){
-            let finalEmbedUrl = embedLink;
-            
-            // Simple check for Google Drive preview (if /view is used instead of /preview)
-            if (finalEmbedUrl.includes("drive.google.com") && finalEmbedUrl.includes("/view")) {
-                finalEmbedUrl = finalEmbedUrl.replace("/view", "/preview");
-            }
-            // Streamtape /v/ to /e/ conversion (safety check, should be done in script.js)
-            if (finalEmbedUrl.includes("streamtape.com/v/")){
-                const m = finalEmbedUrl.match(/\/v\/([0-9A-Za-z_-]+)\//);
-                if (m && m[1]) finalEmbedUrl = `https://streamtape.com/e/${m[1]}/`;
-            }
-            
-            videoWrap.innerHTML = `<iframe src="${finalEmbedUrl}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>`;
-        } else {
-            videoWrap.innerHTML = "<h3 style='color:white;text-align:center;margin-top:20px;'>⚠️ No valid video link found for player.</h3>";
-        }
-        
-        // Telegram Download Button
-        if(telegramLink){
-            // 🛑 User requested "Download" option
-            controlsContainer.innerHTML += `<button class="btn" style="background:#0088cc;" onclick="openAdsterraPop(); window.open('${telegramLink}', '_blank')">⬇️ Download / Watch on Telegram</button>`;
-        }
+        // 5. Render Buttons
+        controlsContainer.innerHTML = buttonsHtml.join('');
         
     } else {
         videoWrap.innerHTML = "<h2 style='color:white;text-align:center;'>⚠️ No video link parameter found</h2>";
