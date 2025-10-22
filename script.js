@@ -5,7 +5,7 @@
 // ------------- CONFIG -------------
 // Sheet 1 for Main Content (Latest List & Random Grid)
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
-// Sheet 2 for Reels Player Only
+// Sheet 3 for Reels Player Only
 // 🛑 NEW: Replace YOUR_SHEET_ID_HERE with your actual Sheet3 ID.
 const SHEET_API_REELS = "https://sheets.googleapis.com/v4/spreadsheets/Sheet3/values/Sheet2!A:B?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw"; 
 
@@ -538,7 +538,7 @@ async function openReelsPlayer() {
     reelsQueue = shuffleArray(allReelCandidates); 
     
     if (reelsQueue.length === 0) {
-        alert("No videos available for Reels playback. Check Sheet2 links.");
+        alert("No videos available for Reels playback.");
         return;
     }
 
