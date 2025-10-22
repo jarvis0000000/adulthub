@@ -78,6 +78,7 @@
       background: var(--primary-color);
       color: #fff;
     }
+    /* Note: Streamtape and Telegram button styles are now redundant but kept for style consistency */
     #streamtapeButton {
       background: #0088ff; 
       color: #fff;
@@ -159,21 +160,20 @@
                 const id = url.split('/v/')[1]?.split('/')[0];
                 if (id) return `https://streamtape.com/e/${id}/`;
             }
-
+            
             // 3. Direct URL embed (Any other HTTP/HTTPS link)
+            // Note: Mixdrop/Streamwish links are NOT embeddable here, only direct MP4s or supported hosts.
             if (url.startsWith('http')) return url;
             
             return '';
         }
         
+        // Simplified: Since you are using /go.html as an ad-gate/redirect, 
+        // the target URL should just be the original watch link.
         function openWatchPage(targetUrl){
             if (!targetUrl) return;
-            let final = targetUrl;
-            if (final.includes('/v/')){
-                const m = final.match(/\/v\/([0-9A-Za-z_-]+)/);
-                if (m && m[1]) final = `https://streamtape.com/e/${m[1]}/`;
-            }
-            const redirectPage = `/go.html?target=${encodeURIComponent(final)}`;  
+            // Target URL is the original full link (could be multiple links)
+            const redirectPage = `/go.html?target=${encodeURIComponent(targetUrl)}`;  
             window.location.href = redirectPage; 
         }
 
@@ -204,6 +204,7 @@
             qs('#description').textContent = item.description || 'No description available.';
 
             // 3. Embed Player: Prioritize Trailer, then Watch Link
+            // Only embed if it's a direct embed link (YouTube, Streamtape, direct MP4)
             const embedUrl = toEmbedUrl(item.trailer || item.watch);
             
             if (embedUrl) {
@@ -218,28 +219,19 @@
                 qs('#playerEmbed').innerHTML = '<div style="color: #fff; font-weight: bold; font-size: 1.1rem; padding: 20px;">Trailer/Video cannot be embedded here. Please use the "Open Player" button below.</div>';
             }
 
-            // 4. Render Buttons
+            // 4. Render Buttons (Only the Open Player button)
             const buttonsContainer = qs('.action-buttons');
-            buttonsContainer.innerHTML = '';
+            buttonsContainer.innerHTML = ''; // Clear any existing content
             
-            // 1. Open Player Button (Always uses the full watch link for ad-gate)
             if (item.watch) {
+                // Open Player Button: Uses the original watch link which goes through the ad-gate (/go.html)
                 buttonsContainer.innerHTML += `<button id="watchButton" onclick="openWatchPage('${item.watch}')">Open Player</button>`;
             }
-
-            // 2. Open Streamtape Button (Use direct link if applicable)
-            if (item.watch.includes('streamtape.com') || item.watch.includes('/v/')) {
-                 buttonsContainer.innerHTML += `<a href="${item.watch}" target="_blank" id="streamtapeButton">Open Streamtape</a>`;
-            }
-
-            // 3. Download Telegram Button
-            if (item.telegram) {
-                buttonsContainer.innerHTML += `<a href="${item.telegram}" target="_blank" id="telegramButton">Download Telegram</a>`;
-            }
             
-            if (!item.watch && !item.telegram) {
-                buttonsContainer.innerHTML = '<p style="text-align:center; width:100%; color:#aaa;">No watch or download links available for this title.</p>';
+            if (!item.watch) {
+                buttonsContainer.innerHTML = '<p style="text-align:center; width:100%; color:#aaa;">No watch link available for this title.</p>';
             }
+
 
             // 5. Render Tags
             qs('#tagsContainer').innerHTML = renderTagsForItem(item);
@@ -250,5 +242,3 @@
     </script>
 </body>
 </html>
-
-  
