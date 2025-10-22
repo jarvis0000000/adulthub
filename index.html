@@ -14,6 +14,8 @@
   <link rel="canonical" href="https://dareloom.fun/" />  
   <link rel="stylesheet" href="/style.css?v=20251017" />  
 
+  <link rel="preload" href="/path/to/Poppins.woff2" as="font" type="font/woff2" crossorigin>
+
   <style>
     /* 🛑 NOTE: Inline styles yahan hain, but ideally ye sab style.css mein hone chahiye. */
     :root {
@@ -86,6 +88,7 @@
       transition: transform 0.3s;
     }
     .card:hover { transform: scale(1.04); }
+    /* CLS FIX: Aspect ratio for images */
     .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
     .hero-actions { text-align: center; }
     .watch-movies-btn {
@@ -126,6 +129,7 @@
       cursor: pointer;
     }
     .latest-item:hover { border-color: var(--primary-color); }
+    /* CLS FIX: Aspect ratio for thumbnails */
     .latest-thumb {
       width: 180px;
       aspect-ratio: 16 / 9;
@@ -282,6 +286,8 @@
     </section>  
   </main>  
 
+    <script src="//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js" async></script>
+  
   <footer style="padding:14px;text-align:center;color:#777;">  
     © Dareloom Hub — <a href="mailto:dareloom.official@gmail.com" style="color:var(--secondary-color);">Contact</a>  
   </footer>  
@@ -293,4 +299,5 @@
 
   <script src="/script.js?v=20251017" defer></script>
 </body>
-</html>
+        </html>
+          
