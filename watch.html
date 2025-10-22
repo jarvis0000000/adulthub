@@ -44,6 +44,11 @@ iframe{
 .ad-box{
   margin:8px 0;
   width:100%;text-align:center;
+  /* CLS Fix: Ensure space is reserved for the 728x90 ad */
+  min-height: 90px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .btn{
   /* Base Pink button */
@@ -239,7 +244,7 @@ function checkAdBlocker(){
         }, 300);
     });
 }
-// ------------- VIDEO LOAD LOGIC (UPDATED) -------------
+// ------------- VIDEO LOAD LOGIC (FINAL UPDATED PRIORITY) -------------
 /**
  * @param {string} url 
  * @returns {string} The embeddable URL for the given host
@@ -249,15 +254,7 @@ function getEmbedUrl(url) {
     
     let finalEmbedUrl = url.trim();
 
-    // 1. MixDrop (Priority 1) - Improved regex and reliable domain
-    if (finalEmbedUrl.includes("mixdrop.") || finalEmbedUrl.includes("/f/") && finalEmbedUrl.includes("mdy")) {
-        const m = finalEmbedUrl.match(/\/([0-9A-Za-z_-]{12,})/); // Looks for 12+ char file ID
-        if (m && m[1]) {
-            return `https://mixdrop.co/e/${m[1]}`; // Using mixdrop.co for reliable embed
-        }
-    }
-    
-    // 2. Streamwish (Priority 2) - Using a reliable streamwish domain
+    // 1. Streamwish (Priority 1)
     if (finalEmbedUrl.includes("streamwish.") || finalEmbedUrl.includes("dumbalag.com")) {
         // Match the ID from the end of the URL path
         const m = finalEmbedUrl.match(/\/([0-9A-Za-z_-]{12,})/);
@@ -266,6 +263,15 @@ function getEmbedUrl(url) {
         }
     }
 
+    // 2. MixDrop (Priority 2) - Added support for mdy48tn97.com type links
+    if (finalEmbedUrl.includes("mixdrop.") || finalEmbedUrl.includes("/f/") && finalEmbedUrl.includes("mdy")) {
+        // Use a regex to reliably extract the file ID (12+ chars)
+        const m = finalEmbedUrl.match(/\/([0-9A-Za-z_-]{12,})/); 
+        if (m && m[1]) {
+            return `https://mixdrop.co/e/${m[1]}`; // Using mixdrop.co for reliable embed
+        }
+    }
+    
     // 3. Streamtape (Priority 3)
     if (finalEmbedUrl.includes("streamtape.com/v/")){
         const m = finalEmbedUrl.match(/\/v\/([0-9A-Za-z_-]+)\//);
@@ -325,7 +331,7 @@ async function loadVideo(){
             if (link.includes("t.me") || link.includes("telegram.me")) {
                 telegramLink = link;
             } else if (link.includes("mixdrop.") || link.includes("/f/") && link.includes("mdy")) {
-                if (!hostLinks.mixdrop.url) { // Store only the first instance
+                if (!hostLinks.mixdrop.url) { 
                     hostLinks.mixdrop.url = link;
                     hostLinks.mixdrop.embedUrl = getEmbedUrl(link);
                 }
@@ -355,11 +361,11 @@ async function loadVideo(){
         let embedLink = null;
         let isMega = false;
         
-        // Determine which link to embed based on priority: MixDrop > Streamwish > Streamtape > Other
-        if (hostLinks.mixdrop.embedUrl && hostLinks.mixdrop.embedUrl !== 'MEGA') {
-            embedLink = hostLinks.mixdrop.embedUrl;
-        } else if (hostLinks.streamwish.embedUrl && hostLinks.streamwish.embedUrl !== 'MEGA') {
+        // **NEW PRIORITY LOGIC:** 1. Streamwish > 2. MixDrop > 3. Streamtape > Other
+        if (hostLinks.streamwish.embedUrl && hostLinks.streamwish.embedUrl !== 'MEGA') {
             embedLink = hostLinks.streamwish.embedUrl;
+        } else if (hostLinks.mixdrop.embedUrl && hostLinks.mixdrop.embedUrl !== 'MEGA') {
+            embedLink = hostLinks.mixdrop.embedUrl;
         } else if (hostLinks.streamtape.embedUrl && hostLinks.streamtape.embedUrl !== 'MEGA') {
             embedLink = hostLinks.streamtape.embedUrl;
         } else if (hostLinks.other.embedUrl && hostLinks.other.embedUrl !== 'MEGA') {
@@ -381,7 +387,7 @@ async function loadVideo(){
             videoWrap.innerHTML = `<iframe src="${embedLink}" allowfullscreen allow="autoplay; fullscreen; encrypted-media; picture-in-picture"></iframe>`;
         }
         
-        // 4. Render all download/open buttons
+        // 4. Render all download/open buttons (Order is by host, not priority)
         
         // Telegram Button (Download)
         if(telegramLink){
