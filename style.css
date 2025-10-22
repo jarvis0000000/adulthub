@@ -14,9 +14,20 @@ style.css - Unique, Dark-Themed, Fully Responsive Design + REELS PLAYER (Optimiz
     --shadow-color: rgba(255, 75, 145, 0.3);
 }
 
-/* 🛑 CLS FIX & Basic Reset */
+/* 🛑 CORE WEB VITALS FIX & Scrollbar Hide (For smooth reels) */
 * {
     box-sizing: border-box; 
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+body::-webkit-scrollbar,
+#reelsPlayer::-webkit-scrollbar {
+    display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+body, #reelsPlayer {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
 }
 
 html {
@@ -168,8 +179,8 @@ h2 {
     color: var(--primary-color);
 }
 
-/* --- 🛑 LATEST LIST FIX: Ensure it's always a vertical list --- */
-#latestList { /* Use the ID to target the container precisely */
+/* --- LATEST LIST --- */
+#latestList { 
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -198,7 +209,6 @@ h2 {
     border-radius: 8px;
     cursor: pointer;
 }
-/* 🛑 FIX: Ensure the info section takes remaining space */
 .latest-info {
     flex: 1;
     display: flex;
@@ -283,33 +293,44 @@ h2 {
     overflow-y: scroll;
     scroll-snap-type: y mandatory;
     -webkit-overflow-scrolling: touch; 
+    /* Desktop centering */
+    display: flex; /* Changed from none in JS, but flex is good for centering reels */
+    justify-content: center;
+    align-items: flex-start; /* Start from top, like a scrollable feed */
 }
 
-/* 🛑 REEL CONTAINER (used in script.js to inject slides) */
+/* Revert the default display:none for JS control, but keep it for centering logic */
+#reelsPlayer[style*="display: none"] {
+    display: none !important;
+}
+
+
+/* 🛑 REEL CONTAINER (Holds all reel slides) */
 #reelsContainer {
     display: flex;
     flex-direction: column;
-    /* This container holds the reels, allowing the parent (#reelsPlayer) to scroll */
+    /* On desktop, container stays centered with max-width */
+    max-width: 480px; 
+    width: 100%;
+    min-height: 100dvh; /* Ensure container fills the viewport */
 }
 
-.reel { /* Changed from .reel-slide to .reel to match your previous script */
+.reel { 
     flex-shrink: 0;
-    width: 100%;
-    max-width: 480px; /* Optional: Keep reel width mobile-friendly */
-    margin: 0 auto;
+    width: 100%; /* Max-width handled by #reelsContainer */
     height: 100vh;
-    height: 100dvh; 
+    height: 100dvh; /* Use dVH for mobile compatibility */
     
     scroll-snap-align: start;
     position: relative;
     display: flex; 
     flex-direction: column;
     justify-content: flex-end; 
-    padding-bottom: 20px; /* Space for info at the bottom */
+    padding-bottom: 20px; 
 }
 
-.reel iframe {
-    /* Full-screen video iframe/element */
+.reel-video-embed {
+    /* Container for the media (iframe or video) to ensure it fills the space */
     position: absolute;
     top: 0;
     left: 0;
@@ -319,17 +340,26 @@ h2 {
     z-index: 1;
 }
 
-/* Info and Controls Overlay */
-.reel-buttons { /* Matches the class used in your script.js */
+.reel-video-embed iframe,
+.reel-video-embed video {
     width: 100%;
-    padding: 0 20px 20px 20px; /* Move buttons higher from the bottom edge */
-    background: #000a;
+    height: 100%;
+    object-fit: cover; /* Ensures video fills the screen without distortion */
+    display: block;
+}
+
+
+/* Info and Controls Overlay */
+.reel-buttons { 
+    width: 100%;
+    padding: 0 20px 20px 20px; 
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0)); /* Gradient overlay */
     z-index: 5; 
 }
 
 .reel-buttons-group {
     display: flex;
-    flex-direction: column; 
+    flex-direction: column; /* Changed to vertical buttons for better mobile experience */
     gap: 10px;
     margin-top: 15px;
 }
@@ -337,7 +367,6 @@ h2 {
     min-width: 100%;
     flex-grow: 1;
     text-align: center;
-    /* Use button styles from the main section */
     background: var(--primary-color); 
     color: #fff;
     padding: 12px;
@@ -345,10 +374,7 @@ h2 {
     font-weight: 700;
 }
 .reel-buttons button:nth-child(2) {
-    background: #0088ff; /* Streamtape blue */
-}
-.reel-buttons button:nth-child(3) {
-    background: #2aabee; /* Telegram blue */
+    background: var(--secondary-color); 
 }
 
 
@@ -364,13 +390,14 @@ h2 {
     z-index: 10002;
     position: fixed; 
     top: 15px;
-    left: 15px; /* Changed to left side as in your first image */
+    left: 15px; 
     line-height: 1;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0;
     box-shadow: 0 0 10px rgba(0,0,0,0.8);
+    transition: background 0.3s;
 }
 #reelsCloseBtn:hover {
     background: var(--primary-color);
@@ -397,6 +424,7 @@ h2 {
     
     .reel {
         height: 100dvh; 
+        max-width: 100%; /* Ensure full mobile width */
     }
 
     /* Ensure fixed close button is visible on mobile */
@@ -406,5 +434,4 @@ h2 {
         width: 40px;
         height: 40px;
     }
-    }
-    
+}
