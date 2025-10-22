@@ -6,8 +6,8 @@
 // Sheet 1 for Main Content (Latest List & Random Grid)
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 // Sheet 2 for Reels Player Only
-// 🛑 NEW: Replace YOUR_SHEET_ID_HERE with your actual Sheet2 ID.
-const SHEET_API_REELS = "https://sheets.googleapis.com/v4/spreadsheets/Sheet2/values/Sheet2!A:B?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw"; 
+// 🛑 NEW: Replace YOUR_SHEET_ID_HERE with your actual Sheet3 ID.
+const SHEET_API_REELS = "https://sheets.googleapis.com/v4/spreadsheets/Sheet3/values/Sheet2!A:B?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw"; 
 
 const PER_PAGE = 5;
 const RANDOM_COUNT = 4;
@@ -585,7 +585,7 @@ function loadReelsBatch() {
         const reelDiv = document.createElement('div');  
         reelDiv.className = 'reel';  
         
-        // Since Sheet2 only has reel links, we'll only show the 'Open Player' button if a watch link exists (though it won't here) or a Telegram link.
+        // Since Sheet3 only has reel links, we'll only show the 'Open Player' button if a watch link exists (though it won't here) or a Telegram link.
         // For simplicity with your current sheet setup (only 'Video Nam'), we'll provide a generic button or remove buttons.
         const openPlayerBtn = `<button onclick="alert('No full watch link available in this sheet.');">Open Player</button>`;  
         const telegramBtn = ``; // Removed Telegram button as it's not in Sheet2
