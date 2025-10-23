@@ -473,13 +473,17 @@ function toEmbedUrlForReels(url) {
         // Reduced iframe controls for a cleaner look
         return { type: "iframe", src: `https://www.youtube.com/embed/${y}?autoplay=1&mute=1&rel=0&controls=0&enablejsapi=1&playsinline=1&origin=${window.location.origin}` }; 
     }
-    
-    // ✅ Uses the improved getRedgifsDirect function
-    if (url.includes('redgifs.com/watch/')) {
-        const directMp4 = getRedgifsDirect(url);
-        return { type: "video", src: directMp4 };
+    // ✅ Revert to Iframe Embed (to bypass hotlinking block)
+if (url.includes('redgifs.com/watch/')) {
+    // Extract slug and convert to Iframe embed link
+    const parts = url.split("/watch/");
+    if (parts.length > 1) {
+         const slug = parts[1].split("?")[0];
+         // Redgifs watch URLs also have an iframe URL on their page, we can approximate it.
+         const embedUrl = `https://www.redgifs.com/ifr/${slug}`; 
+         return { type: "iframe", src: embedUrl };
     }
-    
+
     // Keep RedGifs IFRAME handling for other redgifs links (e.g., ifr/ links)
     if (url.includes('redgifs.com/ifr/')) {
         let videoId = url.split('/').pop(); 
