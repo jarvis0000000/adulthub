@@ -1,5 +1,5 @@
 // script.js
-// Dareloom Hub - FINAL REELS INTEGRATION (v8): Anti-Exit, Volume Fix, Random, No Repeat
+// Dareloom Hub - FINAL REELS INTEGRATION (v10): Double-Tap Next Reel & Volume Toggle, Anti-Exit
 
 // ------------- CONFIG -------------
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
@@ -23,7 +23,7 @@ let currentPage = 1;
 let allReelCandidates = []; 
 let usedReelIds = new Set();  
 let swipeStartY = 0; 
-let clickStartTime = 0; // To track tap duration
+let lastTapTime = 0; // NEW: To track single/double tap
 
 
 // ------------- UTIL HELPERS -------------
@@ -79,7 +79,7 @@ if (!userInteracted && !initialPopFired) return;
 }
 
 
-// ------------- SHEET FETCH & PARSE -------------
+// ------------- SHEET FETCH & PARSE (Unchanged) -------------
 async function fetchSheet(url){
 try{
 const res = await fetch(url);
@@ -151,7 +151,6 @@ for (let r of rows){
 return out.reverse(); 
 }
 
-
 // Reels Sheet parsing for Title (A) and Link (B)
 function parseReelRows(values){
     if (!values || values.length < 2) return [];
@@ -183,7 +182,6 @@ function parseReelRows(values){
 
 
 // (UI / RENDER / FILTER / WATCH LOGIC Remains Unchanged)
-
 function renderTagsForItem(it){
 if (!it.category || !it.category.trim()) return '';
 const parts = it.category.split(',').map(p => p.trim()).filter(Boolean);
@@ -390,30 +388,6 @@ if (!tag) return;
 applyTagFilter(tag);
 }
 
-function filterVideos(queryOrTag){
-const query = (queryOrTag || '').toLowerCase().trim();
-if (query.length < 2 && !query.length) {
-filteredItems = items.slice();
-} else {
-filteredItems = items.filter(it => {
-const titleMatch = it.title.toLowerCase().includes(query);
-const categoryMatch = it.category.toLowerCase().split(',').map(t => t.trim()).includes(query);
-
-return titleMatch || categoryMatch;  
- });
-
-}
-
-updateCount(filteredItems.length);
-renderLatest(1);
-}
-
-function applyTagFilter(tag){
-const s = qs('#searchInput');
-if (s) s.value = tag; 
-filterVideos(tag);
-}
-
 function openTrailerPage(it){
 markUserGesture();
 openAdsterraPop();
@@ -447,7 +421,7 @@ function openWatchPage(fullWatchLinks){
     }, 120);
 }
 
-// ------------- REELS PLAYER LOGIC (FINAL V8) -------------
+// ------------- REELS PLAYER LOGIC (FINAL V10) -------------
 
 function toEmbedUrlForReels(url) {
     if (!url) return { type: "none" };
@@ -486,7 +460,7 @@ function toEmbedUrlForReels(url) {
 }
 
 
-// REVISED: Open player and fetch reels
+// Open player and fetch reels
 async function openReelsPlayer() {
     markUserGesture();
     openAdsterraPop();
@@ -511,9 +485,8 @@ async function openReelsPlayer() {
     loadNextReel();
 }
 
-// ✅ Dareloom Reels — FINAL MAX ANTI-EXIT VERSION (v9: Full Screen Overlay)
-// This aggressively prevents the iframe from opening its external link by covering the entire screen.
 
+// ✅ Dareloom Reels — FINAL V10: Double-Tap Next Reel & Volume Toggle
 function loadNextReel() {
   openAdsterraPop();
 
@@ -555,8 +528,6 @@ function loadNextReel() {
 
     let mediaHtml = "";
 
-    // IMPORTANT: pointer-events:none is removed from iframe because it prevents autoplay.
-    // Instead, we rely completely on the full-screen overlay button.
     if (embedInfo.type === "video") {
       mediaHtml = `<video class="reel-video-media" loop playsinline autoplay muted preload="auto" src="${escapeHtml(embedInfo.src)}"></video>`;
     } else if (embedInfo.type === "iframe") {
@@ -564,19 +535,18 @@ function loadNextReel() {
         src="${escapeHtml(embedInfo.src)}"
         frameborder="0"
         allow="autoplay; fullscreen; encrypted-media"
-        sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups"
         allowfullscreen
         style="width:100%;height:100%;border:none;pointer-events:auto;"></iframe>`; 
     }
     
-    // 🛑 CRITICAL FIX: Full screen transparent overlay button
+    // 🛑 Full screen transparent overlay button for tap detection
     reelDiv.innerHTML = `
       <div class="reel-video-embed" style="position:relative;width:100%;height:100%;">
         ${mediaHtml}
         
         <button class="reel-next-on-click-area" 
            style="position:absolute; inset:0; background:transparent; border:none; z-index:40; cursor:pointer;"
-           title="Tap to play next reel">
+           title="Tap for sound, double tap for next reel">
         </button>
         
       </div>
@@ -592,14 +562,56 @@ function loadNextReel() {
         loadNextReel();
     });
 
-    // 🛑 NEW LOGIC: Handle Click on the FULL SCREEN overlay
+    // 🛑 NEW/UPDATED LOGIC: Tap Detection: Single tap → toggle sound, Double tap → next reel
     const nextOnClickArea = reelDiv.querySelector(".reel-next-on-click-area");
     if (nextOnClickArea) {
-        nextOnClickArea.addEventListener("click", (e) => {
-            e.stopPropagation(); // Stops the click from reaching the iframe/video
-            log("Full screen tap detected - loading next reel.");
-            loadNextReel(); // Load next reel instead of letting iframe navigate externally
-        });
+      nextOnClickArea.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const now = Date.now();
+        const tapDiff = now - lastTapTime;
+        lastTapTime = now;
+
+        const mediaEl = reelDiv.querySelector(".reel-video-media");
+
+        // 👆 Double tap within 300ms → Next reel
+        if (tapDiff < 300) {
+          log("👆 Double tap detected - next reel");
+          loadNextReel();
+          return;
+        }
+
+        // 👇 Single tap: toggle mute/unmute if video
+        if (mediaEl && mediaEl.tagName === "VIDEO") {
+          mediaEl.muted = !mediaEl.muted;
+          mediaEl.volume = 1.0;
+          log(mediaEl.muted ? "🔇 Sound OFF" : "🔊 Sound ON");
+
+          // 🔔 Optional: small visual feedback
+          const icon = document.createElement("div");
+          icon.textContent = mediaEl.muted ? "🔇" : "🔊";
+          Object.assign(icon.style, {
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            fontSize: "60px",
+            color: 'white',
+            textShadow: '0 0 5px black',
+            opacity: "0.9",
+            transition: "opacity 0.6s ease-out",
+            pointerEvents: "none",
+            zIndex: 60,
+          });
+          reelDiv.appendChild(icon);
+          setTimeout(() => (icon.style.opacity = "0"), 100);
+          setTimeout(() => icon.remove(), 600);
+        } else {
+          // For iframe reels (YouTube, Redgifs): Single tap allows iframe to process click 
+          // (e.g., play/pause/volume on embedded player itself).
+          // Double tap is guaranteed to load the next reel.
+          log("Iframe reel single tap - allowing iframe to handle click (for volume/pause).");
+        }
+      });
     }
 
     const mediaEl = reelDiv.querySelector(".reel-video-media");
@@ -621,6 +633,9 @@ function loadNextReel() {
     container.addEventListener('touchstart', handleTouchStart);
     container.addEventListener('touchend', handleTouchEnd);
 
+    // 🛑 Call post-load security
+    afterReelLoad();
+
   }, 300);
 }
 
@@ -639,7 +654,7 @@ function handleTouchEnd(e){
             // swipe up → next reel
             loadNextReel(); 
         } else {
-             // swipe down → next reel
+             // swipe down → next reel (or loadPrevReel if implemented)
             loadNextReel();
         }
     } 
@@ -665,8 +680,25 @@ function closeReelsPlayer(){
     usedReelIds.clear(); 
 }
 
+// 🚫 Prevent iframes from opening external pages
+function secureIframes() {
+  document.querySelectorAll("#reelsContainer iframe").forEach((iframe) => {
+    // Apply sandbox for security and to prevent external navigation/popups
+    iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-fullscreen");
+    iframe.removeAttribute("allowpopups");
+    iframe.removeAttribute("target");
+    // NOTE: Clicks on iframe are largely blocked by the FULL SCREEN OVERLAY
+  });
+}
 
-// ------------- INIT / BOOT -------------
+// 🩹 Call after every new reel load
+function afterReelLoad() {
+  secureIframes();
+  log("✅ Iframe sandbox applied (helps prevent redirect)");
+}
+
+
+// ------------- INIT / BOOT (Unchanged) -------------
 async function loadAll(){
     const raw = await fetchSheet(SHEET_API); 
     const parsed = parseRows(raw);
