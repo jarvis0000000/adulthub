@@ -1,5 +1,5 @@
 // script.js
-// Dareloom Hub - FINAL V17: RedGifs Direct MP4 + Robust Reels Player
+// Dareloom Hub - FINAL V18: RedGifs Iframe Revert to bypass hotlinking block
 
 // ------------- CONFIG -------------
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
@@ -23,7 +23,7 @@ let currentPage = 1;
 let allReelCandidates = []; 
 let usedReelIds = new Set();  
 let swipeStartY = 0; 
-let lastTapTime = 0; // To track single/double tap
+let lastTapTime = 0; 
 
 
 // ------------- UTIL HELPERS -------------
@@ -78,12 +78,10 @@ if (!userInteracted && !initialPopFired) return;
 }
 }
 
-// 🧠 RedGifs direct MP4 link generator (same as getVideoURL)
+// NOTE: getRedgifsDirect is no longer used for Reels but kept for legacy/testing
 function getRedgifsDirect(link) {
   if (link.includes("redgifs.com/watch/")) {
-    // Extract the slug from a watch URL (e.g., 'https://redgifs.com/watch/slug-name')
     const slug = link.split("/watch/")[1];
-    // Convert to a direct mobile MP4 link
     return `https://thumbs2.redgifs.com/${slug}-mobile.mp4`;
   }
   return link;
@@ -103,7 +101,7 @@ return [];
 }
 }
 
-// 🛑 Main Content (Sheet1) Parser - Re-added 
+// Main Content (Sheet1) Parser
 function parseRows(values){
 if (!values || values.length < 2) return [];
 const headers = (values[0]||[]).map(h => (h||'').toString().toLowerCase().trim());
@@ -193,7 +191,7 @@ function parseReelRows(values){
 }
 
 
-// ------------- UI / RENDER / FILTER / WATCH LOGIC (Re-added) -------------
+// ------------- UI / RENDER / FILTER / WATCH LOGIC -------------
 function renderTagsForItem(it){
 if (!it.category || !it.category.trim()) return '';
 const parts = it.category.split(',').map(p => p.trim()).filter(Boolean);
@@ -455,7 +453,7 @@ function applyTagFilter(tag) {
     if(s) s.value = ''; // Clear search input
 }
 
-// ------------- REELS PLAYER LOGIC -------------
+// ------------- REELS PLAYER LOGIC (UPDATED) -------------
 
 function toEmbedUrlForReels(url) {
     if (!url) return { type: "none" };
@@ -473,18 +471,19 @@ function toEmbedUrlForReels(url) {
         // Reduced iframe controls for a cleaner look
         return { type: "iframe", src: `https://www.youtube.com/embed/${y}?autoplay=1&mute=1&rel=0&controls=0&enablejsapi=1&playsinline=1&origin=${window.location.origin}` }; 
     }
-    // ✅ Revert to Iframe Embed (to bypass hotlinking block)
-if (url.includes('redgifs.com/watch/')) {
-    // Extract slug and convert to Iframe embed link
-    const parts = url.split("/watch/");
-    if (parts.length > 1) {
-         const slug = parts[1].split("?")[0];
-         // Redgifs watch URLs also have an iframe URL on their page, we can approximate it.
-         const embedUrl = `https://www.redgifs.com/ifr/${slug}`; 
-         return { type: "iframe", src: embedUrl };
+    
+    // 🔴 REVERTED: RedGifs watch links now load as iframes to bypass the MP4 hotlinking block
+    if (url.includes('redgifs.com/watch/')) {
+        const parts = url.split("/watch/");
+        if (parts.length > 1) {
+             const slug = parts[1].split("?")[0];
+             // Converts watch link to ifr embed format
+             const embedUrl = `https://www.redgifs.com/ifr/${slug}`; 
+             return { type: "iframe", src: embedUrl };
+        }
     }
-
-    // Keep RedGifs IFRAME handling for other redgifs links (e.g., ifr/ links)
+    
+    // Keep RedGifs IFRAME handling for existing ifr/ links
     if (url.includes('redgifs.com/ifr/')) {
         let videoId = url.split('/').pop(); 
         videoId = videoId.split('?')[0]; 
@@ -492,11 +491,12 @@ if (url.includes('redgifs.com/watch/')) {
         return { type: "iframe", src: embedUrl };
     }
 
+    // Direct MP4/Video links will still use the <video> tag
     if (url.includes('.mp4') || url.includes('.gifv') || url.includes('.webm') || url.includes('.m3u8')) {
         return { type: "video", src: url };
     }
     
-    // Fallback for other direct links
+    // Fallback for general external URLs
     if (url.startsWith('http')) {
         // Use iframe for general external URLs
         return { type: "iframe", src: url };
@@ -580,7 +580,7 @@ function loadNextReel() {
         frameborder="0"
         allow="autoplay; fullscreen; encrypted-media"
         allowfullscreen
-        style="width:100%;height:100%;border:none;pointer-events:none;"></iframe>`; // Added pointer-events:none
+        style="width:100%;height:100%;border:none;pointer-events:none;"></iframe>`; 
     }
 
 // 🧠 Full screen transparent overlay button for tap detection
@@ -654,15 +654,16 @@ overlay.addEventListener("click", (e) => {
         setTimeout(() => (icon.style.opacity = "0"), 100);
         setTimeout(() => icon.remove(), 600);
     } else {
-        log("Iframe detected - sound toggle ignored, no redirect now.");
+        log("Iframe detected - sound toggle ignored.");
     }
 });
 
 // 🛡️ Block iframe clicks opening original site
 const iframe = reelDiv.querySelector("iframe");
 if (iframe) {
+    // Re-apply sandbox for security
     iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-fullscreen");
-    iframe.style.pointerEvents = "none"; // Explicitly prevent link clicks inside iframe
+    iframe.style.pointerEvents = "none"; 
 }
                  
     const mediaEl = reelDiv.querySelector(".reel-video-media");
@@ -673,6 +674,7 @@ if (iframe) {
         mediaEl.volume = 1.0;
         mediaEl.play().catch(() => log("Autoplay blocked — muted"));
       } else if (mediaEl.tagName === 'IFRAME') {
+         // Slight zoom for IFRAME to hide any black edges
          mediaEl.style.transform = 'scale(1.05)';
       }
     }
@@ -745,7 +747,7 @@ document.addEventListener(e, markUserGesture, {once: true});
 
 async function loadAll(){
     const raw = await fetchSheet(SHEET_API); 
-    const parsed = parseRows(raw); // 🛑 Using correct parser for main content
+    const parsed = parseRows(raw); 
     items = parsed;
     filteredItems = parsed; 
 
