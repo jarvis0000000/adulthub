@@ -1,5 +1,5 @@
 // script.js
-// Dareloom Hub - FINAL FIX: Single Reel View with Only Next Button & Correct Title
+// Dareloom Hub - FINAL FIX: Single Reel View with Only Next Button, Correct Title, and Random Start
 
 // ------------- CONFIG -------------
 // Sheet 1 for Main Content (Latest List & Random Grid)
@@ -172,18 +172,19 @@ function parseReelRows(values){
         
         // Col 0 (A): Title
         // Col 1 (B): Reel Link
-        const title = (r[0] || '').toString().trim();  
+        const titleCandidate = (r[0] || '').toString().trim();  
         const reelLink = (r[1] || '').toString().trim(); 
 
         if (!reelLink) continue;  
 
-        const finalTitle = title || ('Untitled Reel '+untitledCounter);
+        // Use the title from Column A, or fallback to a numbered title
+        const finalTitle = titleCandidate || (`Untitled Reel ${untitledCounter}`);
         const id = `${slugify(finalTitle)}|${Math.random().toString(36).slice(2,8)}`;  
         untitledCounter++;
 
         out.push({  
             id,  
-            title: finalTitle,  // Use the title from Column A or fallback
+            title: finalTitle,  
             reelLink: reelLink, 
         });  
     }  
@@ -191,7 +192,7 @@ function parseReelRows(values){
 }
 
 
-// (UI / RENDER / FILTER LOGIC Remains Unchanged)
+// (UI / RENDER / FILTER / WATCH LOGIC Remains Unchanged)
 
 function renderTagsForItem(it){
 if (!it.category || !it.category.trim()) return '';
@@ -519,7 +520,7 @@ async function openReelsPlayer() {
     loadNextReel();
 }
 
-// 🛑 REVISED: Load the next random reel (only Next Button)
+// 🛑 REVISED: Load the next random reel (with Title fix)
 function loadNextReel() {
     openAdsterraPop(); 
 
@@ -557,7 +558,6 @@ function loadNextReel() {
     }
 
     if (!item) {
-        // If shuffle logic failed (unlikely), try to refill and call itself again
         loadNextReel(); 
         return;
     }
@@ -580,15 +580,17 @@ function loadNextReel() {
     const reelDiv = document.createElement('div');  
     reelDiv.className = 'reel'; 
     
-    // 🛑 FIX: Only Next Reel Button
     const nextButton = `<button class="next-reel-btn">Next Reel »</button>`;  
     
     let mediaHtml;
     let mediaElType;
+    // 🛑 FIX: Use a placeholder poster with the title for the HTML5 video tag
+    const posterUrl = `https://placehold.co/480x800?text=${encodeURIComponent(it.title)}`;
+
 
     if (embedInfo.type === 'video') {
         mediaHtml = `
-            <video class="reel-video-media" loop playsinline autoplay muted preload="auto" src="${escapeHtml(embedInfo.src)}" poster="https://placehold.co/480x800?text=Loading+Reel">
+            <video class="reel-video-media" loop playsinline autoplay muted preload="auto" src="${escapeHtml(embedInfo.src)}" poster="${posterUrl}">
                 Your browser does not support the video tag.
             </video>`;
         mediaElType = 'video';
@@ -620,13 +622,15 @@ function loadNextReel() {
     // 4. Attach listeners
     qs('.next-reel-btn').addEventListener('click', loadNextReel);
     
-    // 5. Handle media play/unmute
+        // 5. Handle media play/unmute
     const mediaEl = qs('.reel-video-media');
     if (mediaEl && mediaEl.tagName === 'VIDEO') {
         mediaEl.muted = true;
         mediaEl.play().then(() => {
+            // Autoplay success, attempt to unmute
             setTimeout(() => { mediaEl.muted = false; }, 500);
         }).catch(e => {
+            // Autoplay blocked, keep muted and try again
             mediaEl.muted = true;
             mediaEl.play().catch(e => log("Video autoplay blocked, keeping muted.", e));
         });
