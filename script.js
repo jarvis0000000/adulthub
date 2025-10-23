@@ -511,8 +511,9 @@ async function openReelsPlayer() {
     loadNextReel();
 }
 
+// ✅ Dareloom Reels — FINAL MAX ANTI-EXIT VERSION (v9: Full Screen Overlay)
+// This aggressively prevents the iframe from opening its external link by covering the entire screen.
 
-// ✅ Dareloom Reels — FINAL RANDOM FIXED VERSION (v8: Anti-Exit/Next Reel Fix)
 function loadNextReel() {
   openAdsterraPop();
 
@@ -554,7 +555,8 @@ function loadNextReel() {
 
     let mediaHtml = "";
 
-    // ✅ Safe embed system (pointer-events:auto; on iframe to allow volume interaction)
+    // IMPORTANT: pointer-events:none is removed from iframe because it prevents autoplay.
+    // Instead, we rely completely on the full-screen overlay button.
     if (embedInfo.type === "video") {
       mediaHtml = `<video class="reel-video-media" loop playsinline autoplay muted preload="auto" src="${escapeHtml(embedInfo.src)}"></video>`;
     } else if (embedInfo.type === "iframe") {
@@ -564,17 +566,16 @@ function loadNextReel() {
         allow="autoplay; fullscreen; encrypted-media"
         sandbox="allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-popups"
         allowfullscreen
-        style="width:100%;height:100%;border:none;pointer-events:auto;"></iframe>`;
+        style="width:100%;height:100%;border:none;pointer-events:auto;"></iframe>`; 
     }
     
-    // 🛑 CRITICAL FIX: We cover the top/middle area with a new transparent overlay button.
-    // The bottom area (where volume/controls are, approx 150px) is left open.
+    // 🛑 CRITICAL FIX: Full screen transparent overlay button
     reelDiv.innerHTML = `
-      <div class="reel-video-embed" style="position:relative;width:100%;height:100%;pointer-events:none;">
+      <div class="reel-video-embed" style="position:relative;width:100%;height:100%;">
         ${mediaHtml}
         
         <button class="reel-next-on-click-area" 
-           style="position:absolute; top:0; left:0; right:0; bottom:150px; background:transparent; border:none; z-index:40; cursor:pointer;"
+           style="position:absolute; inset:0; background:transparent; border:none; z-index:40; cursor:pointer;"
            title="Tap to play next reel">
         </button>
         
@@ -591,13 +592,13 @@ function loadNextReel() {
         loadNextReel();
     });
 
-    // 🛑 NEW LOGIC: Handle Click on the top area overlay
+    // 🛑 NEW LOGIC: Handle Click on the FULL SCREEN overlay
     const nextOnClickArea = reelDiv.querySelector(".reel-next-on-click-area");
     if (nextOnClickArea) {
         nextOnClickArea.addEventListener("click", (e) => {
-            e.stopPropagation(); 
-            log("Top area tap detected - loading next reel.");
-            loadNextReel(); 
+            e.stopPropagation(); // Stops the click from reaching the iframe/video
+            log("Full screen tap detected - loading next reel.");
+            loadNextReel(); // Load next reel instead of letting iframe navigate externally
         });
     }
 
