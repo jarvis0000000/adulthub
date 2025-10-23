@@ -1,5 +1,5 @@
 // script.js
-// Dareloom Hub - FINAL REELS INTEGRATION (v12): Double-Tap Next Reel & Volume Toggle, Perfect Anti-Exit/Audio Fix
+// Dareloom Hub - FINAL REELS INTEGRATION (v13): Double-Tap Next Reel, Perfect Volume Toggle & Anti-Exit
 
 // ------------- CONFIG -------------
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
@@ -11,7 +11,7 @@ const RANDOM_COUNT = 4;
 const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const POP_COOLDOWN_MS = 4000;
 let lastPop = 0;
-let userInteracted = false; // 👈 GLOBAL STATE: tracks initial site interaction
+let userInteracted = false; // VITAL: tracks initial site interaction for ad pop/browser policy
 let initialPopFired = false;
 
 // ------------- STATE -------------
@@ -26,19 +26,17 @@ let swipeStartY = 0;
 let lastTapTime = 0; // To track single/double tap
 
 
-// ------------- UTIL HELPERS (unchanged) -------------
+// ------------- UTIL HELPERS -------------
 const qs = sel => document.querySelector(sel);
 const qsa = sel => Array.from(document.querySelectorAll(sel));
 
 function log(...a){ console.log("[dareloom]", ...a); }
 
 function slugify(text){
-// ... (slugify function body) ...
 return (text||'').toString().toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
 }
 
 function escapeHtml(s){
-// ... (escapeHtml function body) ...
 return (s||'').toString()
 .replace(/&/g,'&amp;')
 .replace(/</g,'&lt;')
@@ -48,14 +46,12 @@ return (s||'').toString()
 }
 
 function extractYouTubeID(url){
-// ... (extractYouTubeID function body) ...
 if(!url) return null;
 const m = url.match(/(?:v=|youtu.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
 return m ? m[1] : null;
 }
 
 function makeThumbnail(it){
-// ... (makeThumbnail function body) ...
 if (it.poster && it.poster.trim()) return it.poster.trim();
 const y = extractYouTubeID(it.trailer || it.watch);
 if (y) return `https://img.youtube.com/vi/${y}/hqdefault.jpg`;
@@ -63,7 +59,6 @@ return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
 
 function openAdsterraPop(){
-// ... (openAdsterraPop function body) ...
 try{
 const now = Date.now();
 if (now - lastPop < POP_COOLDOWN_MS) return;
@@ -84,13 +79,351 @@ if (!userInteracted && !initialPopFired) return;
 }
 
 
-// ... (SHEET FETCH & PARSE and UI/RENDER/FILTER/WATCH LOGIC remains the same) ...
+// ------------- SHEET FETCH & PARSE (Unchanged) -------------
+async function fetchSheet(url){
+try{
+const res = await fetch(url);
+if (!res.ok) throw new Error('sheet fetch failed ' + res.status);
+const j = await res.json();
+return j.values || [];
+}catch(e){
+console.error("Sheet fetch error:", e);
+return [];
+}
+}
+
+function parseRows(values){
+if (!values || values.length < 2) return [];
+const headers = (values[0]||[]).map(h => (h||'').toString().toLowerCase().trim());
+const find = (names) => {
+for (let n of names){
+const i = headers.indexOf(n);
+if (i !== -1) return i;
+}
+return -1;
+};
+
+const TI = find(['title','name']) !== -1 ? find(['title','name']) : 0;  
+const TR = find(['trailer','youtube']) !== -1 ? find(['trailer','youtube']) : 2;  
+const WA = find(['watch','watch link']) !== -1 ? find(['watch','watch link']) : 6;   
+const TH = find(['poster','thumbnail']) !== -1 ? find(['poster','thumbnail']) : -1;  
+const DT = find(['date','upload date']) !== -1 ? find(['date','upload date']) : -1;  
+const CA = find(['category','tags']) !== -1 ? find(['category','tags']) : 20;   
+const DE = find(['description','desc']) !== -1 ? find(['description','desc']) : -1;  
+
+const rows = values.slice(1);  
+const out = [];  
+for (let r of rows){  
+    r = Array.isArray(r) ? r : [];  
+    const title = (r[TI] || '').toString().trim();  
+    const trailer = (r[TR] || '').toString().trim();  
+    const rawWatch = (r[WA] || '').toString().trim(); 
+    const poster = (TH !== -1 && r[TH]) ? r[TH].toString().trim() : '';  
+    const date = (DT !== -1 && r[DT]) ? r[DT].toString().trim() : '';  
+    const category = (CA !== -1 && r[CA]) ? r[CA].toString().trim() : '';  
+    const description = (DE !== -1 && r[DE]) ? r[DE].toString().trim() : '';  
+
+    let telegramLink = '';  
+    const links = rawWatch.split(',').map(l => l.trim()).filter(Boolean);  
+
+    links.forEach(link => {  
+        if (link.includes('t.me') || link.includes('telegram')) {  
+            telegramLink = link;  
+        }  
+    });  
+
+    if ((!trailer || trailer.length === 0) && (!rawWatch || rawWatch.length === 0)) continue;  
+
+    const id = `${slugify(title)}|${Math.random().toString(36).slice(2,8)}`;  
+
+    out.push({  
+        id,  
+        title: title || 'Untitled',  
+        trailer: trailer || '',  
+        watch: rawWatch || '',  
+        telegram: telegramLink || '', 
+        poster: poster || '',  
+        date: date || '',  
+        category: category || '',  
+        description: description || ''  
+    });  
+}  
+return out.reverse(); 
+}
+
+// Reels Sheet parsing for Title (A) and Link (B)
+function parseReelRows(values){
+    if (!values || values.length < 2) return [];
+    
+    const rows = values.slice(1);  
+    const out = [];  
+    let untitledCounter = 1;
+
+    for (let r of rows){  
+        r = Array.isArray(r) ? r : [];  
+        
+        const titleCandidate = (r[0] || '').toString().trim();  
+        const reelLink = (r[1] || '').toString().trim(); 
+
+        if (!reelLink) continue;  
+
+        const finalTitle = titleCandidate || (`Untitled Reel ${untitledCounter}`);
+        const id = `${slugify(finalTitle)}|${Math.random().toString(36).slice(2,8)}`;  
+        untitledCounter++;
+
+        out.push({  
+            id,  
+            title: finalTitle,  
+            reelLink: reelLink, 
+        });  
+    }  
+    return out; 
+}
 
 
-// ------------- REELS PLAYER LOGIC (FINAL V12) -------------
+// (UI / RENDER / FILTER / WATCH LOGIC Remains Unchanged)
+function renderTagsForItem(it){
+if (!it.category || !it.category.trim()) return '';
+const parts = it.category.split(',').map(p => p.trim()).filter(Boolean);
+return parts.map(p => `<button class="tag-btn" data-tag="${escapeHtml(p)}">#${escapeHtml(p)}</button>`).join(' ');
+}
+function renderRandom(){
+const g = qs('#randomGrid');
+if (!g) return;
+g.innerHTML = '';
+const pool = items.slice();
+const picks = [];
+while (picks.length < RANDOM_COUNT && pool.length) {
+picks.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);
+}
+picks.forEach(it => {
+const card = document.createElement('div');
+card.className = 'card';
+card.innerHTML = `<img class="thumb" src="${escapeHtml(makeThumbnail(it))}" loading="lazy" alt="${escapeHtml(it.title)}"> <div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
+card.addEventListener('click', ()=> openTrailerPage(it));
+g.appendChild(card);
+});
+}
+function renderLatest(page = 1){
+const list = qs('#latestList');
+if (!list) return;
+list.innerHTML = '';
+
+const total = filteredItems.length;  
+const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));  
+  
+if (page < 1) page = 1;  
+if (page > totalPages) page = totalPages;  
+currentPage = page;  
+
+const start = (page - 1) * PER_PAGE;  
+const slice = filteredItems.slice(start, start + PER_PAGE);  
+
+if (slice.length === 0 && total > 0 && page > 1) {  
+    currentPage = 1;  
+    renderLatest(1);  
+    return;  
+}  
+  
+if (slice.length === 0) {  
+    list.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--muted);">No videos found matching your criteria.</div>';  
+}  
+
+
+slice.forEach(it => {  
+    const div = document.createElement('div');  
+    div.className = 'latest-item';  
+    const thumb = makeThumbnail(it);  
+      
+    div.innerHTML = `  
+        <img class="latest-thumb" src="${escapeHtml(thumb)}" loading="lazy" alt="${escapeHtml(it.title)}">   
+        <div class="latest-info">   
+            <div style="font-weight:700">${escapeHtml(it.title)}</div>   
+            <div style="color:var(--muted);font-size:13px;margin-top:6px">${escapeHtml(it.date || '')}</div>   
+            <div class="tag-container" style="margin-top:6px">${renderTagsForItem(it)}</div>   
+            <div style="margin-top:8px">   
+                <button class="btn preview-btn" data-id="${escapeHtml(it.id)}">Trailer / Details</button>   
+                <button class="watch-btn" data-url="${escapeHtml(it.watch || it.trailer)}">Watch Now</button>   
+            </div>   
+        </div>  
+    `;  
+    div.addEventListener('click', (e) => {
+        if (!e.target.closest('.preview-btn, .watch-btn, .tag-btn')) {
+            openTrailerPage(it);
+        }
+    });
+
+    list.appendChild(div);  
+});  
+
+renderPagination(totalPages, currentPage);  
+attachLatestListeners();
+
+}
+
+function renderPagination(totalPages, page){
+const pager = qs('#pager');
+if (!pager) return;
+pager.innerHTML = '';
+if (totalPages <= 1) return;
+
+const windowSize = 5;  
+let startPage, endPage;  
+
+if (totalPages <= windowSize) {  
+    startPage = 1;  
+    endPage = totalPages;  
+} else {  
+    startPage = Math.max(1, page - Math.floor(windowSize / 2));  
+    endPage = Math.min(totalPages, page + Math.floor(windowSize / 2));  
+
+    if (endPage - startPage < windowSize - 1) {  
+        if (startPage === 1) {  
+            endPage = Math.min(totalPages, windowSize);  
+        } else if (endPage === totalPages) {  
+            startPage = Math.max(1, totalPages - windowSize + 1);  
+        }  
+    }  
+}  
+
+if (page > 1){  
+    const prev = document.createElement('button');  
+    prev.className = 'page-btn';  
+    prev.textContent = '« Prev';  
+    prev.addEventListener('click', ()=> changePage(page - 1));  
+    pager.appendChild(prev);  
+}  
+
+if (startPage > 1) {  
+    const b = document.createElement('button');  
+    b.className = 'page-num page-btn';  
+    b.textContent = 1;  
+    b.addEventListener('click', ()=> changePage(1));  
+    pager.appendChild(b);  
+    if (startPage > 2) {  
+        const dots = document.createElement('span');  
+        dots.textContent = '...';  
+        dots.className = 'dots';  
+        pager.appendChild(dots);  
+    }  
+}  
+
+for (let i = startPage; i <= endPage; i++){  
+    const b = document.createElement('button');  
+    b.className = 'page-num page-btn' + (i === page ? ' active' : '');  
+    b.textContent = i;  
+    b.dataset.page = i;  
+    b.addEventListener('click', ()=> changePage(i));  
+    pager.appendChild(b);  
+}  
+
+if (endPage < totalPages){  
+    if (endPage < totalPages - 1) {  
+        const dots = document.createElement('span');  
+        dots.textContent = '...';  
+        dots.className = 'dots';  
+        pager.appendChild(dots);  
+    }  
+    const b = document.createElement('button');  
+    b.className = 'page-num page-btn';  
+    b.textContent = totalPages;  
+    b.addEventListener('click', ()=> changePage(totalPages));  
+    pager.appendChild(b);  
+}  
+
+
+if (page < totalPages){  
+    const next = document.createElement('button');  
+    next.className = 'page-btn';  
+    next.textContent = 'Next »';  
+    next.addEventListener('click', ()=> changePage(page + 1));  
+    pager.appendChild(next);  
+}
+}
+
+function changePage(page){
+renderLatest(page);
+const latestSection = qs('#latestSection');
+if (latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' });
+openAdsterraPop();
+}
+
+function attachLatestListeners(){
+qsa('#latestList .preview-btn').forEach(el => {
+el.removeEventListener('click', onPreviewClick);
+el.addEventListener('click', onPreviewClick);
+});
+qsa('#latestList .watch-btn').forEach(btn => {
+btn.removeEventListener('click', onWatchClick);
+btn.addEventListener('click', onWatchClick);
+});
+qsa('.tag-btn').forEach(tagbtn => {
+tagbtn.removeEventListener('click', onTagClick);
+tagbtn.addEventListener('click', onTagClick);
+});
+}
+
+function onPreviewClick(e){
+markUserGesture();
+e.stopPropagation(); 
+const id = e.currentTarget.dataset.id;
+const it = items.find(x => x.id === id); 
+if (!it) return;
+openTrailerPage(it);
+}
+
+function onWatchClick(e){
+markUserGesture();
+e.stopPropagation(); 
+const url = e.currentTarget.dataset.url; 
+if (!url) return;
+openWatchPage(url);
+}
+
+function onTagClick(e){
+markUserGesture();
+e.stopPropagation(); 
+const tag = e.currentTarget.dataset.tag;
+if (!tag) return;
+applyTagFilter(tag);
+}
+
+function openTrailerPage(it){
+markUserGesture();
+openAdsterraPop();
+const trailerURL = `/trailer.html?id=${encodeURIComponent(it.id)}`; 
+setTimeout(()=> {
+try {
+window.location.href = trailerURL;
+} catch(e){
+console.error("Failed to open trailer page", e);
+}
+}, 120);
+}
+
+function openWatchPage(fullWatchLinks){
+    if (!fullWatchLinks) return;
+    markUserGesture();
+    openAdsterraPop();
+
+    const finalDestination = `/watch?url=${encodeURIComponent(fullWatchLinks)}`;
+    const redirectPage = `/go.html?target=${encodeURIComponent(finalDestination)}`;    
+
+    setTimeout(()=> {  
+        try {  
+            const w = window.open(redirectPage, '_blank');    
+            if (!w || w.closed || typeof w.closed === 'undefined'){    
+                alert("Please allow pop-ups to open the link in a new tab!");    
+            }    
+        } catch(e){    
+            console.error(e);    
+        }  
+    }, 120);
+}
+
+// ------------- REELS PLAYER LOGIC (FINAL V13) -------------
 
 function toEmbedUrlForReels(url) {
-// ... (toEmbedUrlForReels function body remains the same) ...
     if (!url) return { type: "none" };
     url = url.trim();
 
@@ -141,17 +474,19 @@ async function openReelsPlayer() {
         }
     }
     
+    // Reset state for a new session
     usedReelIds.clear(); 
     
     qs('#reelsContainer').innerHTML = ''; 
     qs('#reelsPlayer').style.display = 'flex'; 
     document.body.style.overflow = 'hidden';   
 
+    // Load the first random reel
     loadNextReel();
 }
 
 
-// ✅ Dareloom Reels — FINAL V12: Double-Tap Next Reel & Volume Toggle
+// ✅ Dareloom Reels — FINAL V13: Double-Tap Next Reel & Volume Toggle
 function loadNextReel() {
   openAdsterraPop();
 
@@ -194,6 +529,7 @@ function loadNextReel() {
     let mediaHtml = "";
 
     if (embedInfo.type === "video") {
+      // Always start with muted attribute for proper autoplay in all browsers
       mediaHtml = `<video class="reel-video-media" loop playsinline autoplay muted preload="auto" src="${escapeHtml(embedInfo.src)}"></video>`;
     } else if (embedInfo.type === "iframe") {
       mediaHtml = `<iframe class="reel-video-media"
@@ -227,7 +563,7 @@ function loadNextReel() {
         loadNextReel();
     });
 
-    // 🛑 NEW/UPDATED LOGIC: Tap Detection
+    // 🛑 OPTIMIZED TAP DETECTION: Single tap → toggle sound, Double tap → next reel
     const nextOnClickArea = reelDiv.querySelector(".reel-next-on-click-area");
     if (nextOnClickArea) {
       nextOnClickArea.addEventListener("click", (e) => {
@@ -246,15 +582,16 @@ function loadNextReel() {
         }
 
         // 🧠 Mark that user interacted
-        userInteracted = true;
+        userInteracted = true; 
 
         // 👇 Single tap: toggle mute/unmute if video
         if (mediaEl && mediaEl.tagName === "VIDEO") {
+          
           if (mediaEl.muted) {
             mediaEl.muted = false;
             mediaEl.volume = 1.0;
 
-            // 🔊 force resume audio context for Chrome/Safari
+            // 🔊 CRITICAL: force resume audio context for Chrome/Safari on unmuting
             if (typeof mediaEl.play === "function") {
               mediaEl.play().then(() => {
                 log("🔊 Sound ON (resumed)");
@@ -297,12 +634,10 @@ function loadNextReel() {
     const mediaEl = reelDiv.querySelector(".reel-video-media");
     if (mediaEl) {
       if (mediaEl.tagName === "VIDEO") {
-        // 🛑 CRITICAL FIX: Always start muted to allow Autoplay.
-        // The tap handler controls the volume toggle.
+        // Initial play attempt (must be after setting muted)
         mediaEl.muted = true; 
-        mediaEl.volume = 1.0; 
+        mediaEl.volume = 1.0;
         mediaEl.play().catch(() => log("Autoplay blocked — muted"));
-        
       } else if (mediaEl.tagName === 'IFRAME') {
          mediaEl.style.transform = 'scale(1.05)';
       }
@@ -325,12 +660,10 @@ function loadNextReel() {
 
 
 function handleTouchStart(e){
-// ... (handleTouchStart function body remains the same) ...
     swipeStartY = e.touches[0].clientY;
 }
 
 function handleTouchEnd(e){
-// ... (handleTouchEnd function body remains the same) ...
     const swipeEndY = e.changedTouches[0].clientY;
     const diffY = swipeStartY - swipeEndY;
     
@@ -348,7 +681,6 @@ function handleTouchEnd(e){
 
 
 function closeReelsPlayer(){
-// ... (closeReelsPlayer function body remains the same) ...
     const player = qs('#reelsPlayer');
     if(player) player.style.display = 'none';
     document.body.style.overflow = '';
@@ -374,6 +706,7 @@ function secureIframes() {
     iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-fullscreen");
     iframe.removeAttribute("allowpopups");
     iframe.removeAttribute("target");
+    // NOTE: Clicks on iframe are largely blocked by the FULL SCREEN OVERLAY
   });
 }
 
