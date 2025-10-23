@@ -521,8 +521,9 @@ async function openReelsPlayer() {
 }
 
 
-// ✅ Dareloom Reels — FINAL RANDOM FIXED VERSION (v3)
-// Random each time (reload + next), proper embed, no redirect, no repeat until full cycle
+// ✅ Dareloom Reels — FINAL RANDOM FIXED VERSION (v5)
+// Video Click now triggers the Next Reel (improving user experience)
+
 function loadNextReel() {
   openAdsterraPop();
 
@@ -577,11 +578,17 @@ function loadNextReel() {
         allowfullscreen
         style="width:100%;height:100%;border:none;"></iframe>`;
     }
-
-    // 🛑 IMPORTANT: Next button moved OUTSIDE of reel-video-embed div for cleaner CSS control
+    
+    // 🛑 CLICKABLE OVERLAY ADDED TO TRIGGER NEXT REEL
     reelDiv.innerHTML = `
       <div class="reel-video-embed" style="position:relative;width:100%;height:100%;">
         ${mediaHtml}
+        
+        <button class="reel-next-on-click-overlay" 
+           style="position:absolute; inset:0; background:transparent; border:none; z-index:40; cursor:pointer;"
+           title="Play next reel">
+        </button>
+        
       </div>
       <div class="reel-buttons">
           <button class="next-reel-btn">Next Reel »</button>
@@ -589,9 +596,19 @@ function loadNextReel() {
     `;
     container.appendChild(reelDiv);
 
-    // Get the button from the main reelDiv's children
     const nextBtn = reelDiv.querySelector(".next-reel-btn");
     nextBtn.addEventListener("click", loadNextReel);
+
+    // 🛑 NEW LOGIC: Handle Click Event on the Overlay to load NEXT REEL
+    const nextOnClickOverlay = reelDiv.querySelector(".reel-next-on-click-overlay");
+    if (nextOnClickOverlay) {
+        nextOnClickOverlay.addEventListener("click", (e) => {
+            e.stopPropagation(); // Stop any underlying clicks/gestures from conflicting
+            log("Video tap detected - loading next reel.");
+            loadNextReel(); // Load the next reel when clicked
+        });
+    }
+
 
     const mediaEl = reelDiv.querySelector(".reel-video-media");
     if (mediaEl) {
@@ -607,14 +624,12 @@ function loadNextReel() {
     // fade-in
     setTimeout(() => (container.style.opacity = 1), 50);
 
-    // 🧠 Swipe system
-    // Re-attach listeners to the container (or the reelDiv) to ensure they always work
-    let touchTarget = reelDiv.querySelector('.reel-video-embed') || container;
-    touchTarget.removeEventListener('touchstart', handleTouchStart);
-    touchTarget.removeEventListener('touchend', handleTouchEnd);
+    // 🧠 Swipe system (attached to container)
+    container.removeEventListener('touchstart', handleTouchStart);
+    container.removeEventListener('touchend', handleTouchEnd);
+    container.addEventListener('touchstart', handleTouchStart);
+    container.addEventListener('touchend', handleTouchEnd);
 
-    touchTarget.addEventListener('touchstart', handleTouchStart);
-    touchTarget.addEventListener('touchend', handleTouchEnd);
 
   }, 300);
 }
