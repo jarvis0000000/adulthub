@@ -1,5 +1,5 @@
 // script.js
-// Dareloom Hub - FINAL V16: Removed "Watch Full Video" button for Iframes.
+// Dareloom Hub - FINAL V17: RedGifs Direct MP4 + Robust Reels Player
 
 // ------------- CONFIG -------------
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
@@ -9,7 +9,7 @@ const RANDOM_COUNT = 4;
 
 // Pop / ads config
 const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
-const POP_COOLDOWN_MS = 60000;
+const POP_COOLDOWN_MS = 4000;
 let lastPop = 0;
 let userInteracted = false; 
 let initialPopFired = false;
@@ -78,8 +78,8 @@ if (!userInteracted && !initialPopFired) return;
 }
 }
 
-// ⬇️ ADDED FUNCTION 
-function getVideoURL(link) {
+// 🧠 RedGifs direct MP4 link generator (same as getVideoURL)
+function getRedgifsDirect(link) {
   if (link.includes("redgifs.com/watch/")) {
     // Extract the slug from a watch URL (e.g., 'https://redgifs.com/watch/slug-name')
     const slug = link.split("/watch/")[1];
@@ -88,10 +88,9 @@ function getVideoURL(link) {
   }
   return link;
 }
-// ⬆️ END ADDED FUNCTION
 
 
-// ------------- SHEET FETCH & PARSE (Unchanged) -------------
+// ------------- SHEET FETCH & PARSE -------------
 async function fetchSheet(url){
 try{
 const res = await fetch(url);
@@ -104,6 +103,7 @@ return [];
 }
 }
 
+// 🛑 Main Content (Sheet1) Parser - Re-added 
 function parseRows(values){
 if (!values || values.length < 2) return [];
 const headers = (values[0]||[]).map(h => (h||'').toString().toLowerCase().trim());
@@ -163,7 +163,7 @@ for (let r of rows){
 return out.reverse(); 
 }
 
-// Reels Sheet parsing for Title (A) and Link (B)
+// Reels Sheet (Sheet3) parsing for Title (A) and Link (B)
 function parseReelRows(values){
     if (!values || values.length < 2) return [];
     
@@ -193,7 +193,7 @@ function parseReelRows(values){
 }
 
 
-// (UI / RENDER / FILTER / WATCH LOGIC Remains Unchanged)
+// ------------- UI / RENDER / FILTER / WATCH LOGIC (Re-added) -------------
 function renderTagsForItem(it){
 if (!it.category || !it.category.trim()) return '';
 const parts = it.category.split(',').map(p => p.trim()).filter(Boolean);
@@ -433,7 +433,29 @@ function openWatchPage(fullWatchLinks){
     }, 120);
 }
 
-// ------------- REELS PLAYER LOGIC (FINAL V16) -------------
+function filterVideos(query = "") {
+    const q = query.toLowerCase().trim();
+    if (!q) {
+        filteredItems = items;
+    } else {
+        filteredItems = items.filter(it => 
+            it.title.toLowerCase().includes(q) || 
+            it.category.toLowerCase().includes(q) ||
+            it.description.toLowerCase().includes(q)
+        );
+    }
+    renderLatest(1);
+}
+
+function applyTagFilter(tag) {
+    const q = tag.toLowerCase().trim();
+    filteredItems = items.filter(it => it.category.toLowerCase().includes(q));
+    renderLatest(1);
+    const s = qs('#searchInput');
+    if(s) s.value = ''; // Clear search input
+}
+
+// ------------- REELS PLAYER LOGIC -------------
 
 function toEmbedUrlForReels(url) {
     if (!url) return { type: "none" };
@@ -452,9 +474,9 @@ function toEmbedUrlForReels(url) {
         return { type: "iframe", src: `https://www.youtube.com/embed/${y}?autoplay=1&mute=1&rel=0&controls=0&enablejsapi=1&playsinline=1&origin=${window.location.origin}` }; 
     }
     
-    // ⬇️ MODIFIED REDGIFS HANDLING: Use getVideoURL to get the direct MP4 link
+    // ✅ Uses the improved getRedgifsDirect function
     if (url.includes('redgifs.com/watch/')) {
-        const directMp4 = getVideoURL(url);
+        const directMp4 = getRedgifsDirect(url);
         return { type: "video", src: directMp4 };
     }
     
@@ -465,7 +487,6 @@ function toEmbedUrlForReels(url) {
         const embedUrl = `https://www.redgifs.com/ifr/${videoId}?autoplay=true&muted=true`; 
         return { type: "iframe", src: embedUrl };
     }
-    // ⬆️ END MODIFIED REDGIFS HANDLING
 
     if (url.includes('.mp4') || url.includes('.gifv') || url.includes('.webm') || url.includes('.m3u8')) {
         return { type: "video", src: url };
@@ -473,6 +494,7 @@ function toEmbedUrlForReels(url) {
     
     // Fallback for other direct links
     if (url.startsWith('http')) {
+        // Use iframe for general external URLs
         return { type: "iframe", src: url };
     }
 
@@ -506,7 +528,6 @@ async function openReelsPlayer() {
 }
 
 
-// ✅ Dareloom Reels — FINAL V16: Removed Watch Full Video Link
 function loadNextReel() {
   openAdsterraPop();
 
@@ -555,7 +576,7 @@ function loadNextReel() {
         frameborder="0"
         allow="autoplay; fullscreen; encrypted-media"
         allowfullscreen
-        style="width:100%;height:100%;border:none;pointer-events:auto;"></iframe>`; 
+        style="width:100%;height:100%;border:none;pointer-events:none;"></iframe>`; // Added pointer-events:none
     }
 
 // 🧠 Full screen transparent overlay button for tap detection
@@ -583,15 +604,15 @@ nextBtn.addEventListener("click", (e) => {
     loadNextReel();
 });
 
-// --------------- TAP DETECTION ---------------
+// --------------- TAP DETECTION (Includes sound toggle) ---------------
 const overlay = reelDiv.querySelector(".reel-touch-overlay");
-let lastTapTime = 0;
+let lastTap = 0; 
 
 overlay.addEventListener("click", (e) => {
     e.stopPropagation();
     const now = Date.now();
-    const tapDiff = now - lastTapTime;
-    lastTapTime = now;
+    const tapDiff = now - lastTap;
+    lastTap = now;
 
     const mediaEl = reelDiv.querySelector(".reel-video-media");
 
@@ -636,8 +657,8 @@ overlay.addEventListener("click", (e) => {
 // 🛡️ Block iframe clicks opening original site
 const iframe = reelDiv.querySelector("iframe");
 if (iframe) {
-    iframe.setAttribute("sandbox", "allow-scripts allow-same-origin");
-    iframe.style.pointerEvents = "none"; // Prevent link clicks
+    iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-fullscreen");
+    iframe.style.pointerEvents = "none"; // Explicitly prevent link clicks inside iframe
 }
                  
     const mediaEl = reelDiv.querySelector(".reel-video-media");
@@ -661,8 +682,6 @@ if (iframe) {
     container.addEventListener('touchstart', handleTouchStart);
     container.addEventListener('touchend', handleTouchEnd);
 
-    // 🛑 Call post-load security
-    afterReelLoad();
 
   }, 300);
 }
@@ -707,27 +726,22 @@ function closeReelsPlayer(){
     usedReelIds.clear(); 
 }
 
-// 🚫 Prevent iframes from opening external pages
-function secureIframes() {
-  document.querySelectorAll("#reelsContainer iframe").forEach((iframe) => {
-    // Apply sandbox for security and to prevent external navigation/popups
-    iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-fullscreen");
-    iframe.removeAttribute("allowpopups");
-    iframe.removeAttribute("target");
-  });
+
+// ------------- INIT / BOOT -------------
+
+function markUserGesture(){
+userInteracted = true;
 }
 
-// 🩹 Call after every new reel load
-function afterReelLoad() {
-  secureIframes();
-  log("✅ Iframe sandbox applied (helps prevent redirect)");
+function setupGestureListener(){
+['click', 'touchstart', 'keydown'].forEach(e => {
+document.addEventListener(e, markUserGesture, {once: true});
+});
 }
 
-
-// ------------- INIT / BOOT (Unchanged) -------------
 async function loadAll(){
     const raw = await fetchSheet(SHEET_API); 
-    const parsed = parseRows(raw);
+    const parsed = parseRows(raw); // 🛑 Using correct parser for main content
     items = parsed;
     filteredItems = parsed; 
 
@@ -745,21 +759,6 @@ async function loadAll(){
     }  
     
     setupGestureListener();
-}
-
-function updateCount(n){
-const c = qs('#count');
-if (c) c.textContent = `${n} items`;
-}
-
-function markUserGesture(){
-userInteracted = true;
-}
-
-function setupGestureListener(){
-['click', 'touchstart', 'keydown'].forEach(e => {
-document.addEventListener(e, markUserGesture, {once: true});
-});
 }
 
 loadAll();
