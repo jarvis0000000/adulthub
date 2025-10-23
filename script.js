@@ -1,5 +1,5 @@
 // script.js
-// Dareloom Hub - FINAL REELS INTEGRATION (v13): Double-Tap Next Reel, Perfect Volume Toggle & Anti-Exit
+// Dareloom Hub - FINAL REELS INTEGRATION (v14): Sound Fix, Double-Tap Next Reel, Perfect Volume Toggle & Anti-Exit
 
 // ------------- CONFIG -------------
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
@@ -355,7 +355,7 @@ el.addEventListener('click', onPreviewClick);
 });
 qsa('#latestList .watch-btn').forEach(btn => {
 btn.removeEventListener('click', onWatchClick);
-btn.addEventListener('click', onWatchClick);
+el.addEventListener('click', onWatchClick);
 });
 qsa('.tag-btn').forEach(tagbtn => {
 tagbtn.removeEventListener('click', onTagClick);
@@ -421,7 +421,7 @@ function openWatchPage(fullWatchLinks){
     }, 120);
 }
 
-// ------------- REELS PLAYER LOGIC (FINAL V13) -------------
+// ------------- REELS PLAYER LOGIC (FINAL V14) -------------
 
 function toEmbedUrlForReels(url) {
     if (!url) return { type: "none" };
@@ -486,7 +486,7 @@ async function openReelsPlayer() {
 }
 
 
-// ✅ Dareloom Reels — FINAL V13: Double-Tap Next Reel & Volume Toggle
+// ✅ Dareloom Reels — FINAL V14: Double-Tap Next Reel & Volume Toggle
 function loadNextReel() {
   openAdsterraPop();
 
@@ -593,10 +593,12 @@ function loadNextReel() {
 
             // 🔊 CRITICAL: force resume audio context for Chrome/Safari on unmuting
             if (typeof mediaEl.play === "function") {
+              // We attempt to play, which resumes the AudioContext and unblocks sound
               mediaEl.play().then(() => {
                 log("🔊 Sound ON (resumed)");
-              }).catch(() => {
-                // fallback retry
+              }).catch((err) => {
+                log("Audio resume blocked/failed on tap:", err.message);
+                // On failure, keep trying, or show a message
                 setTimeout(() => mediaEl.play(), 200);
               });
             }
@@ -634,7 +636,7 @@ function loadNextReel() {
     const mediaEl = reelDiv.querySelector(".reel-video-media");
     if (mediaEl) {
       if (mediaEl.tagName === "VIDEO") {
-        // Initial play attempt (must be after setting muted)
+        // 🛑 FIX: Ensure muted and volume are set BEFORE play() call for autoplay
         mediaEl.muted = true; 
         mediaEl.volume = 1.0;
         mediaEl.play().catch(() => log("Autoplay blocked — muted"));
