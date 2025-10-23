@@ -60,21 +60,20 @@
       align-items: center;
       gap: 10px;
     }
-    /* 🎨 REDGIFS Button CSS (Updated to Red) */
     .menu-toggle {
-      background: #FF0000; /* Red Color for REDGIFS */
+      background: var(--secondary-color);
       color: #fff;
       border: none;
-      border-radius: 8px; /* Slightly squared for text */
-      padding: 8px 12px;
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
       cursor: pointer;
-      font-size: 1.0rem;
-      font-weight: 600;
-      transition: background 0.2s, transform 0.2s;
+      font-size: 1.1rem;
+      transition: transform 0.2s;
     }
     .menu-toggle:hover {
-      transform: scale(1.05);
-      background: #e60000; /* Darker red on hover */
+      transform: scale(1.1);
+      background: var(--primary-color);
     }
     .grid { 
       display: grid; 
@@ -189,10 +188,6 @@
       overflow-y: scroll;
       z-index: 9999;
       padding-bottom: 80px;
-      /* Reels container ko center karne ke liye flex properties */
-      display: flex; 
-      flex-direction: column;
-      align-items: center;
     }
     #reelsContainer {
       display: flex;
@@ -200,7 +195,6 @@
       gap: 25px;
       padding: 60px 0;
       align-items: center;
-      width: 100%; /* Ensure container uses full width for centering */
     }
     .reel {
       position: relative;
@@ -210,62 +204,36 @@
       overflow: hidden;
       background: #111;
       box-shadow: 0 0 10px #000;
-      height: 70vh; /* Fixed height for consistent look */
     }
-    .reel-video-embed {
-        position: relative;
-        width: 100%;
-        height: 100%;
-    }
-    /* Reel media (video/iframe) ko container ke andar fit karne ke liye */
-    .reel-video-media {
+    .reel video {
       width: 100%;
-      height: 100%;
+      aspect-ratio: 9/16;
       object-fit: cover;
-      display: block;
     }
     .reel-buttons {
       display: flex;
-      flex-direction: column; /* Buttons ko stack karne ke liye */
-      justify-content: center;
-      align-items: center;
+      justify-content: space-around;
       padding: 10px;
       background: #000a;
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      box-sizing: border-box;
     }
-    .reel-buttons-group {
-        display: flex;
-        justify-content: center;
-        gap: 10px;
-        width: 100%;
-    }
-    /* Next Reel button */
-    .next-reel-btn {
-      background: var(--primary-color) !important;
+    .reel-buttons button {
+      background: var(--primary-color);
       color: #fff;
       border: none;
       border-radius: 8px;
-      padding: 8px 16px !important;
-      font-size: 1.1rem !important;
+      padding: 6px 12px;
+      font-size: 0.9rem;
       cursor: pointer;
       transition: background 0.3s;
-      width: 80%; /* Button ko bada karne ke liye */
-      max-width: 200px;
-      font-weight: 700;
     }
-    .next-reel-btn:hover {
-      background: var(--secondary-color) !important;
+    .reel-buttons button:hover {
+      background: var(--secondary-color);
     }
-    
     #reelsCloseBtn {
       position: fixed;
       top: 12px;
       left: 12px;
-      background: #FF0000; /* Close button ko bhi red kar diya */
+      background: var(--primary-color);
       color: #fff;
       border: none;
       border-radius: 50%;
@@ -280,7 +248,6 @@
       .latest-item { flex-direction: column; align-items: flex-start; }
       .latest-thumb { width: 100%; height: auto; }
       #latestList { gap: 12px; }
-      .reel { height: 85vh; } /* Mobile pe thoda aur lamba */
     }
   </style>
 </head>  
@@ -332,4 +299,7 @@
 
   <script src="/script.js?v=20251017" defer></script>
 </body>
-</html>
+        </html>
+          
+
+dekho bro shi h aagr n shi kr do aur redgifs button red kr dena  aur hide n
