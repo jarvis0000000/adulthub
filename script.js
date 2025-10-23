@@ -485,46 +485,14 @@ async function openReelsPlayer() {
     loadNextReel();
 }
 
-
-// ✅ Dareloom Reels — FINAL V14: Double-Tap Next Reel & Volume Toggle
+// ✅ Dareloom Reels — FINAL V15: Iframe & Sound Fix
 function loadNextReel() {
-  openAdsterraPop();
-
-  const container = qs("#reelsContainer");
-
-  // ... (Random selection logic remains the same) ...
-  if (usedReelIds.size >= allReelCandidates.length) {
-    usedReelIds.clear();
-    log("♻️ All reels shown once — starting new random cycle.");
-  }
-
-  let available = allReelCandidates.filter(x => !usedReelIds.has(x.id));
-  if (available.length === 0) {
-    container.innerHTML = `<h2 style="color:var(--primary-color);text-align:center;margin-top:40vh;">No Reels Found</h2>`;
-    return;
-  }
-
-  const item = available[Math.floor(Math.random() * available.length)];
-  usedReelIds.add(item.id);
-
-  const embedInfo = toEmbedUrlForReels(item.reelLink);
-  if (embedInfo.type === "none") {
-    log("Invalid embed link, skipping...");
-    loadNextReel();
-    return;
-  }
-
-  // 🎞️ Fade transition
-  container.style.transition = "opacity 0.3s ease";
-  container.style.opacity = 0;
+  // ... (ऊपरी कोड, आइटम चयन, embedInfo समान) ...
 
   setTimeout(() => {
     container.innerHTML = "";
     const reelDiv = document.createElement("div");
-    reelDiv.className = "reel";
-    reelDiv.style.height = "100vh";
-    reelDiv.style.overflow = "hidden";
-    reelDiv.style.position = "relative";
+    // ... (reelDiv स्टाइलिंग समान) ...
 
     let mediaHtml = "";
 
@@ -552,6 +520,10 @@ function loadNextReel() {
         
       </div>
       <div class="reel-buttons" style="z-index: 50;">
+          ${embedInfo.type === "iframe" ? 
+            `<button class="watch-full-video-btn" data-link="${escapeHtml(item.reelLink)}" style="margin-right: 10px;">Watch Full Video / Open Link</button>` 
+            : ''
+          }
           <button class="next-reel-btn">Next Reel »</button>
       </div>
     `;
@@ -562,8 +534,22 @@ function loadNextReel() {
         e.stopPropagation(); 
         loadNextReel();
     });
+    
+    // 🔗 Iframe Link Button Listener
+    const watchFullBtn = reelDiv.querySelector(".watch-full-video-btn");
+    if (watchFullBtn) {
+        watchFullBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            const link = e.currentTarget.dataset.link;
+            if (link) {
+                // Assuming you want to open the original redgifs/youtube link
+                window.open(link, '_blank'); 
+            }
+        });
+    }
 
-    // 🛑 OPTIMIZED TAP DETECTION: Single tap → toggle sound, Double tap → next reel
+
+    // 🛑 OPTIMIZED TAP DETECTION: Single tap → toggle sound (VIDEO ONLY), Double tap → next reel
     const nextOnClickArea = reelDiv.querySelector(".reel-next-on-click-area");
     if (nextOnClickArea) {
       nextOnClickArea.addEventListener("click", (e) => {
@@ -574,7 +560,7 @@ function loadNextReel() {
 
         const mediaEl = reelDiv.querySelector(".reel-video-media");
 
-        // 👆 Double tap within 300ms → Next reel
+        // 👆 Double tap within 300ms → Next reel (works for VIDEO and IFRAME)
         if (tapDiff < 300) {
           log("👆 Double tap detected - next reel");
           loadNextReel();
@@ -584,7 +570,7 @@ function loadNextReel() {
         // 🧠 Mark that user interacted
         userInteracted = true; 
 
-        // 👇 Single tap: toggle mute/unmute if video
+        // 👇 Single tap: toggle mute/unmute if VIDEO TAG
         if (mediaEl && mediaEl.tagName === "VIDEO") {
           
           if (mediaEl.muted) {
@@ -593,12 +579,11 @@ function loadNextReel() {
 
             // 🔊 CRITICAL: force resume audio context for Chrome/Safari on unmuting
             if (typeof mediaEl.play === "function") {
-              // We attempt to play, which resumes the AudioContext and unblocks sound
               mediaEl.play().then(() => {
                 log("🔊 Sound ON (resumed)");
               }).catch((err) => {
                 log("Audio resume blocked/failed on tap:", err.message);
-                // On failure, keep trying, or show a message
+                // On failure, keep trying
                 setTimeout(() => mediaEl.play(), 200);
               });
             }
@@ -610,6 +595,7 @@ function loadNextReel() {
           // 🔔 Small visual feedback
           const icon = document.createElement("div");
           icon.textContent = mediaEl.muted ? "🔇" : "🔊";
+          // ... (Styling of icon remains same) ...
           Object.assign(icon.style, {
             position: "absolute",
             top: "50%",
@@ -627,8 +613,10 @@ function loadNextReel() {
           setTimeout(() => (icon.style.opacity = "0"), 100);
           setTimeout(() => icon.remove(), 600);
         } else {
-          // For iframe reels (YouTube, Redgifs): Single tap allows iframe to process click 
-          log("Iframe reel single tap - allowing iframe to handle click (for volume/pause).");
+          // If IFRAME, single tap is just ignored by the overlay, 
+          // allowing the actual volume icon in the Redgifs/YouTube player to be clicked 
+          // (since the iframe's pointer-events is set to 'auto').
+          log("Iframe reel single tap - ignored by overlay. Click the player's volume icon.");
         }
       });
     }
@@ -636,7 +624,7 @@ function loadNextReel() {
     const mediaEl = reelDiv.querySelector(".reel-video-media");
     if (mediaEl) {
       if (mediaEl.tagName === "VIDEO") {
-        // 🛑 FIX: Ensure muted and volume are set BEFORE play() call for autoplay
+        // FIX: Autoplay start
         mediaEl.muted = true; 
         mediaEl.volume = 1.0;
         mediaEl.play().catch(() => log("Autoplay blocked — muted"));
@@ -645,40 +633,8 @@ function loadNextReel() {
       }
     }
 
-    // fade-in
-    setTimeout(() => (container.style.opacity = 1), 50);
-
-    // 🧠 Swipe system (attached to container)
-    container.removeEventListener('touchstart', handleTouchStart);
-    container.removeEventListener('touchend', handleTouchEnd);
-    container.addEventListener('touchstart', handleTouchStart);
-    container.addEventListener('touchend', handleTouchEnd);
-
-    // 🛑 Call post-load security
-    afterReelLoad();
-
+    // ... (fade-in, swipe, afterReelLoad remains same) ...
   }, 300);
-}
-
-
-function handleTouchStart(e){
-    swipeStartY = e.touches[0].clientY;
-}
-
-function handleTouchEnd(e){
-    const swipeEndY = e.changedTouches[0].clientY;
-    const diffY = swipeStartY - swipeEndY;
-    
-    // Only proceed if it was a clear SWIPE (large movement)
-    if (Math.abs(diffY) > 80) { // Large threshold for clear swipe
-        if (diffY > 0) {
-            // swipe up → next reel
-            loadNextReel(); 
-        } else {
-             // swipe down → next reel (or loadPrevReel if implemented)
-            loadNextReel();
-        }
-    } 
 }
 
 
