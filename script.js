@@ -78,6 +78,18 @@ if (!userInteracted && !initialPopFired) return;
 }
 }
 
+// ⬇️ ADDED FUNCTION 
+function getVideoURL(link) {
+  if (link.includes("redgifs.com/watch/")) {
+    // Extract the slug from a watch URL (e.g., 'https://redgifs.com/watch/slug-name')
+    const slug = link.split("/watch/")[1];
+    // Convert to a direct mobile MP4 link
+    return `https://thumbs2.redgifs.com/${slug}-mobile.mp4`;
+  }
+  return link;
+}
+// ⬆️ END ADDED FUNCTION
+
 
 // ------------- SHEET FETCH & PARSE (Unchanged) -------------
 async function fetchSheet(url){
@@ -440,12 +452,20 @@ function toEmbedUrlForReels(url) {
         return { type: "iframe", src: `https://www.youtube.com/embed/${y}?autoplay=1&mute=1&rel=0&controls=0&enablejsapi=1&playsinline=1&origin=${window.location.origin}` }; 
     }
     
-    if (url.includes('redgifs.com/watch/') || url.includes('redgifs.com/ifr/')) {
+    // ⬇️ MODIFIED REDGIFS HANDLING: Use getVideoURL to get the direct MP4 link
+    if (url.includes('redgifs.com/watch/')) {
+        const directMp4 = getVideoURL(url);
+        return { type: "video", src: directMp4 };
+    }
+    
+    // Keep RedGifs IFRAME handling for other redgifs links (e.g., ifr/ links)
+    if (url.includes('redgifs.com/ifr/')) {
         let videoId = url.split('/').pop(); 
         videoId = videoId.split('?')[0]; 
         const embedUrl = `https://www.redgifs.com/ifr/${videoId}?autoplay=true&muted=true`; 
         return { type: "iframe", src: embedUrl };
     }
+    // ⬆️ END MODIFIED REDGIFS HANDLING
 
     if (url.includes('.mp4') || url.includes('.gifv') || url.includes('.webm') || url.includes('.m3u8')) {
         return { type: "video", src: url };
@@ -543,7 +563,6 @@ reelDiv.innerHTML = `
   <div class="reel-video-embed" style="position:relative;width:100%;height:100%;">
       ${mediaHtml}
 
-      <!-- 🛑 Transparent overlay to block iframe clicks but still allow tap detection -->
       <div class="reel-touch-overlay"
           style="position:absolute; inset:0; background:transparent; z-index:30; cursor:pointer;">
       </div>
@@ -744,4 +763,3 @@ document.addEventListener(e, markUserGesture, {once: true});
 }
 
 loadAll();
-
