@@ -1,15 +1,13 @@
 // script.js
-// Dareloom Hub - Complete player + sheet + pagination + preview/watch + tags + random
-// 2025-10-23 (FINAL FIX: Single Reel View with Next Button)
+// Dareloom Hub - FINAL FIX: Single Reel View with Only Next Button & Correct Title
 
 // ------------- CONFIG -------------
 // Sheet 1 for Main Content (Latest List & Random Grid)
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
-// Sheet 3 (Reels) API: Assuming Link is now in column A or B
+// Sheet 3 (Reels) API: Sheet3!A:B is used to fetch Title (A) and Link (B)
 const SHEET_API_REELS = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet3!A:B?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw"; 
 const PER_PAGE = 5;
 const RANDOM_COUNT = 4;
-// REELS_LOAD_COUNT is no longer needed
 
 // Pop / ads config
 const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
@@ -23,10 +21,8 @@ let items = [];
 let filteredItems = [];
 let currentPage = 1;
 let reelsQueue = [];
-let allReelCandidates = []; // Full list of items suitable for reels
-let usedReelIds = new Set(); // Track reels played in the current cycle for duplication prevention
-
-// OLD REELS STATE REMOVED: reelsObserver, currentPlayingReel
+let allReelCandidates = []; 
+let usedReelIds = new Set(); 
 
 // ------------- UTIL HELPERS -------------
 const qs = sel => document.querySelector(sel);
@@ -102,8 +98,8 @@ const j = Math.floor(Math.random() * (i + 1));
 return arr;
 }
 
+// (Sheet1 Parsing Logic Remains Unchanged)
 function parseRows(values){
-// ... (Existing Sheet1 parsing logic - no change needed here) ...
 if (!values || values.length < 2) return [];
 const headers = (values[0]||[]).map(h => (h||'').toString().toLowerCase().trim());
 const find = (names) => {
@@ -114,7 +110,6 @@ if (i !== -1) return i;
 return -1;
 };
 
-// Use your custom column indices based on your previous description  
 const TI = find(['title','name']) !== -1 ? find(['title','name']) : 0;  
 const TR = find(['trailer','youtube']) !== -1 ? find(['trailer','youtube']) : 2;  
 const WA = find(['watch','watch link']) !== -1 ? find(['watch','watch link']) : 6;   
@@ -129,7 +124,7 @@ for (let r of rows){
     r = Array.isArray(r) ? r : [];  
     const title = (r[TI] || '').toString().trim();  
     const trailer = (r[TR] || '').toString().trim();  
-    const rawWatch = (r[WA] || '').toString().trim(); // Full comma-separated links   
+    const rawWatch = (r[WA] || '').toString().trim(); 
     const poster = (TH !== -1 && r[TH]) ? r[TH].toString().trim() : '';  
     const date = (DT !== -1 && r[DT]) ? r[DT].toString().trim() : '';  
     const category = (CA !== -1 && r[CA]) ? r[CA].toString().trim() : '';  
@@ -152,7 +147,7 @@ for (let r of rows){
         id,  
         title: title || 'Untitled',  
         trailer: trailer || '',  
-        watch: rawWatch || '',  // Full comma-separated string
+        watch: rawWatch || '',  
         telegram: telegramLink || '', 
         poster: poster || '',  
         date: date || '',  
@@ -161,15 +156,13 @@ for (let r of rows){
     });  
 }  
 return out.reverse(); 
-// ... (End of existing Sheet1 parsing logic) ...
 }
 
 
-// 🛑 UPDATED: Reels Sheet parsing for Link column (B) only
+// 🛑 REVISED: Reels Sheet parsing for Title (A) and Link (B)
 function parseReelRows(values){
     if (!values || values.length < 2) return [];
     
-    // Assuming Sheet3 has two columns: [Title/Empty, Reel Link]
     const rows = values.slice(1);  
     const out = [];  
     let untitledCounter = 1;
@@ -177,34 +170,29 @@ function parseReelRows(values){
     for (let r of rows){  
         r = Array.isArray(r) ? r : [];  
         
-        // Col 0 (A): Title/Empty
+        // Col 0 (A): Title
         // Col 1 (B): Reel Link
-        const titleCandidate = (r[0] || '').toString().trim();  
-        let reelLink = (r[1] || '').toString().trim(); 
-
-        // If Col B is empty, check Col A as a fallback link source (in case user only left one column)
-        if (!reelLink) {
-             reelLink = titleCandidate;
-        }
-
-        const title = titleCandidate || ('Untitled Reel '+untitledCounter);
+        const title = (r[0] || '').toString().trim();  
+        const reelLink = (r[1] || '').toString().trim(); 
 
         if (!reelLink) continue;  
 
-        const id = `${slugify(title)}|${Math.random().toString(36).slice(2,8)}`;  
+        const finalTitle = title || ('Untitled Reel '+untitledCounter);
+        const id = `${slugify(finalTitle)}|${Math.random().toString(36).slice(2,8)}`;  
         untitledCounter++;
 
         out.push({  
             id,  
-            title: title,  
-            reelLink: reelLink, // The primary link for embed
+            title: finalTitle,  // Use the title from Column A or fallback
+            reelLink: reelLink, 
         });  
     }  
     return out; 
 }
 
 
-// ------------- UI / RENDER FUNCTIONS (Mostly Unchanged) -------------
+// (UI / RENDER / FILTER LOGIC Remains Unchanged)
+
 function renderTagsForItem(it){
 if (!it.category || !it.category.trim()) return '';
 const parts = it.category.split(',').map(p => p.trim()).filter(Boolean);
@@ -228,7 +216,6 @@ g.appendChild(card);
 });
 }
 function renderLatest(page = 1){
-// ... (Render latest logic remains the same) ...
 const list = qs('#latestList');
 if (!list) return;
 list.innerHTML = '';
@@ -271,7 +258,6 @@ slice.forEach(it => {
             </div>   
         </div>  
     `;  
-    // CLICK LISTENER: Add click to item for details
     div.addEventListener('click', (e) => {
         if (!e.target.closest('.preview-btn, .watch-btn, .tag-btn')) {
             openTrailerPage(it);
@@ -287,7 +273,6 @@ attachLatestListeners();
 }
 
 function renderPagination(totalPages, page){
-// ... (Pagination logic remains the same) ...
 const pager = qs('#pager');
 if (!pager) return;
 pager.innerHTML = '';
@@ -365,7 +350,6 @@ if (page < totalPages){
     next.addEventListener('click', ()=> changePage(page + 1));  
     pager.appendChild(next);  
 }
-// ... (End of Pagination logic) ...
 }
 
 function changePage(page){
@@ -415,7 +399,6 @@ if (!tag) return;
 applyTagFilter(tag);
 }
 
-// ------------- FILTER LOGIC (UNCHANGED) -------------
 function filterVideos(queryOrTag){
 const query = (queryOrTag || '').toLowerCase().trim();
 if (query.length < 2 && !query.length) {
@@ -439,8 +422,6 @@ const s = qs('#searchInput');
 if (s) s.value = tag; 
 filterVideos(tag);
 }
-
-// ------------- TRAILER/WATCH PAGE LOGIC (UNCHANGED) -------------
 
 function openTrailerPage(it){
 markUserGesture();
@@ -475,14 +456,12 @@ function openWatchPage(fullWatchLinks){
     }, 120);
 }
 
-// ------------- REELS PLAYER LOGIC (UPDATED FOR NEXT BUTTON) -------------
+// ------------- REELS PLAYER LOGIC (UPDATED) -------------
 
-// Helper to convert raw URL/HTML to embeddable src
 function toEmbedUrlForReels(url){
     if (!url) return { type: 'none', src: '' };
     url = url.trim();
 
-    // 1. Iframe SRC Extraction
     if (url.startsWith('<iframe') && url.includes('src=')) {
         const match = url.match(/src=['"](.*?)['"]/i);
         if (match && match[1]) {
@@ -490,26 +469,22 @@ function toEmbedUrlForReels(url){
         }
     }
 
-    // 2. YouTube Link (Added mute=1 for best autoplay chance)
     const y = extractYouTubeID(url);
     if (y) {
         return { type: 'iframe', src: `https://www.youtube.com/embed/${y}?autoplay=1&mute=1&rel=0&controls=0&enablejsapi=1&playsinline=1&origin=${window.location.origin}` }; 
     }
     
-    // 3. RedGifs Iframe Link 
     if (url.includes('redgifs.com/watch/') || url.includes('redgifs.com/ifr/')) {
         let videoId = url.split('/').pop(); 
         videoId = videoId.split('?')[0]; 
-        const embedUrl = `https://www.redgifs.com/ifr/${videoId}?autoplay=true&muted=true`; // Added autoplay/mute for ifr
+        const embedUrl = `https://www.redgifs.com/ifr/${videoId}?autoplay=true&muted=true`; 
         return { type: 'iframe', src: embedUrl };
     }
 
-    // 4. Direct Video (MP4/WEBM/Gfycat)
     if (url.includes('.mp4') || url.includes('.gifv') || url.includes('.webm') || url.includes('.m3u8')) {
         return { type: 'video', src: url };
     }
     
-    // 5. General Porn Site Link (Treat all other HTTP/HTTPS links as potential Iframe SRC)
     if (url.startsWith('http')) {
         return { type: 'iframe', src: url };
     }
@@ -518,7 +493,7 @@ function toEmbedUrlForReels(url){
 }
 
 
-// 🛑 NEW: Open player and load the first reel
+// 🛑 REVISED: Open player and load the first (random) reel
 async function openReelsPlayer() {
     markUserGesture();
     openAdsterraPop();
@@ -532,33 +507,35 @@ async function openReelsPlayer() {
         }
     }
     
-    // Setup initial queue for a full random, non-repeating cycle
+    // 🛑 FIX: Setup initial queue for a full random cycle
     reelsQueue = shuffleArray(allReelCandidates); 
     usedReelIds.clear(); 
     
     qs('#reelsContainer').innerHTML = ''; 
-    qs('#reelsPlayer').style.display = 'flex'; // Use flex to center the single reel
+    qs('#reelsPlayer').style.display = 'flex'; 
     document.body.style.overflow = 'hidden';   
 
-    // Load the first reel
+    // Load the first random reel
     loadNextReel();
 }
 
-// 🛑 NEW CORE FUNCTION: Load the next random, non-repeating reel
+// 🛑 REVISED: Load the next random reel (only Next Button)
 function loadNextReel() {
-    openAdsterraPop(); // Ad pop on every click
+    openAdsterraPop(); 
 
     const container = qs('#reelsContainer');
     
-    // 1. Refill queue if empty
     if (reelsQueue.length === 0) {
         if (allReelCandidates.length > 0) {
+            // Cycle complete, start a new random cycle
             reelsQueue = shuffleArray(allReelCandidates);
             usedReelIds.clear(); 
-            log("Reels cycle complete. Refilling queue.");
+            log("Reels cycle complete. Refilling queue for a new random cycle.");
         } else {
-            container.innerHTML = `<div class="reel" style="display:flex; justify-content:center; align-items:center; color:var(--primary-color); text-align:center;">
+            // No candidates, show end message
+            container.innerHTML = `<div class="reel" style="display:flex; flex-direction:column; justify-content:center; align-items:center; color:var(--primary-color); text-align:center;">
                 <h2>End of Reels!</h2>
+                <p style="color:var(--muted);">Starting a new cycle...</p>
                 <div class="reel-buttons" style="position:absolute; bottom:0;">
                     <div class="reel-buttons-group">
                         <button onclick="closeReelsPlayer()">Close Player</button>
@@ -569,7 +546,7 @@ function loadNextReel() {
         }
     }
     
-    // 2. Get next reel
+    // 1. Get next random reel from the queue
     let item = null;
     while (reelsQueue.length > 0) {
         const nextItem = reelsQueue.shift();
@@ -580,45 +557,42 @@ function loadNextReel() {
     }
 
     if (!item) {
-        // If the loop failed to find an item (shouldn't happen after refill), try again.
+        // If shuffle logic failed (unlikely), try to refill and call itself again
         loadNextReel(); 
         return;
     }
 
     usedReelIds.add(item.id); 
 
-    // 3. Prepare the embed
+    // 2. Prepare the embed
     const it = item;
     const embedInfo = toEmbedUrlForReels(it.reelLink);
     
     if (embedInfo.type === 'none') {
         log("Invalid embed link, skipping to next reel.");
-        loadNextReel(); // Skip this item and load the next one
+        loadNextReel(); 
         return;
     }
     
-    // 4. Render the single reel
+    // 3. Render the single reel
     container.innerHTML = ''; // Clear previous reel
     
     const reelDiv = document.createElement('div');  
     reelDiv.className = 'reel'; 
     
-    // Buttons: Watch Full Link (using the reel link) and Next Reel
-    const watchButton = `<button class="watch-reel-btn" data-link="${escapeHtml(it.reelLink)}">Watch Full Video / Open Link</button>`;  
+    // 🛑 FIX: Only Next Reel Button
     const nextButton = `<button class="next-reel-btn">Next Reel »</button>`;  
     
     let mediaHtml;
     let mediaElType;
 
     if (embedInfo.type === 'video') {
-        // HTML5 Video: Use autoplay/muted attributes
         mediaHtml = `
             <video class="reel-video-media" loop playsinline autoplay muted preload="auto" src="${escapeHtml(embedInfo.src)}" poster="https://placehold.co/480x800?text=Loading+Reel">
                 Your browser does not support the video tag.
             </video>`;
         mediaElType = 'video';
     } else if (embedInfo.type === 'iframe') {
-        // Iframe: Load src with autoplay/mute parameters
         mediaHtml = `
             <iframe class="reel-video-media" src="${escapeHtml(embedInfo.src)}" 
                     data-type="iframe" allow="autoplay; fullscreen; encrypted-media; picture-in-picture"  
@@ -637,42 +611,33 @@ function loadNextReel() {
         <div class="reel-buttons">  
             <div style="padding: 0 0 10px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600;">${escapeHtml(it.title)}</div>  
             <div class="reel-buttons-group">  
-                ${watchButton}
                 ${nextButton}
             </div>  
         </div>
     `;  
     container.appendChild(reelDiv);
     
-    // 5. Attach listeners
+    // 4. Attach listeners
     qs('.next-reel-btn').addEventListener('click', loadNextReel);
-    qs('.watch-reel-btn').addEventListener('click', (e) => {
-        const link = e.currentTarget.dataset.link;
-        openWatchPage(link); 
-    });
     
-    // 6. Handle media play/unmute
+    // 5. Handle media play/unmute
     const mediaEl = qs('.reel-video-media');
     if (mediaEl && mediaEl.tagName === 'VIDEO') {
         mediaEl.muted = true;
         mediaEl.play().then(() => {
-            // Autoplay successful, try to unmute after a small delay
             setTimeout(() => { mediaEl.muted = false; }, 500);
         }).catch(e => {
-            // Autoplay blocked, keep muted and try again
             mediaEl.muted = true;
             mediaEl.play().catch(e => log("Video autoplay blocked, keeping muted.", e));
         });
     }
 }
 
-// 🛑 UPDATED: Clean up logic for static player
 function closeReelsPlayer(){
     const player = qs('#reelsPlayer');
     if(player) player.style.display = 'none';
     document.body.style.overflow = '';
 
-    // Stop playback of the single current reel
     const mediaEl = qs('#reelsContainer .reel-video-media');  
     if (mediaEl) {
         if (mediaEl.tagName === 'VIDEO') {
@@ -680,22 +645,15 @@ function closeReelsPlayer(){
             mediaEl.currentTime = 0;
             mediaEl.muted = true; 
         } else if (mediaEl.tagName === 'IFRAME') {
-            // Clear iframes to stop them from running in the background
             mediaEl.src = 'about:blank'; 
         }
     }
     
-    usedReelIds.clear(); // Clear used IDs on close
+    usedReelIds.clear(); 
 }
 
 
-// OLD REEL OBSERVER FUNCTIONS REMOVED:
-// - setupReelsObserver
-// - controlMedia
-// - setupInfiniteScrollObserver
-
-
-// ------------- INIT / BOOT (UNCHANGED) -------------
+// ------------- INIT / BOOT -------------
 async function loadAll(){
     const raw = await fetchSheet(SHEET_API); 
     const parsed = parseRows(raw);
