@@ -1,5 +1,5 @@
 // script.js
-// Dareloom Hub - FINAL FIX: Single Reel View with Only Next Button, Correct Title, and Random Start
+// Dareloom Hub - FINAL FIX: Single Reel View with Only Next Button, No Title, and No Repeat Randomness
 
 // ------------- CONFIG -------------
 // Sheet 1 for Main Content (Latest List & Random Grid)
@@ -159,7 +159,7 @@ return out.reverse();
 }
 
 
-// 🛑 REVISED: Reels Sheet parsing for Title (A) and Link (B)
+// 🛑 Reels Sheet parsing for Title (A) and Link (B)
 function parseReelRows(values){
     if (!values || values.length < 2) return [];
     
@@ -520,7 +520,7 @@ async function openReelsPlayer() {
     loadNextReel();
 }
 
-// 🛑 REVISED: Load the next random reel (with Title fix)
+// 🛑 FINAL REVISED: Load the next random reel (Title display removed, only Next button)
 function loadNextReel() {
     openAdsterraPop(); 
 
@@ -547,17 +547,19 @@ function loadNextReel() {
         }
     }
     
-    // 1. Get next random reel from the queue
+    // 1. Get next random reel from the queue (ensuring no repeats in the cycle)
     let item = null;
     while (reelsQueue.length > 0) {
         const nextItem = reelsQueue.shift();
-        if (!usedReelIds.has(nextItem.id)) {
+        if (!usedReelIds.has(nextItem.id)) { 
             item = nextItem;
             break;
         }
     }
 
     if (!item) {
+        // If we ran out of unique items in the queue (shouldn't happen often if refilling works), reload.
+        log("Queue empty or exhausted, reloading for next cycle.");
         loadNextReel(); 
         return;
     }
@@ -584,7 +586,7 @@ function loadNextReel() {
     
     let mediaHtml;
     let mediaElType;
-    // 🛑 FIX: Use a placeholder poster with the title for the HTML5 video tag
+    // Use a placeholder poster with the item's title (just for video tag attribute, not visible)
     const posterUrl = `https://placehold.co/480x800?text=${encodeURIComponent(it.title)}`;
 
 
@@ -605,13 +607,12 @@ function loadNextReel() {
         return; 
     }
 
-
+    // 🛑 TITLE DISPLAY REMOVED: Only media embed and buttons are present now.
     reelDiv.innerHTML = `  
         <div class="reel-video-embed" data-media-type="${mediaElType}">  
             ${mediaHtml}
         </div>  
         <div class="reel-buttons">  
-            <div style="padding: 0 0 10px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600;">${escapeHtml(it.title)}</div>  
             <div class="reel-buttons-group">  
                 ${nextButton}
             </div>  
