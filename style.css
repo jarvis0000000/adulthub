@@ -283,54 +283,54 @@ h2 {
     border-color: var(--primary-color);
 }
 
-/* === REELS PLAYER STYLES (CRITICAL UPDATE FOR SCROLL SNAP) === */
+/* === REELS PLAYER STYLES (CRITICAL UPDATE FOR SWIPE & TITLE HIDING) === */
 #reelsPlayer {
     display: none; 
     position: fixed;
     inset: 0; 
     z-index: 10000;
     background: #000;
-    overflow-y: scroll;
-    scroll-snap-type: y mandatory;
-    -webkit-overflow-scrolling: touch; 
-    /* Desktop centering */
-    display: flex; /* Changed from none in JS, but flex is good for centering reels */
+    /* Removed scroll-snap logic here as the JS handles movement and transition */
+    overflow: hidden; /* Prevent global scrolling/snapping */
+    
+    display: flex; 
     justify-content: center;
-    align-items: flex-start; /* Start from top, like a scrollable feed */
+    align-items: center; /* Center the container in the middle */
 }
 
-/* Revert the default display:none for JS control, but keep it for centering logic */
 #reelsPlayer[style*="display: none"] {
     display: none !important;
 }
 
 
-/* 🛑 REEL CONTAINER (Holds all reel slides) */
+/* 🛑 REEL CONTAINER (Holds the active reel) */
 #reelsContainer {
-    display: flex;
-    flex-direction: column;
-    /* On desktop, container stays centered with max-width */
+    /* Set a fixed size to mimic a mobile phone screen on desktop */
     max-width: 480px; 
     width: 100%;
-    min-height: 100dvh; /* Ensure container fills the viewport */
-}
-
-.reel { 
-    flex-shrink: 0;
-    width: 100%; /* Max-width handled by #reelsContainer */
     height: 100vh;
     height: 100dvh; /* Use dVH for mobile compatibility */
     
-    scroll-snap-align: start;
-    position: relative;
-    display: flex; 
+    /* Center the active reel element within the fixed player screen */
+    display: flex;
     flex-direction: column;
-    justify-content: flex-end; 
-    padding-bottom: 20px; 
+    justify-content: center; 
+    align-items: center; 
+    
+    position: relative; /* To contain the reel Div */
+}
+
+/* 🛑 REEL ELEMENT (The single active reel slide) */
+.reel { 
+    width: 100%;
+    height: 100%; /* Must fill the #reelsContainer */
+    position: relative;
+    /* Ensure the content inside is cropped correctly */
+    overflow: hidden !important; 
+    padding: 0; /* Remove padding */
 }
 
 .reel-video-embed {
-    /* Container for the media (iframe or video) to ensure it fills the space */
     position: absolute;
     top: 0;
     left: 0;
@@ -340,41 +340,47 @@ h2 {
     z-index: 1;
 }
 
+/* 🛑 CRITICAL FIX: Hide embedded titles and unneeded controls by slightly zooming and cropping */
 .reel-video-embed iframe,
 .reel-video-embed video {
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Ensures video fills the screen without distortion */
+    object-fit: cover;
     display: block;
+    /* The FIX: Zoom in and hide the bottom embedded info/buttons */
+    transform: scale(1.05); 
+    transition: transform 0.3s; 
 }
 
 
 /* Info and Controls Overlay */
 .reel-buttons { 
-    width: 100%;
-    padding: 0 20px 20px 20px; 
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0)); /* Gradient overlay */
-    z-index: 5; 
+    /* This style is for the custom Next Reel button */
+    position: absolute; /* Absolute positioning relative to the .reel div */
+    bottom: 15px; 
+    right: 15px;
+    z-index: 50; /* Higher Z-index to be over the zoomed iframe content */
+    width: auto;
+    padding: 0;
+    background: none; /* Remove gradient */
 }
 
-.reel-buttons-group {
-    display: flex;
-    flex-direction: column; /* Changed to vertical buttons for better mobile experience */
-    gap: 10px;
-    margin-top: 15px;
-}
-.reel-buttons button {
-    min-width: 100%;
-    flex-grow: 1;
-    text-align: center;
-    background: var(--primary-color); 
+/* Style for the Next Reel button added in script.js */
+.reel-buttons button.next-reel-btn {
+    /* Your style from script.js, but optimized */
+    background: rgba(255,75,145,0.8);
     color: #fff;
-    padding: 12px;
+    padding: 8px 14px;
+    border: none;
     border-radius: 8px;
+    font-size: 16px;
     font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    transition: background 0.2s;
 }
-.reel-buttons button:nth-child(2) {
-    background: var(--secondary-color); 
+.reel-buttons button.next-reel-btn:hover {
+    background: var(--primary-color);
 }
 
 
@@ -422,11 +428,13 @@ h2 {
         min-width: 100%;  
     }  
     
-    .reel {
+    /* On mobile, player takes full screen */
+    #reelsContainer {
+        max-width: 100%; 
+        width: 100%;
         height: 100dvh; 
-        max-width: 100%; /* Ensure full mobile width */
     }
-
+    
     /* Ensure fixed close button is visible on mobile */
     #reelsCloseBtn {
         top: 10px;
@@ -434,4 +442,5 @@ h2 {
         width: 40px;
         height: 40px;
     }
-}
+    }
+    
