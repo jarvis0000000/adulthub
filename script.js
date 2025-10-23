@@ -520,9 +520,8 @@ async function openReelsPlayer() {
     loadNextReel();
 }
 
-
-// ✅ Dareloom Reels — FINAL RANDOM FIXED VERSION (v5)
-// Video Click now triggers the Next Reel (improving user experience)
+// ✅ Dareloom Reels — FINAL RANDOM FIXED VERSION (v6: Volume Fix)
+// Excludes the bottom 150px from the "Next Reel" click overlay
 
 function loadNextReel() {
   openAdsterraPop();
@@ -585,7 +584,7 @@ function loadNextReel() {
         ${mediaHtml}
         
         <button class="reel-next-on-click-overlay" 
-           style="position:absolute; inset:0; background:transparent; border:none; z-index:40; cursor:pointer;"
+           style="position:absolute; top:0; left:0; right:0; bottom:150px; background:transparent; border:none; z-index:40; cursor:pointer;"
            title="Play next reel">
         </button>
         
@@ -597,18 +596,20 @@ function loadNextReel() {
     container.appendChild(reelDiv);
 
     const nextBtn = reelDiv.querySelector(".next-reel-btn");
-    nextBtn.addEventListener("click", loadNextReel);
+    nextBtn.addEventListener("click", (e) => {
+        e.stopPropagation(); // Prevent the click from bubbling up to the container/overlay
+        loadNextReel();
+    });
 
     // 🛑 NEW LOGIC: Handle Click Event on the Overlay to load NEXT REEL
     const nextOnClickOverlay = reelDiv.querySelector(".reel-next-on-click-overlay");
     if (nextOnClickOverlay) {
         nextOnClickOverlay.addEventListener("click", (e) => {
-            e.stopPropagation(); // Stop any underlying clicks/gestures from conflicting
+            e.stopPropagation(); 
             log("Video tap detected - loading next reel.");
-            loadNextReel(); // Load the next reel when clicked
+            loadNextReel(); 
         });
     }
-
 
     const mediaEl = reelDiv.querySelector(".reel-video-media");
     if (mediaEl) {
