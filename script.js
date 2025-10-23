@@ -494,7 +494,108 @@ function toEmbedUrlForReels(url){
     }
     
     if (url.startsWith('http')) {
-        return { type: 'iframe', src: url };
+   // ✅ FINAL — TRUE RANDOM + NO REPEAT + SWIPE + BUTTON NEXT + SMOOTH TRANSITION
+
+let currentReelIndex = -1;
+let swipeStartY = 0;
+let randomPool = []; // holds shuffled ids for real random order
+
+function refillRandomPool() {
+    // create random unique order from all reels
+    if (allReelCandidates.length === 0) return;
+    randomPool = shuffleArray([...allReelCandidates]);
+    usedReelIds.clear();
+    log("🎲 Random pool refreshed (" + randomPool.length + " items)");
+}
+
+function loadNextReel(direction = "next") {
+    openAdsterraPop();
+
+    const container = qs('#reelsContainer');
+
+    // 🧠 Refill randomPool if empty
+    if (randomPool.length === 0) refillRandomPool();
+    if (randomPool.length === 0) return;
+
+    // pick next/prev index
+    if (direction === "next") currentReelIndex++;
+    else if (direction === "prev") currentReelIndex--;
+
+    // loop boundaries
+    if (currentReelIndex >= randomPool.length) {
+        refillRandomPool();
+        currentReelIndex = 0;
+    } else if (currentReelIndex < 0) {
+        currentReelIndex = randomPool.length - 1;
+    }
+
+    const item = randomPool[currentReelIndex];
+    if (!item) return;
+
+    usedReelIds.add(item.id);
+
+    const embedInfo = toEmbedUrlForReels(item.reelLink);
+    if (embedInfo.type === "none") {
+        loadNextReel("next");
+        return;
+    }
+
+    // Fade-out old
+    container.style.transition = "opacity 0.3s ease";
+    container.style.opacity = 0;
+
+    setTimeout(() => {
+        container.innerHTML = "";
+        const reelDiv = document.createElement("div");
+        reelDiv.className = "reel";
+        reelDiv.style.height = "100vh";
+        reelDiv.style.overflow = "hidden";
+        reelDiv.style.touchAction = "none";
+
+        let mediaHtml = "";
+        if (embedInfo.type === "video") {
+            mediaHtml = `<video class="reel-video-media" loop playsinline autoplay muted preload="auto" src="${escapeHtml(embedInfo.src)}"></video>`;
+        } else {
+            mediaHtml = `<iframe class="reel-video-media" src="${escapeHtml(embedInfo.src)}" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>`;
+        }
+
+        reelDiv.innerHTML = `
+            <div class="reel-video-embed" style="position:relative;width:100%;height:100%;">
+                ${mediaHtml}
+                <button class="next-reel-btn"
+                    style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.5);
+                    color:#fff;padding:6px 10px;border:none;border-radius:6px;font-size:14px;">Next »</button>
+            </div>
+        `;
+        container.appendChild(reelDiv);
+
+        const nextBtn = reelDiv.querySelector(".next-reel-btn");
+        nextBtn.addEventListener("click", () => loadNextReel("next"));
+
+        const mediaEl = reelDiv.querySelector(".reel-video-media");
+        if (mediaEl && mediaEl.tagName === "VIDEO") {
+            mediaEl.play().catch(() => log("Autoplay blocked"));
+            mediaEl.muted = true;
+        }
+
+        // Fade-in
+        setTimeout(() => (container.style.opacity = 1), 50);
+
+        // 🧠 Swipe gesture
+        container.addEventListener("touchstart", e => {
+            swipeStartY = e.touches[0].clientY;
+        });
+
+        container.addEventListener("touchend", e => {
+            const swipeEndY = e.changedTouches[0].clientY;
+            const diffY = swipeStartY - swipeEndY;
+            if (Math.abs(diffY) > 80) {
+                if (diffY > 0) loadNextReel("next"); // swipe up
+                else loadNextReel("prev");           // swipe down
+            }
+        });
+    }, 300);
+            }     return { type: 'iframe', src: url };
     }
 
     return { type: 'none', src: '' };
@@ -529,130 +630,7 @@ async function openReelsPlayer() {
 }
 
 
-// ✅ 2025 Ultimate Reels System
-// Random, No Repeat, Swipe Up/Down + Button Next + Smooth Transition
-function loadNextReel(forcedIndex = null) {
-    openAdsterraPop();
 
-    const container = qs('#reelsContainer');
-
-    // refill queue if empty
-    if (reelsQueue.length === 0) {
-        if (allReelCandidates.length > 0) {
-            reelsQueue = shuffleArray(allReelCandidates);
-            usedReelIds.clear();
-            log("🎲 New random cycle started");
-        } else {
-            container.innerHTML = `
-              <div class="reel" style="display:flex;justify-content:center;align-items:center;color:var(--primary-color);height:100vh;text-align:center;">
-                <h2>No Reels Available</h2>
-                <button onclick="closeReelsPlayer()">Close Player</button>
-              </div>`;
-            return;
-        }
-    }
-
-    // pick reel
-    let item = null;
-    let isForced = false;
-
-    if (forcedIndex !== null && reelsQueue[forcedIndex]) {
-        item = reelsQueue[forcedIndex];
-        isForced = true;
-    } else {
-        while (reelsQueue.length > 0) {
-            const nextItem = reelsQueue.shift();
-            // Only add to used IDs if not forcing an item already in the queue (like "previous")
-            if (!usedReelIds.has(nextItem.id)) {
-                item = nextItem;
-                break;
-            }
-        }
-    }
-
-    if (!item) {
-        log("Queue exhausted, restarting...");
-        loadNextReel();
-        return;
-    }
-
-    // Update state
-    if (!isForced) {
-        usedReelIds.add(item.id);
-        currentReelIndex++;
-    }
-
-    const embedInfo = toEmbedUrlForReels(item.reelLink);
-    if (embedInfo.type === 'none') {
-        loadNextReel();
-        return;
-    }
-
-    // Fade animation
-    container.style.transition = 'opacity 0.3s ease';
-    container.style.opacity = 0;
-
-    setTimeout(() => {
-        container.innerHTML = ''; // clear old
-        const reelDiv = document.createElement('div');
-        reelDiv.className = 'reel';
-        reelDiv.style.height = '100vh';
-        reelDiv.style.overflow = 'hidden';
-        reelDiv.style.touchAction = 'none';
-
-        let mediaHtml = '';
-        if (embedInfo.type === 'video') {
-            mediaHtml = `<video class="reel-video-media" loop playsinline autoplay muted preload="auto" src="${escapeHtml(embedInfo.src)}"></video>`;
-        } else if (embedInfo.type === 'iframe') {
-            // Apply CSS hack here for RedGifs/YouTube iframes to hide bottom controls
-            mediaHtml = `<iframe class="reel-video-media" src="${escapeHtml(embedInfo.src)}" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>`;
-        }
-
-        // 🛑 IMPORTANT: Removed all Title/Username display elements
-        reelDiv.innerHTML = `
-            <div class="reel-video-embed" style="position:relative;width:100%;height:100%;">
-                ${mediaHtml}
-            </div>
-            <div class="reel-buttons" style="position:absolute;bottom:10px;right:10px;z-index:100;">
-                 <button class="next-reel-btn" style="background:rgba(255,75,145,0.8);color:#fff;padding:8px 14px;border:none;border-radius:8px;font-size:16px;font-weight:700;">Next Reel »</button>
-            </div>
-        `;
-        
-        container.appendChild(reelDiv);
-
-        
-        // Position the buttons correctly
-        const nextBtnContainer = reelDiv.querySelector('.reel-buttons');
-        nextBtnContainer.style.bottom = '10px';
-        nextBtnContainer.style.right = '10px';
-        
-        const nextBtn = reelDiv.querySelector('.next-reel-btn');
-        nextBtn.addEventListener('click', loadNextReel);
-
-        const mediaEl = reelDiv.querySelector('.reel-video-media');
-        if (mediaEl) {
-             if (mediaEl.tagName === 'VIDEO') {
-                mediaEl.play().catch(() => log("Autoplay blocked"));
-                mediaEl.muted = true;
-            } else if (mediaEl.tagName === 'IFRAME') {
-                 // CSS in index.html will handle the hiding of inner frame elements
-                 mediaEl.style.transform = 'scale(1.05)'; 
-            }
-        }
-
-        // smooth fade-in
-        setTimeout(() => (container.style.opacity = 1), 50);
-
-        // 🧠 Swipe gesture handling
-        let touchTarget = reelDiv.querySelector('.reel-video-embed') || container;
-        touchTarget.removeEventListener('touchstart', handleTouchStart);
-        touchTarget.removeEventListener('touchend', handleTouchEnd);
-
-        touchTarget.addEventListener('touchstart', handleTouchStart);
-        touchTarget.addEventListener('touchend', handleTouchEnd);
-
-    }, 300);
-}
 
 // 🌀 Load previous reel (optional, if user swipes down)
 function loadPreviousReel() {
