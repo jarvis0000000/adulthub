@@ -538,96 +538,89 @@ function loadNextReel() {
         style="width:100%;height:100%;border:none;pointer-events:auto;"></iframe>`; 
     }
 
-// 🛑 Full screen transparent overlay button for tap detection
+// 🧠 Full screen transparent overlay button for tap detection
 reelDiv.innerHTML = `
-    <div class="reel-video-embed" style="position:relative;width:100%;height:100%;">
-        ${mediaHtml}
-        
-        <button class="reel-next-on-click-area" 
-           style="position:absolute; inset:0; background:transparent; border:none; z-index:40; cursor:pointer; 
-                  /* 🛑 V19 FIX: Iframe के लिए, z-index को कम करें और pointer-events को नीचे सेट करें */
-                  ${embedInfo.type === 'iframe' ? 'z-index:1; pointer-events: none;' : 'z-index:40; pointer-events: auto;'}
-                  "
-           title="Tap for sound, double tap for next reel">
-        </button>
-        
-    </div>
-    <div class="reel-buttons" style="z-index: 50; justify-content: flex-end;"> 
-        <button class="next-reel-btn">Next Reel »</button>
-    </div>
+  <div class="reel-video-embed" style="position:relative;width:100%;height:100%;">
+      ${mediaHtml}
+
+      <!-- 🛑 Transparent overlay to block iframe clicks but still allow tap detection -->
+      <div class="reel-touch-overlay"
+          style="position:absolute; inset:0; background:transparent; z-index:30; cursor:pointer;">
+      </div>
+  </div>
+
+  <div class="reel-buttons" style="z-index:50; justify-content:flex-end;">
+      <button class="next-reel-btn">Next Reel »</button>
+  </div>
 `;
+
 container.appendChild(reelDiv);
 
-// ... (nextBtn listener code) ...
+// --------------- BUTTON LOGIC ---------------
+const nextBtn = reelDiv.querySelector(".next-reel-btn");
+nextBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    log("👉 Next Reel Button Clicked");
+    loadNextReel();
+});
 
-// 🛑 OPTIMIZED TAP DETECTION: Single tap → toggle sound (VIDEO TAG ONLY), Double tap → next reel
-const nextOnClickArea = reelDiv.querySelector(".reel-next-on-click-area");
-if (nextOnClickArea) {
-    nextOnClickArea.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const now = Date.now();
-        const tapDiff = now - lastTapTime;
-        lastTapTime = now;
+// --------------- TAP DETECTION ---------------
+const overlay = reelDiv.querySelector(".reel-touch-overlay");
+let lastTapTime = 0;
 
-        const mediaEl = reelDiv.querySelector(".reel-video-media");
+overlay.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const now = Date.now();
+    const tapDiff = now - lastTapTime;
+    lastTapTime = now;
 
-        // 👆 Double tap within 300ms → Next reel
-        if (tapDiff < 300) {
-            log("👆 Double tap detected - next reel");
-            loadNextReel();
-            return;
+    const mediaEl = reelDiv.querySelector(".reel-video-media");
+
+    // 👆 Double tap → Next Reel
+    if (tapDiff < 300) {
+        log("👆 Double tap detected - next reel");
+        loadNextReel();
+        return;
+    }
+
+    // 👇 Single tap → toggle sound (only if video tag)
+    if (mediaEl && mediaEl.tagName === "VIDEO") {
+        mediaEl.muted = !mediaEl.muted;
+        if (!mediaEl.muted) {
+            mediaEl.volume = 1.0;
+            mediaEl.play().catch(()=>{});
         }
 
-        userInteracted = true; 
+        const icon = document.createElement("div");
+        icon.textContent = mediaEl.muted ? "🔇" : "🔊";
+        Object.assign(icon.style, {
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            fontSize: "60px",
+            color: "white",
+            textShadow: "0 0 5px black",
+            opacity: "0.9",
+            transition: "opacity 0.6s ease-out",
+            pointerEvents: "none",
+            zIndex: "9999",
+        });
+        reelDiv.appendChild(icon);
+        setTimeout(() => (icon.style.opacity = "0"), 100);
+        setTimeout(() => icon.remove(), 600);
+    } else {
+        log("Iframe detected - sound toggle ignored, no redirect now.");
+    }
+});
 
-        // 👇 Single tap: only works for VIDEO TAG
-        if (mediaEl && mediaEl.tagName === "VIDEO") {
-            
-            if (mediaEl.muted) {
-                mediaEl.muted = false;
-                mediaEl.volume = 1.0;
-                // ... (play/sound ON logic remains same) ...
-                if (typeof mediaEl.play === "function") {
-                    mediaEl.play().then(() => {
-                        log("🔊 Sound ON (resumed)");
-                    }).catch((err) => {
-                        log("Audio resume blocked/failed on tap:", err.message);
-                        setTimeout(() => mediaEl.play(), 200);
-                    });
-                }
-            } else {
-                mediaEl.muted = true;
-                log("🔇 Sound OFF");
-            }
-
-            // ... (Visual feedback icon logic remains same) ...
-            const icon = document.createElement("div");
-            icon.textContent = mediaEl.muted ? "🔇" : "🔊";
-            Object.assign(icon.style, {
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                fontSize: "60px",
-                color: 'white',
-                textShadow: '0 0 5px black',
-                opacity: "0.9",
-                transition: "opacity 0.6s ease-out",
-                pointerEvents: "none",
-                zIndex: "9999"
-            });
-            reelDiv.appendChild(icon);
-            setTimeout(() => (icon.style.opacity = "0"), 100);
-            setTimeout(() => icon.remove(), 600);
-        } else {
-            // Iframe के लिए, pointer-events:none होने के कारण, यह कोड ब्लॉक अब चलेगा ही नहीं।
-            // इसका मतलब है कि सिंगल टैप सीधे Iframe के वॉल्यूम आइकन पर जाएगा!
-            // Double-tap अभी भी चलेगा क्योंकि वह tapDiff < 300ms पर चलता है।
-            log("Iframe single tap passed through to the player."); 
-        }
-    });
-          }                     
-
+// 🛡️ Block iframe clicks opening original site
+const iframe = reelDiv.querySelector("iframe");
+if (iframe) {
+    iframe.setAttribute("sandbox", "allow-scripts allow-same-origin");
+    iframe.style.pointerEvents = "none"; // Prevent link clicks
+}
+                 
     const mediaEl = reelDiv.querySelector(".reel-video-media");
     if (mediaEl) {
       if (mediaEl.tagName === "VIDEO") {
