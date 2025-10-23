@@ -1,5 +1,5 @@
 // script.js
-// Dareloom Hub - FINAL REELS INTEGRATION (v14): Sound Fix, Double-Tap Next Reel, Perfect Volume Toggle & Anti-Exit
+// Dareloom Hub - FINAL V16: Removed "Watch Full Video" button for Iframes.
 
 // ------------- CONFIG -------------
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
@@ -11,7 +11,7 @@ const RANDOM_COUNT = 4;
 const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 const POP_COOLDOWN_MS = 4000;
 let lastPop = 0;
-let userInteracted = false; // VITAL: tracks initial site interaction for ad pop/browser policy
+let userInteracted = false; 
 let initialPopFired = false;
 
 // ------------- STATE -------------
@@ -355,7 +355,7 @@ el.addEventListener('click', onPreviewClick);
 });
 qsa('#latestList .watch-btn').forEach(btn => {
 btn.removeEventListener('click', onWatchClick);
-el.addEventListener('click', onWatchClick);
+btn.addEventListener('click', onWatchClick);
 });
 qsa('.tag-btn').forEach(tagbtn => {
 tagbtn.removeEventListener('click', onTagClick);
@@ -421,7 +421,7 @@ function openWatchPage(fullWatchLinks){
     }, 120);
 }
 
-// ------------- REELS PLAYER LOGIC (FINAL V14) -------------
+// ------------- REELS PLAYER LOGIC (FINAL V16) -------------
 
 function toEmbedUrlForReels(url) {
     if (!url) return { type: "none" };
@@ -485,19 +485,49 @@ async function openReelsPlayer() {
     loadNextReel();
 }
 
-// ✅ Dareloom Reels — FINAL V15: Iframe & Sound Fix
+
+// ✅ Dareloom Reels — FINAL V16: Removed Watch Full Video Link
 function loadNextReel() {
-  // ... (ऊपरी कोड, आइटम चयन, embedInfo समान) ...
+  openAdsterraPop();
+
+  const container = qs("#reelsContainer");
+
+  if (usedReelIds.size >= allReelCandidates.length) {
+    usedReelIds.clear();
+    log("♻️ All reels shown once — starting new random cycle.");
+  }
+
+  let available = allReelCandidates.filter(x => !usedReelIds.has(x.id));
+  if (available.length === 0) {
+    container.innerHTML = `<h2 style="color:var(--primary-color);text-align:center;margin-top:40vh;">No Reels Found</h2>`;
+    return;
+  }
+
+  const item = available[Math.floor(Math.random() * available.length)];
+  usedReelIds.add(item.id);
+
+  const embedInfo = toEmbedUrlForReels(item.reelLink);
+  if (embedInfo.type === "none") {
+    log("Invalid embed link, skipping...");
+    loadNextReel();
+    return;
+  }
+
+  // 🎞️ Fade transition
+  container.style.transition = "opacity 0.3s ease";
+  container.style.opacity = 0;
 
   setTimeout(() => {
     container.innerHTML = "";
     const reelDiv = document.createElement("div");
-    // ... (reelDiv स्टाइलिंग समान) ...
+    reelDiv.className = "reel";
+    reelDiv.style.height = "100vh";
+    reelDiv.style.overflow = "hidden";
+    reelDiv.style.position = "relative";
 
     let mediaHtml = "";
 
     if (embedInfo.type === "video") {
-      // Always start with muted attribute for proper autoplay in all browsers
       mediaHtml = `<video class="reel-video-media" loop playsinline autoplay muted preload="auto" src="${escapeHtml(embedInfo.src)}"></video>`;
     } else if (embedInfo.type === "iframe") {
       mediaHtml = `<iframe class="reel-video-media"
@@ -519,11 +549,7 @@ function loadNextReel() {
         </button>
         
       </div>
-      <div class="reel-buttons" style="z-index: 50;">
-          ${embedInfo.type === "iframe" ? 
-            `<button class="watch-full-video-btn" data-link="${escapeHtml(item.reelLink)}" style="margin-right: 10px;">Watch Full Video / Open Link</button>` 
-            : ''
-          }
+      <div class="reel-buttons" style="z-index: 50; justify-content: flex-end;"> 
           <button class="next-reel-btn">Next Reel »</button>
       </div>
     `;
@@ -534,22 +560,8 @@ function loadNextReel() {
         e.stopPropagation(); 
         loadNextReel();
     });
-    
-    // 🔗 Iframe Link Button Listener
-    const watchFullBtn = reelDiv.querySelector(".watch-full-video-btn");
-    if (watchFullBtn) {
-        watchFullBtn.addEventListener("click", (e) => {
-            e.stopPropagation();
-            const link = e.currentTarget.dataset.link;
-            if (link) {
-                // Assuming you want to open the original redgifs/youtube link
-                window.open(link, '_blank'); 
-            }
-        });
-    }
 
-
-    // 🛑 OPTIMIZED TAP DETECTION: Single tap → toggle sound (VIDEO ONLY), Double tap → next reel
+    // 🛑 OPTIMIZED TAP DETECTION: Single tap → toggle sound (VIDEO TAG ONLY), Double tap → next reel
     const nextOnClickArea = reelDiv.querySelector(".reel-next-on-click-area");
     if (nextOnClickArea) {
       nextOnClickArea.addEventListener("click", (e) => {
@@ -567,7 +579,6 @@ function loadNextReel() {
           return;
         }
 
-        // 🧠 Mark that user interacted
         userInteracted = true; 
 
         // 👇 Single tap: toggle mute/unmute if VIDEO TAG
@@ -577,13 +588,12 @@ function loadNextReel() {
             mediaEl.muted = false;
             mediaEl.volume = 1.0;
 
-            // 🔊 CRITICAL: force resume audio context for Chrome/Safari on unmuting
+            // 🔊 CRITICAL: force resume audio context 
             if (typeof mediaEl.play === "function") {
               mediaEl.play().then(() => {
                 log("🔊 Sound ON (resumed)");
               }).catch((err) => {
                 log("Audio resume blocked/failed on tap:", err.message);
-                // On failure, keep trying
                 setTimeout(() => mediaEl.play(), 200);
               });
             }
@@ -595,7 +605,6 @@ function loadNextReel() {
           // 🔔 Small visual feedback
           const icon = document.createElement("div");
           icon.textContent = mediaEl.muted ? "🔇" : "🔊";
-          // ... (Styling of icon remains same) ...
           Object.assign(icon.style, {
             position: "absolute",
             top: "50%",
@@ -613,9 +622,8 @@ function loadNextReel() {
           setTimeout(() => (icon.style.opacity = "0"), 100);
           setTimeout(() => icon.remove(), 600);
         } else {
-          // If IFRAME, single tap is just ignored by the overlay, 
-          // allowing the actual volume icon in the Redgifs/YouTube player to be clicked 
-          // (since the iframe's pointer-events is set to 'auto').
+            // If IFRAME, single tap is ignored by the overlay. 
+          // User must click the volume icon *inside* the iframe player.
           log("Iframe reel single tap - ignored by overlay. Click the player's volume icon.");
         }
       });
@@ -633,8 +641,39 @@ function loadNextReel() {
       }
     }
 
-    // ... (fade-in, swipe, afterReelLoad remains same) ...
+    // fade-in
+    setTimeout(() => (container.style.opacity = 1), 50);
+
+    // 🧠 Swipe system (attached to container)
+    container.removeEventListener('touchstart', handleTouchStart);
+    container.removeEventListener('touchend', handleTouchEnd);
+    container.addEventListener('touchstart', handleTouchStart);
+    container.addEventListener('touchend', handleTouchEnd);
+
+    // 🛑 Call post-load security
+    afterReelLoad();
+
   }, 300);
+}
+
+function handleTouchStart(e){
+    swipeStartY = e.touches[0].clientY;
+}
+
+function handleTouchEnd(e){
+    const swipeEndY = e.changedTouches[0].clientY;
+    const diffY = swipeStartY - swipeEndY;
+    
+    // Only proceed if it was a clear SWIPE (large movement)
+    if (Math.abs(diffY) > 80) { 
+        if (diffY > 0) {
+            // swipe up → next reel
+            loadNextReel(); 
+        } else {
+             // swipe down → next reel 
+            loadNextReel();
+        }
+    } 
 }
 
 
@@ -664,7 +703,6 @@ function secureIframes() {
     iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-fullscreen");
     iframe.removeAttribute("allowpopups");
     iframe.removeAttribute("target");
-    // NOTE: Clicks on iframe are largely blocked by the FULL SCREEN OVERLAY
   });
 }
 
@@ -714,3 +752,4 @@ document.addEventListener(e, markUserGesture, {once: true});
 }
 
 loadAll();
+
