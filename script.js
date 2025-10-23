@@ -1,16 +1,15 @@
 // script.js
 // Dareloom Hub - Complete player + sheet + pagination + preview/watch + tags + random
-// 2025-10-23 (FINAL FIX: Multi-Link Embed, Duplication, Smooth Playback/Sound)
+// 2025-10-23 (FINAL FIX: Single Reel View with Next Button)
 
 // ------------- CONFIG -------------
 // Sheet 1 for Main Content (Latest List & Random Grid)
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
-// ✅ FIXED: Sheet 3 (Reels) API using your provided Spreadsheet ID (1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o)
+// Sheet 3 (Reels) API: Assuming Link is now in column A or B
 const SHEET_API_REELS = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet3!A:B?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw"; 
 const PER_PAGE = 5;
 const RANDOM_COUNT = 4;
-// Reels Config
-const REELS_LOAD_COUNT = 8; // Number of reels to load initially/per batch
+// REELS_LOAD_COUNT is no longer needed
 
 // Pop / ads config
 const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
@@ -25,9 +24,9 @@ let filteredItems = [];
 let currentPage = 1;
 let reelsQueue = [];
 let allReelCandidates = []; // Full list of items suitable for reels
-let reelsObserver;
-let currentPlayingReel = null; // Track the currently playing element
-let usedReelIds = new Set(); // NEW: Track reels played in the current cycle for duplication prevention
+let usedReelIds = new Set(); // Track reels played in the current cycle for duplication prevention
+
+// OLD REELS STATE REMOVED: reelsObserver, currentPlayingReel
 
 // ------------- UTIL HELPERS -------------
 const qs = sel => document.querySelector(sel);
@@ -81,7 +80,7 @@ if (!userInteracted && !initialPopFired) return;
 }
 }
 
-// ------------- SHEET FETCH & PARSE (UPDATED) -------------
+// ------------- SHEET FETCH & PARSE -------------
 async function fetchSheet(url){
 try{
 const res = await fetch(url);
@@ -103,9 +102,8 @@ const j = Math.floor(Math.random() * (i + 1));
 return arr;
 }
 
-// (Existing parseRows function for Sheet1 remains here)
 function parseRows(values){
-// ... (Existing Sheet1 parsing logic) ...
+// ... (Existing Sheet1 parsing logic - no change needed here) ...
 if (!values || values.length < 2) return [];
 const headers = (values[0]||[]).map(h => (h||'').toString().toLowerCase().trim());
 const find = (names) => {
@@ -162,65 +160,56 @@ for (let r of rows){
         description: description || ''  
     });  
 }  
-// NEW TO OLD: Reversing ensures the newest data (at the bottom of the sheet) is first.
 return out.reverse(); 
 // ... (End of existing Sheet1 parsing logic) ...
 }
 
 
-// 🛑 FINAL FIX: Reels Sheet parsing (Added 'video' to supported headers)
+// 🛑 UPDATED: Reels Sheet parsing for Link column (B) only
 function parseReelRows(values){
     if (!values || values.length < 2) return [];
-    const headers = (values[0]||[]).map(h => (h||'').toString().toLowerCase().trim());
-    const find = (names) => {
-        for (let n of names){
-            const i = headers.indexOf(n);
-            if (i !== -1) return i;
-        }
-        return -1;
-    };
-
-    // FIX: Added 'video' to supported headers
-    const TI = find(['title','name']) !== -1 ? find(['title','name']) : 0;  
-    const VL = find(['video nam','link','reel link', 'video']) !== -1 ? find(['video nam','link','reel link', 'video']) : 1; 
-
+    
+    // Assuming Sheet3 has two columns: [Title/Empty, Reel Link]
     const rows = values.slice(1);  
     const out = [];  
     let untitledCounter = 1;
 
     for (let r of rows){  
         r = Array.isArray(r) ? r : [];  
-        const title = (r[TI] || '').toString().trim();  
-        const reelLink = (r[VL] || '').toString().trim(); // Direct video link (RedGifs, MP4, etc.)
+        
+        // Col 0 (A): Title/Empty
+        // Col 1 (B): Reel Link
+        const titleCandidate = (r[0] || '').toString().trim();  
+        let reelLink = (r[1] || '').toString().trim(); 
+
+        // If Col B is empty, check Col A as a fallback link source (in case user only left one column)
+        if (!reelLink) {
+             reelLink = titleCandidate;
+        }
+
+        const title = titleCandidate || ('Untitled Reel '+untitledCounter);
 
         if (!reelLink) continue;  
 
-        const id = `${slugify(title || 'untitled-reel-'+untitledCounter)}|${Math.random().toString(36).slice(2,8)}`;  
+        const id = `${slugify(title)}|${Math.random().toString(36).slice(2,8)}`;  
         untitledCounter++;
 
         out.push({  
             id,  
-            title: title || 'Untitled Reel',  
+            title: title,  
             reelLink: reelLink, // The primary link for embed
-            watch: '',          // No full watch link needed from this sheet
-            telegram: '',       // No telegram link needed from this sheet
         });  
     }  
-    // 🛑 CRITICAL: Do NOT shuffle here. Shuffle when opening the player.
     return out; 
 }
 
 
-// (Existing RENDER / UI functions remain here)
+// ------------- UI / RENDER FUNCTIONS (Mostly Unchanged) -------------
 function renderTagsForItem(it){
 if (!it.category || !it.category.trim()) return '';
 const parts = it.category.split(',').map(p => p.trim()).filter(Boolean);
 return parts.map(p => `<button class="tag-btn" data-tag="${escapeHtml(p)}">#${escapeHtml(p)}</button>`).join(' ');
 }
-// ... (renderRandom, renderLatest, renderPagination, changePage, attachLatestListeners, 
-//      onPreviewClick, onWatchClick, onTagClick, filterVideos, applyTagFilter 
-//      remain the same) ...
-
 function renderRandom(){
 const g = qs('#randomGrid');
 if (!g) return;
@@ -238,8 +227,8 @@ card.addEventListener('click', ()=> openTrailerPage(it));
 g.appendChild(card);
 });
 }
-
 function renderLatest(page = 1){
+// ... (Render latest logic remains the same) ...
 const list = qs('#latestList');
 if (!list) return;
 list.innerHTML = '';
@@ -270,7 +259,6 @@ slice.forEach(it => {
     div.className = 'latest-item';  
     const thumb = makeThumbnail(it);  
       
-    // 🛑 Note: data-url now contains the full comma-separated list of links (it.watch)
     div.innerHTML = `  
         <img class="latest-thumb" src="${escapeHtml(thumb)}" loading="lazy" alt="${escapeHtml(it.title)}">   
         <div class="latest-info">   
@@ -378,7 +366,6 @@ if (page < totalPages){
     pager.appendChild(next);  
 }
 // ... (End of Pagination logic) ...
-
 }
 
 function changePage(page){
@@ -405,7 +392,7 @@ tagbtn.addEventListener('click', onTagClick);
 
 function onPreviewClick(e){
 markUserGesture();
-e.stopPropagation(); // Stop propagation to prevent item click from firing twice
+e.stopPropagation(); 
 const id = e.currentTarget.dataset.id;
 const it = items.find(x => x.id === id); 
 if (!it) return;
@@ -414,21 +401,21 @@ openTrailerPage(it);
 
 function onWatchClick(e){
 markUserGesture();
-e.stopPropagation(); // Stop propagation
-const url = e.currentTarget.dataset.url; // This now holds the full comma-separated list
+e.stopPropagation(); 
+const url = e.currentTarget.dataset.url; 
 if (!url) return;
 openWatchPage(url);
 }
 
 function onTagClick(e){
 markUserGesture();
-e.stopPropagation(); // Stop propagation
+e.stopPropagation(); 
 const tag = e.currentTarget.dataset.tag;
 if (!tag) return;
 applyTagFilter(tag);
 }
 
-// ------------- FILTER LOGIC (UPDATED) -------------
+// ------------- FILTER LOGIC (UNCHANGED) -------------
 function filterVideos(queryOrTag){
 const query = (queryOrTag || '').toLowerCase().trim();
 if (query.length < 2 && !query.length) {
@@ -453,12 +440,11 @@ if (s) s.value = tag;
 filterVideos(tag);
 }
 
-// ------------- TRAILER/WATCH PAGE LOGIC -------------
+// ------------- TRAILER/WATCH PAGE LOGIC (UNCHANGED) -------------
 
 function openTrailerPage(it){
 markUserGesture();
 openAdsterraPop();
-// Using full relative path to ensure navigation works
 const trailerURL = `/trailer.html?id=${encodeURIComponent(it.id)}`; 
 setTimeout(()=> {
 try {
@@ -474,13 +460,11 @@ function openWatchPage(fullWatchLinks){
     markUserGesture();
     openAdsterraPop();
 
-    // fullWatchLinks is now the full string: link1,link2,link3...
     const finalDestination = `/watch?url=${encodeURIComponent(fullWatchLinks)}`;
     const redirectPage = `/go.html?target=${encodeURIComponent(finalDestination)}`;    
 
     setTimeout(()=> {  
         try {  
-            // Use window.open to respect the user's pop-up ad-gate monetization flow
             const w = window.open(redirectPage, '_blank');    
             if (!w || w.closed || typeof w.closed === 'undefined'){    
                 alert("Please allow pop-ups to open the link in a new tab!");    
@@ -491,38 +475,32 @@ function openWatchPage(fullWatchLinks){
     }, 120);
 }
 
-// ------------- REELS PLAYER LOGIC (UPDATED FOR BETTER SCROLL) -------------
+// ------------- REELS PLAYER LOGIC (UPDATED FOR NEXT BUTTON) -------------
 
-// 🛑 FINAL FIX: Comprehensive link handling for RedGifs, Iframe code, YouTube, and other embeds.
+// Helper to convert raw URL/HTML to embeddable src
 function toEmbedUrlForReels(url){
     if (!url) return { type: 'none', src: '' };
     url = url.trim();
 
-    // 1. Iframe SRC Extraction (Handles the full HTML code the user pasted)
-    // If the content starts with <iframe, extract the src and process it recursively.
+    // 1. Iframe SRC Extraction
     if (url.startsWith('<iframe') && url.includes('src=')) {
         const match = url.match(/src=['"](.*?)['"]/i);
         if (match && match[1]) {
-            // Process the extracted SRC again (e.g., if it's a YouTube or RedGifs link)
             return toEmbedUrlForReels(match[1]);
         }
     }
 
-    // 2. YouTube Link (Handle first for clean extraction)
+    // 2. YouTube Link (Added mute=1 for best autoplay chance)
     const y = extractYouTubeID(url);
     if (y) {
-        // Mute=1 is essential for guaranteed autoplay
         return { type: 'iframe', src: `https://www.youtube.com/embed/${y}?autoplay=1&mute=1&rel=0&controls=0&enablejsapi=1&playsinline=1&origin=${window.location.origin}` }; 
     }
     
-    // 3. RedGifs Iframe Link (Watch or IFR)
+    // 3. RedGifs Iframe Link 
     if (url.includes('redgifs.com/watch/') || url.includes('redgifs.com/ifr/')) {
         let videoId = url.split('/').pop(); 
         videoId = videoId.split('?')[0]; 
-        
-        // Convert 'watch' to 'ifr' format for guaranteed iframe embed
-        const embedUrl = `https://www.redgifs.com/ifr/${videoId}`; 
-        
+        const embedUrl = `https://www.redgifs.com/ifr/${videoId}?autoplay=true&muted=true`; // Added autoplay/mute for ifr
         return { type: 'iframe', src: embedUrl };
     }
 
@@ -532,302 +510,202 @@ function toEmbedUrlForReels(url){
     }
     
     // 5. General Porn Site Link (Treat all other HTTP/HTTPS links as potential Iframe SRC)
-    // This allows other embed links (Pornhub, Xvideos, etc.) to be attempted as an Iframe source.
     if (url.startsWith('http')) {
         return { type: 'iframe', src: url };
     }
 
-    // Default Fallback
     return { type: 'none', src: '' };
 }
 
 
-// 🛑 UPDATED: Load reel data and handle media types
+// 🛑 NEW: Open player and load the first reel
 async function openReelsPlayer() {
     markUserGesture();
     openAdsterraPop();
 
-    // 🛑 CRITICAL: Fetch and parse reels only once, then use for infinite scroll.
     if (allReelCandidates.length === 0) {  
         const rawReels = await fetchSheet(SHEET_API_REELS);
         allReelCandidates = parseReelRows(rawReels);
         if (allReelCandidates.length === 0) {
-             alert("No videos available for Reels playback. Check Sheet2 links.");
+             alert("No videos available for Reels playback. Check Sheet links.");
              return;
         }
     }
     
-    // 🛑 CRITICAL: Reset used list and shuffle candidates on every open for a new random cycle.
+    // Setup initial queue for a full random, non-repeating cycle
     reelsQueue = shuffleArray(allReelCandidates); 
-    usedReelIds.clear(); // Ensure fresh cycle
+    usedReelIds.clear(); 
+    
+    qs('#reelsContainer').innerHTML = ''; 
+    qs('#reelsPlayer').style.display = 'flex'; // Use flex to center the single reel
+    document.body.style.overflow = 'hidden';   
 
+    // Load the first reel
+    loadNextReel();
+}
+
+// 🛑 NEW CORE FUNCTION: Load the next random, non-repeating reel
+function loadNextReel() {
+    openAdsterraPop(); // Ad pop on every click
+
+    const container = qs('#reelsContainer');
+    
+    // 1. Refill queue if empty
     if (reelsQueue.length === 0) {
-        alert("No videos available for Reels playback.");
+        if (allReelCandidates.length > 0) {
+            reelsQueue = shuffleArray(allReelCandidates);
+            usedReelIds.clear(); 
+            log("Reels cycle complete. Refilling queue.");
+        } else {
+            container.innerHTML = `<div class="reel" style="display:flex; justify-content:center; align-items:center; color:var(--primary-color); text-align:center;">
+                <h2>End of Reels!</h2>
+                <div class="reel-buttons" style="position:absolute; bottom:0;">
+                    <div class="reel-buttons-group">
+                        <button onclick="closeReelsPlayer()">Close Player</button>
+                    </div>
+                </div>
+            </div>`;
+            return;
+        }
+    }
+    
+    // 2. Get next reel
+    let item = null;
+    while (reelsQueue.length > 0) {
+        const nextItem = reelsQueue.shift();
+        if (!usedReelIds.has(nextItem.id)) {
+            item = nextItem;
+            break;
+        }
+    }
+
+    if (!item) {
+        // If the loop failed to find an item (shouldn't happen after refill), try again.
+        loadNextReel(); 
         return;
     }
 
-    const container = qs('#reelsContainer');  
-    container.innerHTML = '';   
-    currentPlayingReel = null; // Reset playback tracker
+    usedReelIds.add(item.id); 
 
-    loadReelsBatch(); // Load first batch
-
-    qs('#reelsPlayer').style.display = 'block';  
-    document.body.style.overflow = 'hidden';   
-
-    setupReelsObserver();
-    setupInfiniteScrollObserver();
-}
-
-// 🛑 FINAL FIX: Load reels smoothly, preventing immediate duplication
-function loadReelsBatch() {
-    const container = qs('#reelsContainer');
-    let itemsToLoad = [];
-    let loadCount = 0;
-
-     // Logic to refill the queue only after the current batch is exhausted
-    if (reelsQueue.length === 0 || (reelsQueue.length < REELS_LOAD_COUNT && usedReelIds.size >= allReelCandidates.length)) {
-        // If queue is empty AND we have candidates, refill and shuffle
-        if (allReelCandidates.length > 0) {
-            reelsQueue = shuffleArray(allReelCandidates);
-            usedReelIds.clear(); // Reset the used list after one full cycle
-        } else {
-            return; // No candidates available
-        }
-    }
-
-    while (loadCount < REELS_LOAD_COUNT) {
-        if (reelsQueue.length === 0) break; 
-
-        const item = reelsQueue.shift();
-
-        // Skip if already played in the current cycle
-        if (usedReelIds.has(item.id)) continue; 
-
-        const embedInfo = toEmbedUrlForReels(item.reelLink); 
-        if (embedInfo.type !== 'none') {
-            itemsToLoad.push({ ...item, embedInfo });
-            usedReelIds.add(item.id); // Mark as used
-            loadCount++;
-        }
+    // 3. Prepare the embed
+    const it = item;
+    const embedInfo = toEmbedUrlForReels(it.reelLink);
+    
+    if (embedInfo.type === 'none') {
+        log("Invalid embed link, skipping to next reel.");
+        loadNextReel(); // Skip this item and load the next one
+        return;
     }
     
-    itemsToLoad.forEach(it => {  
-        const reelDiv = document.createElement('div');  
-        reelDiv.className = 'reel';  
-        
-        const openPlayerBtn = `<button onclick="alert('Watch button not fully configured for Reel Links.');">Watch Link</button>`;  
-        const telegramBtn = ``; 
-        
+    // 4. Render the single reel
+    container.innerHTML = ''; // Clear previous reel
+    
+    const reelDiv = document.createElement('div');  
+    reelDiv.className = 'reel'; 
+    
+    // Buttons: Watch Full Link (using the reel link) and Next Reel
+    const watchButton = `<button class="watch-reel-btn" data-link="${escapeHtml(it.reelLink)}">Watch Full Video / Open Link</button>`;  
+    const nextButton = `<button class="next-reel-btn">Next Reel »</button>`;  
+    
+    let mediaHtml;
+    let mediaElType;
 
-        let mediaHtml;
-        let mediaElType;
-
-        if (it.embedInfo.type === 'video') {
-            // Removed 'muted' attribute from HTML to allow unmuting via JS
-            mediaHtml = `
-                <video class="reel-video-media" loop playsinline preload="none" data-src="${escapeHtml(it.embedInfo.src)}" poster="https://placehold.co/480x800?text=Loading+Reel">
-                    <source src="${escapeHtml(it.embedInfo.src)}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>`;
-            mediaElType = 'video';
-        } else if (it.embedInfo.type === 'iframe') {
-            // Use iframe for YouTube/RedGifs embed
-            mediaHtml = `
-                <iframe class="reel-video-media" src="about:blank" data-src="${escapeHtml(it.embedInfo.src)}" 
-                        data-type="iframe" allow="autoplay; fullscreen; encrypted-media; picture-in-picture"  
-                        allowfullscreen loading="lazy" frameborder="0">
-                </iframe>`;
-            mediaElType = 'iframe';
-        } else {
-            return; // Skip if no valid embed
-        }
+    if (embedInfo.type === 'video') {
+        // HTML5 Video: Use autoplay/muted attributes
+        mediaHtml = `
+            <video class="reel-video-media" loop playsinline autoplay muted preload="auto" src="${escapeHtml(embedInfo.src)}" poster="https://placehold.co/480x800?text=Loading+Reel">
+                Your browser does not support the video tag.
+            </video>`;
+        mediaElType = 'video';
+    } else if (embedInfo.type === 'iframe') {
+        // Iframe: Load src with autoplay/mute parameters
+        mediaHtml = `
+            <iframe class="reel-video-media" src="${escapeHtml(embedInfo.src)}" 
+                    data-type="iframe" allow="autoplay; fullscreen; encrypted-media; picture-in-picture"  
+                    allowfullscreen loading="eager" frameborder="0">
+            </iframe>`;
+        mediaElType = 'iframe';
+    } else {
+        return; 
+    }
 
 
-        reelDiv.innerHTML = `  
-            <div class="reel-video-embed" data-media-type="${mediaElType}">  
-                ${mediaHtml}
+    reelDiv.innerHTML = `  
+        <div class="reel-video-embed" data-media-type="${mediaElType}">  
+            ${mediaHtml}
+        </div>  
+        <div class="reel-buttons">  
+            <div style="padding: 0 0 10px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600;">${escapeHtml(it.title)}</div>  
+            <div class="reel-buttons-group">  
+                ${watchButton}
+                ${nextButton}
             </div>  
-            <div class="reel-buttons">  
-                <div style="padding: 0 0 10px 0; font-size: 1rem; color: var(--primary-color); font-weight: 600;">${escapeHtml(it.title)}</div>  
-                <div class="reel-buttons-group">  
-                    ${openPlayerBtn}  
-                    ${telegramBtn}  
-                </div>  
-            </div>  
-            <div class="reel-load-more-marker" style="height:1px;"></div>   
-        `;  
-        container.appendChild(reelDiv);  
-        
-        // Attach observer only to the NEW reel div
-        if (reelsObserver) reelsObserver.observe(reelDiv);   
+        </div>
+    `;  
+    container.appendChild(reelDiv);
+    
+    // 5. Attach listeners
+    qs('.next-reel-btn').addEventListener('click', loadNextReel);
+    qs('.watch-reel-btn').addEventListener('click', (e) => {
+        const link = e.currentTarget.dataset.link;
+        openWatchPage(link); 
     });
     
-    // Attach infinite scroll observer to the last element added
-    setupInfiniteScrollObserver();
+    // 6. Handle media play/unmute
+    const mediaEl = qs('.reel-video-media');
+    if (mediaEl && mediaEl.tagName === 'VIDEO') {
+        mediaEl.muted = true;
+        mediaEl.play().then(() => {
+            // Autoplay successful, try to unmute after a small delay
+            setTimeout(() => { mediaEl.muted = false; }, 500);
+        }).catch(e => {
+            // Autoplay blocked, keep muted and try again
+            mediaEl.muted = true;
+            mediaEl.play().catch(e => log("Video autoplay blocked, keeping muted.", e));
+        });
+    }
 }
 
+// 🛑 UPDATED: Clean up logic for static player
 function closeReelsPlayer(){
     const player = qs('#reelsPlayer');
     if(player) player.style.display = 'none';
     document.body.style.overflow = '';
 
-    qsa('#reelsPlayer .reel-video-media').forEach(mediaEl => {  
+    // Stop playback of the single current reel
+    const mediaEl = qs('#reelsContainer .reel-video-media');  
+    if (mediaEl) {
         if (mediaEl.tagName === 'VIDEO') {
             mediaEl.pause();
             mediaEl.currentTime = 0;
-            mediaEl.muted = true; // Mute on close
+            mediaEl.muted = true; 
         } else if (mediaEl.tagName === 'IFRAME') {
-            // Stop playback for YouTube iframes specifically
-            if (mediaEl.src.includes('youtube')) {
-                mediaEl.contentWindow.postMessage('{"event":"command","func":"pauseVideo","args":""}', '*');
-            }
-            // Clear other iframes to stop them from running in the background
+            // Clear iframes to stop them from running in the background
             mediaEl.src = 'about:blank'; 
         }
-    });  
-    
-    if (reelsObserver) {  
-        reelsObserver.disconnect();  
-        reelsObserver = null;  
     }
-    currentPlayingReel = null;
+    
     usedReelIds.clear(); // Clear used IDs on close
 }
 
-// 🛑 FINAL FIX: New Intersection Observer logic for Smooth Video/Iframe control
-function setupReelsObserver() {
-    if (reelsObserver) {
-        reelsObserver.disconnect();
-    }
 
-    const options = {  
-        root: qs('#reelsPlayer'),   
-        rootMargin: '0px',  
-        // Threshold set to 0.7 for reliable play/pause
-        threshold: 0.7   
-    };  
-
-    reelsObserver = new IntersectionObserver((entries, observer) => {  
-        entries.forEach(entry => {  
-            if (entry.target.classList.contains('reel-load-more-marker')) return;   
-
-            const mediaEl = entry.target.querySelector('.reel-video-media');  
-            if (!mediaEl) return;  
-            
-            if (entry.isIntersecting) {
-                if (currentPlayingReel && currentPlayingReel !== mediaEl) {
-                    // Pause the previously playing reel
-                    controlMedia(currentPlayingReel, 'pause');
-                }
-                
-                // Play the current reel after a slight delay to ensure smooth transition
-                setTimeout(() => {
-                    if (entry.isIntersecting) { // Re-check if still visible
-                        controlMedia(mediaEl, 'play');
-                        currentPlayingReel = mediaEl;
-                    }
-                }, 100);
-
-            } else {
-                // Video is not visible (scrolled away)
-                controlMedia(mediaEl, 'pause');
-                if (currentPlayingReel === mediaEl) {
-                    currentPlayingReel = null;
-                }
-            }  
-        });  
-    }, options);  
-
-    qsa('#reelsContainer .reel').forEach(reel => {  
-        reelsObserver.observe(reel);  
-    });
-}
-
-// 🛑 FINAL FIX: Helper to control media elements with better mute/unmute logic for smooth transition
-function controlMedia(mediaEl, action) {
-    if (!mediaEl) return;
-
-    if (mediaEl.tagName === 'VIDEO') {
-        // Load src only on first play attempt
-        if (mediaEl.dataset.src && !mediaEl.src) {
-             mediaEl.src = mediaEl.dataset.src;
-             mediaEl.load();
-        }
-        if (action === 'play') {
-            // Start muted for guaranteed autoplay, then try to unmute.
-            mediaEl.muted = true; 
-            mediaEl.play().then(() => {
-                // If play succeeds, try to unmute. This depends on a user gesture having occurred.
-                mediaEl.muted = false; // Attempt to unmute for sound
-            }).catch(e => {
-                // If autoplay is blocked (usually because sound is required)
-                mediaEl.muted = true; 
-                mediaEl.play().catch(e => console.warn("Video autoplay/sound blocked:", e));
-            });
-        } else if (action === 'pause') {
-            mediaEl.pause();
-            mediaEl.currentTime = 0; // Rewind on pause for smooth replay
-            mediaEl.muted = true; // Ensure it's muted when paused
-        }
-    } else if (mediaEl.tagName === 'IFRAME') {
-        // Load src only on first play attempt
-        if (mediaEl.dataset.src && mediaEl.src === 'about:blank') {
-             mediaEl.src = mediaEl.dataset.src;
-        }
-
-        // YouTube specific control via postMessage
-        if (mediaEl.src.includes('youtube')) {
-            const command = action === 'play' ? 'playVideo' : 'pauseVideo';
-            // PostMessage to play/pause the YouTube video
-            mediaEl.contentWindow.postMessage(`{"event":"command","func":"${command}","args":""}`, '*');
-        } else if (action === 'play') {
-            // For other iframes (RedGifs IFR), simply refreshing the source often forces autoplay.
-            // This is a common workaround for Iframe-based embeds.
-            if (mediaEl.src === 'about:blank' || mediaEl.src === mediaEl.dataset.src) {
-                 mediaEl.src = mediaEl.dataset.src;
-            }
-        }
-    }
-}
+// OLD REEL OBSERVER FUNCTIONS REMOVED:
+// - setupReelsObserver
+// - controlMedia
+// - setupInfiniteScrollObserver
 
 
-function setupInfiniteScrollObserver() {
-    // The marker is inside the last added reel.
-    const marker = qs('#reelsContainer .reel:last-child .reel-load-more-marker');
-
-    if (marker) {  
-        // Ensure old observer is disconnected if present
-        if (window.loadMoreObserver) {
-            window.loadMoreObserver.disconnect();
-        }
-        
-        const loadMoreObserver = new IntersectionObserver((entries, observer) => {  
-            entries.forEach(entry => {  
-                if (entry.isIntersecting) {  
-                    observer.unobserve(entry.target);   
-                    loadReelsBatch(); // Load next batch
-                }  
-            });  
-        }, { root: qs('#reelsPlayer'), threshold: 0.5 });   
-          
-        loadMoreObserver.observe(marker);
-        window.loadMoreObserver = loadMoreObserver; // Save observer reference
-    }
-}
-
-// ------------- INIT / BOOT -------------
+// ------------- INIT / BOOT (UNCHANGED) -------------
 async function loadAll(){
-    const raw = await fetchSheet(SHEET_API); // Fetch main sheet
+    const raw = await fetchSheet(SHEET_API); 
     const parsed = parseRows(raw);
     items = parsed;
-    filteredItems = parsed; // Initial filter is all items
+    filteredItems = parsed; 
 
-    // 🛑 CORRECT LOCATION: Save data for trailer.html after fetching.
     localStorage.setItem('dareloom_items', JSON.stringify(items)); 
 
     renderLatest(1);   
-    renderRandom(); // Keep rendering random section
+    renderRandom(); 
 
     const s = qs('#searchInput');   
     if (s){   
