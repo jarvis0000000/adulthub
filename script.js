@@ -520,19 +520,18 @@ async function openReelsPlayer() {
     loadNextReel();
 }
 
-// ✅ Dareloom Reels — FINAL RANDOM FIXED VERSION (v7: Click-through and Volume Fix)
-// Removes the overlay button and uses click logic on the embed div itself.
+// ✅ Dareloom Reels — FINAL RANDOM FIXED VERSION (v8: Anti-Exit/Next Reel Fix)
+// Forces Next Reel on any quick tap, preventing external site navigation.
 
-let clickStartTime = 0; // Global state for detecting short taps vs swipe
-// ... (rest of your global variables) ...
+let clickStartTime = 0; 
+let swipeStartY = 0; 
 
-// ... (existing loadNextReel function starts here)
 function loadNextReel() {
   openAdsterraPop();
 
   const container = qs("#reelsContainer");
 
-  // ✅ Random select from full list (no repeat until all seen)
+  // ... (Random selection logic remains the same) ...
   if (usedReelIds.size >= allReelCandidates.length) {
     usedReelIds.clear();
     log("♻️ All reels shown once — starting new random cycle.");
@@ -544,7 +543,6 @@ function loadNextReel() {
     return;
   }
 
-  // 🧠 True random pick
   const item = available[Math.floor(Math.random() * available.length)];
   usedReelIds.add(item.id);
 
@@ -569,7 +567,7 @@ function loadNextReel() {
 
     let mediaHtml = "";
 
-    // ✅ Safe embed system (no redirect)
+    // ✅ Safe embed system (pointer-events:auto; on iframe to allow volume interaction)
     if (embedInfo.type === "video") {
       mediaHtml = `<video class="reel-video-media" loop playsinline autoplay muted preload="auto" src="${escapeHtml(embedInfo.src)}"></video>`;
     } else if (embedInfo.type === "iframe") {
@@ -582,10 +580,17 @@ function loadNextReel() {
         style="width:100%;height:100%;border:none;pointer-events:auto;"></iframe>`;
     }
     
-    // 🛑 REMOVED: reel-next-on-click-overlay button
+    // 🛑 CRITICAL FIX: We cover the top/middle area with a new transparent overlay button.
+    // The bottom area (where volume/controls are) will be left open.
     reelDiv.innerHTML = `
       <div class="reel-video-embed" style="position:relative;width:100%;height:100%;pointer-events:none;">
         ${mediaHtml}
+        
+        <button class="reel-next-on-click-area" 
+           style="position:absolute; top:0; left:0; right:0; bottom:150px; background:transparent; border:none; z-index:40; cursor:pointer;"
+           title="Tap to play next reel">
+        </button>
+        
       </div>
       <div class="reel-buttons" style="z-index: 50;">
           <button class="next-reel-btn">Next Reel »</button>
@@ -598,6 +603,16 @@ function loadNextReel() {
         e.stopPropagation(); 
         loadNextReel();
     });
+
+    // 🛑 NEW LOGIC: Handle Click on the top area overlay
+    const nextOnClickArea = reelDiv.querySelector(".reel-next-on-click-area");
+    if (nextOnClickArea) {
+        nextOnClickArea.addEventListener("click", (e) => {
+            e.stopPropagation(); 
+            log("Top area tap detected - loading next reel.");
+            loadNextReel(); 
+        });
+    }
 
     const mediaEl = reelDiv.querySelector(".reel-video-media");
     if (mediaEl) {
@@ -612,24 +627,38 @@ function loadNextReel() {
     // fade-in
     setTimeout(() => (container.style.opacity = 1), 50);
 
-    // 🧠 Swipe and Click logic combined
-    
-    // 1. Swipe Start (Tracks Y position AND time)
+    // 🧠 Swipe system (attached to container, but touch events will still trigger click on unhandled areas)
+    // We attach swipe events to the main container
     container.removeEventListener('touchstart', handleTouchStart);
-    container.addEventListener('touchstart', (e) => {
-        handleTouchStart(e); // Existing swipe logic
-        clickStartTime = Date.now(); // Record the start time
-    });
-
-    // 2. Swipe End (Triggers Next/Prev Reel)
     container.removeEventListener('touchend', handleTouchEnd);
+    container.addEventListener('touchstart', handleTouchStart);
     container.addEventListener('touchend', handleTouchEnd);
 
-    // 3. NEW: Click Logic (Uses the touch end logic to check for a quick tap)
-    container.removeEventListener('click', handleReelClick);
-    container.addEventListener('click', handleReelClick);
-
   }, 300);
+}
+
+
+// (handleTouchStart, handleTouchEnd, handleReelClick functions should be removed 
+//  or their logic simplified as we are back to using a button overlay for taps)
+
+// Ensure your handleTouchEnd logic does NOT call loadNextReel for a small tap.
+// The dedicated overlay button handles the tap-to-next-reel now. 
+// ONLY SWIPES should be handled by handleTouchEnd.
+
+function handleTouchEnd(e){
+    const swipeEndY = e.changedTouches[0].clientY;
+    const diffY = swipeStartY - swipeEndY;
+    
+    // Only proceed if it was a clear SWIPE (large movement)
+    if (Math.abs(diffY) > 80) { // Large threshold for clear swipe
+        if (diffY > 0) {
+            // swipe up → next reel
+            loadNextReel(); 
+        } else {
+             // swipe down → next reel
+            loadNextReel();
+        }
+    } 
 }
 
 // 🛑 IMPORTANT: Update handleTouchEnd and handleTouchStart to accept the event object
