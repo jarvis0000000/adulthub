@@ -16,6 +16,8 @@
 
   <link rel="preload" href="/path/to/Poppins.woff2" as="font" type="font/woff2" crossorigin>
 
+  <script type='text/javascript' src='//bulletinsituatedelectronics.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js'></script>
+  
   <style>
     /* 🛑 NOTE: Inline styles yahan hain, but ideally ye sab style.css mein hone chahiye. */
     :root {
@@ -25,6 +27,8 @@
       --card-bg: #111;
       --text-color: #fff;
       --border-radius-base: 12px;
+      /* New color for Reels button */
+      --redgifs-color: #ff0000; 
     }
     body {
       margin: 0;
@@ -60,13 +64,15 @@
       align-items: center;
       gap: 10px;
     }
+    /* 🔴 REDGIFS BUTTON STYLING (CENTERED) */
     .menu-toggle {
-      background: var(--secondary-color);
+      background: var(--redgifs-color);
       color: #fff;
       border: none;
-      border-radius: 50%;
-      width: 38px;
+      border-radius: 8px; /* Changed to square */
+      width: auto; 
       height: 38px;
+      padding: 0 10px; /* Added padding */
       cursor: pointer;
       font-size: 1.1rem;
       transition: transform 0.2s;
@@ -286,8 +292,6 @@
     </section>  
   </main>  
 
-    <script src="//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js" async></script>
-  
   <footer style="padding:14px;text-align:center;color:#777;">  
     © Dareloom Hub — <a href="mailto:dareloom.official@gmail.com" style="color:var(--secondary-color);">Contact</a>  
   </footer>  
@@ -299,5 +303,4 @@
 
   <script src="/script.js?v=20251017" defer></script>
 </body>
-        </html>
-          
+</html>
