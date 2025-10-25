@@ -753,7 +753,7 @@ function loadNextReel() {
       iframe.style.border = "none";
       // We set pointerEvents to auto here, allowing native iframe controls,
       // but rely on the overlay mask to intercept redirects/unwanted touches.
-      iframe.style.pointerEvents = "auto"; 
+      iframe.style.pointerEvents = "none"; 
       iframe.style.transformOrigin = "center center";
       iframe.style.transform = 'scale(1.05)'; // Keep scale for visual fit
 
