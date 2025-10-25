@@ -1,3 +1,14 @@
+Name: 🤖 Auto SEO + IndexNow + Cloudflare Deploy
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"    # ⏰ Every 12 hours
+  workflow_dispatch:           # Manual trigger allowed
+
+jobs:
+  auto-seo:
+    runs-on: ubuntu-latest
+
 steps:
   - name: 🧾 Checkout Repository
     uses: actions/checkout@v4
