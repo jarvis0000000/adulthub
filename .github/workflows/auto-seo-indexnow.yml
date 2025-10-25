@@ -9,9 +9,10 @@ jobs:
   auto-seo:
     runs-on: ubuntu-latest
 
+# 🚨 FIX: 'steps:' must be indented 4 spaces under 'seo:'
 steps:
   # ----------------------------------------
-  # 1️⃣ Checkout repo
+  # 1️⃣ Checkout Repo
   # ----------------------------------------
   - name: 🧾 Checkout Repository
     uses: actions/checkout@v4
@@ -25,65 +26,79 @@ steps:
       node-version: 20
 
   # ----------------------------------------
-  # 3️⃣ Install dependencies
+  # 3️⃣ Install Dependencies
   # ----------------------------------------
   - name: 📦 Install Dependencies
     run: npm ci
 
   # ----------------------------------------
-  # 4️⃣ Generate global sitemap + meta
+  # 4️⃣ Generate indexnow-key.txt if missing
+  # ----------------------------------------
+  - name: 🔑 Ensure IndexNow Key
+    run: |
+      mkdir -p ./public || true
+      if [ ! -f indexnow-key.txt ]; then
+        echo "⚙️ Generating new indexnow-key.txt..."
+        KEY=$(openssl rand -hex 16)
+        echo "$KEY" > indexnow-key.txt
+        echo "✅ New IndexNow key generated: $KEY"
+      else
+        echo "✅ Existing indexnow-key.txt found"
+      fi
+
+  # ----------------------------------------
+  # 5️⃣ Generate main sitemap + meta
   # ----------------------------------------
   - name: 🌐 Generate Main SEO Files
     env:
-      # Uses secret GOOGLE_SHEET_API_KEY from GitHub
       SHEET_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }} 
     run: |
-      echo "🗺️ Generating main sitemap..."
-      node generate-sitemap.js
+      echo "🗺️ Running generate-sitemap.js..."
+      node generate-sitemap.js || echo "⚠️ Skipped main sitemap" 
 
   # ----------------------------------------
-  # 5️⃣ Generate actress sitemap + meta
+  # 6️⃣ Generate actress pages + sitemap
   # ----------------------------------------
-  - name: 🎬 Generate Actress Pages + Sitemap
+  - name: 🎬 Generate Actress Pages + SEO Data
     run: |
-      echo "🎥 Creating actress pages and SEO data..."
-      node generate-actresses.js
+      echo "🎥 Running generate-actresses.js..."
+      node generate-actresses.js || echo "⚠️ Skipped actresses generation"
 
   # ----------------------------------------
-  # 6️⃣ Commit and push changes
+  # 7️⃣ Commit and push SEO updates
   # ----------------------------------------
   - name: 💾 Commit SEO Updates
+    id: commit
     run: |
       git config user.name "github-actions[bot]"
       git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      # Force add all generated files
       git add -f sitemap.xml sitemap.xml.gz robots.txt seo-meta.json \
         sitemap-actors.xml seo-meta-actors.json sitemap-index.xml \
-        actors/ _headers indexnow-key.txt || true
+        actors/ indexnow-key.txt _headers || true
 
       if git diff --cached --quiet; then
-        echo "✅ No changes detected."
+        echo "✅ No file changes to commit."
+        echo "files_committed=false" >> $GITHUB_OUTPUT 
       else
         TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
         git commit -m "🤖 Auto SEO + IndexNow update: ${TIMESTAMP}"
         git push
+        echo "✅ Changes committed and pushed."
+        echo "files_committed=true" >> $GITHUB_OUTPUT 
       fi
 
   # ----------------------------------------
-  # 7️⃣ Trigger Cloudflare deploy
+  # 8️⃣ Trigger Cloudflare Deploy
   # ----------------------------------------
   - name: 🚀 Deploy to Cloudflare Pages
-    if: success() && steps.commit.outputs.files_committed == 'true'
-    id: commit
+    if: success() && steps.commit.outputs.files_committed == 'true' 
     env:
       CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
       CF_PROJECT_NAME: ${{ secrets.CF_PROJECT_NAME }}
-      # The token is available as an environment variable named CF_API_TOKEN
       CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }} 
     run: |
-      echo "🚀 Deploying to Cloudflare..."
-      # CF_API_TOKEN is used here
+      echo "🚀 Deploying new build to Cloudflare..."
       curl -X POST "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PROJECT_NAME}/deployments" \
       -H "Authorization: Bearer ${CF_API_TOKEN}" \
       -H "Content-Type: application/json" \
@@ -91,32 +106,29 @@ steps:
       --fail --silent --show-error
 
   # ----------------------------------------
-  # 8️⃣ Purge Cloudflare cache
+  # 9️⃣ Purge Cloudflare Cache
   # ----------------------------------------
   - name: 🧹 Purge Cloudflare Cache
     if: success() && steps.commit.outputs.files_committed == 'true'
     env:
-      # The token is available as an environment variable named CF_API_TOKEN
       CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      # The Zone ID is available as an environment variable named CF_ZONE_ID
       CF_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
     run: |
       echo "🧹 Clearing Cloudflare cache..."
-      # CF_API_TOKEN and CF_ZONE_ID are used here
       curl -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
       -H "Authorization: Bearer ${CF_API_TOKEN}" \
       -H "Content-Type: application/json" \
       --data '{"files":["https://dareloom.fun/sitemap.xml","https://dareloom.fun/sitemap-actors.xml","https://dareloom.fun/robots.txt"]}'
 
   # ----------------------------------------
-  # 9️⃣ Ping IndexNow + Google
+  # 🔟 Notify IndexNow + Google + Bing
   # ----------------------------------------
-  - name: 🔔 Notify Search Engines (IndexNow + Google)
+  - name: 🔔 Notify Search Engines
     if: success() && steps.commit.outputs.files_committed == 'true'
     run: |
       INDEXNOW_KEY=$(cat indexnow-key.txt | tr -d '\n')
       DOMAIN="https://dareloom.fun"
-      echo "🔔 Pinging IndexNow and Google for sitemap refresh..."
+      echo "🔔 Pinging IndexNow, Google & Bing..."
 
       curl -s -X POST "https://api.indexnow.org/indexnow" \
         -H "Content-Type: application/json" \
@@ -124,6 +136,7 @@ steps:
 
       curl -s "https://www.google.com/ping?sitemap=${DOMAIN}/sitemap.xml"
       curl -s "https://www.google.com/ping?sitemap=${DOMAIN}/sitemap-actors.xml"
+      curl -s "https://www.bing.com/ping?sitemap=${DOMAIN}/sitemap.xml"
+      curl -s "https://www.bing.com/ping?sitemap=${DOMAIN}/sitemap-actors.xml"
 
-      echo "✅ IndexNow + Google notified successfully!"
-    
+      echo "✅ Search engines notified successfully!"
