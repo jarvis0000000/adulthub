@@ -1,99 +1,87 @@
-Name: 🗺️ Auto Generate & Deploy SEO Files
+steps:
+  - name: 🧾 Checkout Repository
+    uses: actions/checkout@v4
 
-on:
-  schedule:
-    - cron: "0 */12 * * *"   # ⏰ Every 12 hours
-  workflow_dispatch:          # Manual trigger allowed
+  - name: ⚙️ Setup Node.js
+    uses: actions/setup-node@v4
+    with:
+      node-version: 20
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
+  - name: 📦 Install Dependencies
+    run: npm ci
 
-    steps:
-      - name: 🧾 Checkout Repository
-        uses: actions/checkout@v4
+  # -------------------------------
+  # Generate SEO files (main sitemap)
+  # -------------------------------
+  - name: 🗺️ Generate Global SEO Files
+    env:
+      # Secret matched to your GitHub Secret: GOOGLE_SHEET_API_KEY
+      SHEET_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }}
+    run: |
+      echo "⚙️ Generating main SEO files..."
+      node generate-sitemap.js
 
-      - name: ⚙️ Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+  # -------------------------------
+  # Generate Actress Pages + Sitemap
+  # -------------------------------
+  - name: 🎬 Generate Actress Pages & Sitemap
+    run: |
+      echo "🎥 Creating actress pages and sitemaps..."
+      node generate-actresses.js
 
-      - name: 📦 Install Dependencies
-        run: npm ci
+  # -------------------------------
+  # Commit SEO File Updates
+  # -------------------------------
+  - name: 💾 Commit SEO File Updates
+    run: |
+      git config user.name "github-actions[bot]"
+      git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      # -------------------------------
-      # Generate SEO files (main sitemap)
-      # -------------------------------
-      - name: 🗺️ Generate Global SEO Files
-        env:
-          # ✅ Secret name matched to your GitHub Secret: GOOGLE_SHEET_API_KEY
-          SHEET_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }}
-        run: |
-          echo "⚙️ Generating main SEO files..."
-          node generate-sitemap.js
+      # Force add all generated SEO + actress files
+      git add -f sitemap.xml sitemap.xml.gz robots.txt seo-meta.json \
+        sitemap-actors.xml seo-meta-actors.json sitemap-index.xml actors/ _headers indexnow-key.txt || true
 
-      # -------------------------------
-      # Generate Actress Pages + Sitemap
-      # -------------------------------
-      - name: 🎬 Generate Actress Pages & Sitemap
-        run: |
-          echo "🎥 Creating actress pages and sitemaps..."
-          node generate-actresses.js
+      if git diff --cached --quiet; then
+        echo "✅ No changes detected."
+      else
+        TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+        git commit -m "🤖 Auto SEO update: ${TIMESTAMP}"
+        git push
+      fi
 
-      # -------------------------------
-      # Commit SEO File Updates
-      # -------------------------------
-      - name: 💾 Commit SEO File Updates
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+  # -------------------------------
+  # Trigger Cloudflare Pages Deploy
+  # -------------------------------
+  - name: 🚀 Trigger Cloudflare Pages Deploy
+    if: success()
+    env:
+      CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+      CF_PROJECT_NAME: ${{ secrets.CF_PROJECT_NAME }}
+      # Secret matched to your GitHub Secret: CLOUDFLARE_API_TOKEN
+      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    run: |
+      echo "🚀 Triggering Cloudflare Pages Deployment..."
+      curl -X POST "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PROJECT_NAME}/deployments" \
+      -H "Authorization: Bearer ${CF_API_TOKEN}" \
+      -H "Content-Type: application/json" \
+      --fail \
+      --silent \
+      --show-error \
+      --data '{"branch":"main"}'
 
-          # Force add all generated SEO + actress files
-          git add -f sitemap.xml sitemap.xml.gz robots.txt seo-meta.json \
-            sitemap-actors.xml seo-meta-actors.json sitemap-index.xml actors/ _headers indexnow-key.txt || true
-
-          if git diff --cached --quiet; then
-            echo "✅ No changes detected."
-          else
-            TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-            git commit -m "🤖 Auto SEO update: ${TIMESTAMP}"
-            git push
-          fi
-
-      # -------------------------------
-      # Trigger Cloudflare Pages Deploy
-      # -------------------------------
-      - name: 🚀 Trigger Cloudflare Pages Deploy
-        if: success()
-        env:
-          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-          CF_PROJECT_NAME: ${{ secrets.CF_PROJECT_NAME }}
-          # ✅ Secret name matched to your GitHub Secret: CLOUDFLARE_API_TOKEN
-          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: |
-          echo "🚀 Triggering Cloudflare Pages Deployment..."
-          curl -X POST "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PROJECT_NAME}/deployments" \
-          -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
-          -H "Content-Type: application/json" \
-          --fail \
-          --silent \
-          --show-error \
-          --data '{"branch":"main"}'
-
-      # -------------------------------
-      # Purge Cloudflare Cache
-      # -------------------------------
-      - name: 🧹 Purge Cloudflare Cache (Sitemap + Robots)
-        if: success()
-        env:
-          # ✅ Secret name matched to your GitHub Secret: CLOUDFLARE_API_TOKEN
-          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          # ✅ Secret name matched to your GitHub Secret: CLOUDFLARE_ZONE_ID
-          CF_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
-        run: |
-          echo "🧹 Purging Cloudflare cache for sitemap and robots.txt..."
-          curl -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
-          -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
-          -H "Content-Type: application/json" \
-          --data '{"files":["https://dareloom.fun/sitemap.xml","https://dareloom.fun/robots.txt","https://dareloom.fun/sitemap-actors.xml"]}'
-          
+  # -------------------------------
+  # Purge Cloudflare Cache
+  # -------------------------------
+  - name: 🧹 Purge Cloudflare Cache (Sitemap + Robots)
+    if: success()
+    env:
+      # Secret matched to your GitHub Secret: CLOUDFLARE_API_TOKEN
+      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      # Secret matched to your GitHub Secret: CLOUDFLARE_ZONE_ID
+      CF_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+    run: |
+      echo "🧹 Purging Cloudflare cache for sitemap and robots.txt..."
+      curl -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
+      -H "Authorization: Bearer ${CF_API_TOKEN}" \
+      -H "Content-Type: application/json" \
+      --data '{"files":["https://dareloom.fun/sitemap.xml","https://dareloom.fun/robots.txt","https://dareloom.fun/sitemap-actors.xml"]}'
