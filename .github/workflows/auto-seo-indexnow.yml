@@ -9,7 +9,6 @@ jobs:
   auto-seo:
     runs-on: ubuntu-latest
 
-# 🚨 FIX: 'steps:' must be indented 4 spaces under 'seo:'
 steps:
   # ----------------------------------------
   # 1️⃣ Checkout Repo
@@ -140,3 +139,4 @@ steps:
       curl -s "https://www.bing.com/ping?sitemap=${DOMAIN}/sitemap-actors.xml"
 
       echo "✅ Search engines notified successfully!"
+      
