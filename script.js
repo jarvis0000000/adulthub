@@ -1,5 +1,5 @@
 // script.js
-// Dareloom Hub - FINAL V18: RedGifs Iframe Revert to bypass hotlinking block
+// Dareloom Hub - FINAL V19: Enhanced Iframe Anti-Navigation
 
 // ------------- CONFIG -------------
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
@@ -617,6 +617,7 @@ function toggleReelSound(e) {
         return;
     }
 
+    
     // Nothing found
     log("No media element found to toggle sound");
 }
@@ -660,10 +661,11 @@ function loadNextReel() {
     reelDiv.style.height = "100vh";
     reelDiv.style.overflow = "hidden";
     reelDiv.style.position = "relative";
+    const reelsPlayer = qs('#reelsPlayer');
 
     // We'll build DOM nodes to allow overlay handling when iframe is used
     if (embedInfo.type === "video") {
-      // video tag logic (unchanged)
+      // ** VIDEO TAG LOGIC (UNTOUCHED) **
       const video = document.createElement('video');
       video.className = "reel-video-media";
       video.loop = true;
@@ -737,38 +739,70 @@ function loadNextReel() {
       reelDiv.appendChild(embedWrap);
 
     } else if (embedInfo.type === "iframe") {
-      // Create wrapper allowing overlay + sound button while keeping iframe pointer-events disabled
-      const wrapper = document.createElement("div");
-      wrapper.className = "reel-frame";
-      wrapper.style.position = "relative";
-      wrapper.style.width = "100%";
-      wrapper.style.height = "100%";
-      wrapper.style.overflow = "hidden";
+      // ** IFRAME LOGIC (UPDATED WITH USER'S CODE) **
 
+      // --- Create iframe ---
       const iframe = document.createElement("iframe");
       iframe.className = "reel-video-media";
       iframe.src = embedInfo.src;
-      iframe.frameBorder = "0";
       iframe.allow = "autoplay; fullscreen; encrypted-media";
       iframe.allowFullscreen = true;
       iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-fullscreen");
       iframe.style.width = "100%";
       iframe.style.height = "100%";
       iframe.style.border = "none";
-      // keep pointer-events none to prevent accidental navigation to original site
-      iframe.style.pointerEvents = "none";
+      // We set pointerEvents to auto here, allowing native iframe controls,
+      // but rely on the overlay mask to intercept redirects/unwanted touches.
+      iframe.style.pointerEvents = "auto"; 
       iframe.style.transformOrigin = "center center";
+      iframe.style.transform = 'scale(1.05)'; // Keep scale for visual fit
 
-      // overlay for tap detection (we'll handle single/double tap here)
-      const overlay = document.createElement("div");
-      overlay.className = "reel-touch-overlay";
-      overlay.style.position = "absolute";
-      overlay.style.inset = "0";
-      overlay.style.background = "transparent";
-      overlay.style.zIndex = "30";
-      overlay.style.cursor = "pointer";
+      // --- Wrapper ---
+      const wrapper = document.createElement("div");
+      wrapper.className = "reel-frame";
+      wrapper.style.position = "relative";
+      wrapper.style.width = "100%";
+      wrapper.style.height = "100%";
 
-      // sound button (visible)
+      // --- Overlay mask to block unwanted touches/taps for redirect ---
+      const overlayMask = document.createElement("div");
+      overlayMask.className = "reel-overlay-mask";
+      // This mask intercepts most clicks, but a "hole" can be used for the speaker icon area.
+      overlayMask.style.position = "absolute";
+      overlayMask.style.inset = "0";
+      overlayMask.style.background = "transparent";
+      overlayMask.style.zIndex = "30"; 
+      overlayMask.style.cursor = "pointer";
+
+      // Handle taps on the overlay mask (for sound toggle and next reel)
+      overlayMask.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const now = Date.now();
+        const tapDiff = now - (overlayMask._lastTap || 0);
+        overlayMask._lastTap = now;
+
+        if (tapDiff < 300) {
+          log("👆 Double tap detected - next reel");
+          loadNextReel();
+          return;
+        }
+
+        // Single tap -> toggle sound
+        toggleReelSound(); 
+      });
+
+      // --- Hole where speaker is visible/touchable (Placeholder - actual click logic uses the mask) ---
+      // This is generally handled better with CSS, but kept for structure:
+      const overlayHole = document.createElement("div");
+      overlayHole.className = "reel-overlay-hole";
+      overlayHole.style.position = "absolute";
+      overlayHole.style.top = "0";
+      overlayHole.style.left = "0";
+      overlayHole.style.width = "100%"; 
+      overlayHole.style.height = "100%";
+      overlayHole.style.pointerEvents = "none"; // Hole is part of the mask's concept but is functionally passive here
+
+      // --- Visible sound icon overlay (static visual button) ---
       const soundBtn = document.createElement("div");
       soundBtn.className = "sound-btn";
       soundBtn.innerText = "🔊";
@@ -783,26 +817,13 @@ function loadNextReel() {
         toggleReelSound();
       });
 
-      overlay.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const now = Date.now();
-        const tapDiff = now - (overlay._lastTap || 0);
-        overlay._lastTap = now;
 
-        if (tapDiff < 300) {
-          log("👆 Double tap detected - next reel");
-          loadNextReel();
-          return;
-        }
-
-        // On iframe single tap we prefer to toggle sound via postMessage (if supported)
-        toggleReelSound();
-      });
-
+      // --- Combine ---
+      // overlayMask.appendChild(overlayHole); // Not strictly necessary for JS functionality
       wrapper.appendChild(iframe);
-      wrapper.appendChild(overlay);
+      wrapper.appendChild(overlayMask);
       wrapper.appendChild(soundBtn);
-
+      
       reelDiv.appendChild(wrapper);
     }
 
@@ -834,10 +855,8 @@ function loadNextReel() {
         mediaEl.muted = true; 
         mediaEl.volume = 1.0;
         mediaEl.play().catch(() => log("Autoplay blocked — muted"));
-      } else if (mediaEl.tagName === 'IFRAME') {
-         // Slight zoom for IFRAME to hide any black edges
-         mediaEl.style.transform = 'scale(1.05)';
       }
+      // Note: Iframe scale is already applied above
     }
 
     // fade-in
@@ -901,9 +920,17 @@ userInteracted = true;
 }
 
 function setupGestureListener(){
-['click', 'touchstart', 'keydown'].forEach(e => {
-document.addEventListener(e, markUserGesture, {once: true});
-});
+    ['click', 'touchstart', 'keydown'].forEach(e => {
+        document.addEventListener(e, markUserGesture, {once: true});
+    });
+
+    // Block Redgifs auto navigation attempts (Added your new code here)
+    window.addEventListener("blur", () => {
+        if (document.activeElement && document.activeElement.tagName === "IFRAME") {
+            window.focus(); // Prevent external focus / redirect
+            log("🛑 RedGifs blur redirect attempt blocked.");
+        }
+    });
 }
 
 async function loadAll(){
@@ -929,4 +956,3 @@ async function loadAll(){
 }
 
 loadAll();
-                               
