@@ -50,7 +50,7 @@ jobs:
       # ----------------------------------------
       - name: 🌐 Generate Main SEO Files
         env:
-          # ✅ Secret name matched to your GitHub Secret: GOOGLE_SHEET_API_KEY
+          # ✅ Secret name matched: GOOGLE_SHEET_API_KEY
           SHEET_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }} 
         run: |
           echo "🗺️ Running generate-sitemap.js..."
@@ -92,7 +92,7 @@ jobs:
         env:
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           CF_PROJECT_NAME: ${{ secrets.CF_PROJECT_NAME }}
-          # ✅ Secret name matched to your GitHub Secret: CLOUDFLARE_API_TOKEN
+          # ✅ Secret name matched: CLOUDFLARE_API_TOKEN
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }} 
         run: |
           echo "🚀 Deploying new build to Cloudflare..."
@@ -109,9 +109,9 @@ jobs:
       - name: 🧹 Purge Cloudflare Cache
         if: success()
         env:
-          # ✅ Secret name matched to your GitHub Secret: CLOUDFLARE_API_TOKEN
+          # ✅ Secret name matched: CLOUDFLARE_API_TOKEN
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          # ✅ Secret name matched to your GitHub Secret: CLOUDFLARE_ZONE_ID
+          # ✅ Secret name matched: CLOUDFLARE_ZONE_ID
           CF_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         run: |
           echo "🧹 Clearing Cloudflare cache..."
