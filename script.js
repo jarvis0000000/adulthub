@@ -740,8 +740,7 @@ function loadNextReel() {
 
     } else if (embedInfo.type === "iframe") {
       // ** IFRAME LOGIC (UPDATED for Sound and Security Compromise) **
-    } else if (embedInfo.type === "iframe") {
-      
+ 
       // --- Create iframe ---
       const iframe = document.createElement("iframe");
       iframe.className = "reel-video-media";
@@ -823,10 +822,9 @@ function loadNextReel() {
       wrapper.appendChild(touchBlocker); // The blocker is now a mask with a hole
       
       reelDiv.appendChild(wrapper);
-      reelDiv.appendChild(buttons); // Add custom buttons to the reelDiv
-
-
-    // Buttons area (unchanged)
+      reelDiv.appendChild(buttons); 
+    
+        // Buttons area (unchanged)
     const buttons = document.createElement('div');
     buttons.className = "reel-buttons";
     buttons.style.zIndex = "50";
