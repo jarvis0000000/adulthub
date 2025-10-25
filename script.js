@@ -532,6 +532,96 @@ async function openReelsPlayer() {
 }
 
 
+// Helper: toggles sound for current reel (works for <video> directly; tries postMessage for iframe)
+function toggleReelSound(e) {
+    if (e) e.stopPropagation();
+    const container = qs('#reelsContainer');
+    if (!container) return;
+    const reelDiv = container.querySelector('.reel');
+    if (!reelDiv) return;
+
+    const mediaEl = reelDiv.querySelector('.reel-video-media');
+
+    // If it's a video element, toggle mute directly
+    if (mediaEl && mediaEl.tagName === 'VIDEO') {
+        mediaEl.muted = !mediaEl.muted;
+        if (!mediaEl.muted) {
+            mediaEl.volume = 1.0;
+            mediaEl.play().catch(()=>{});
+        }
+        // Quick icon feedback
+        const icon = document.createElement("div");
+        icon.textContent = mediaEl.muted ? "🔇" : "🔊";
+        Object.assign(icon.style, {
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            fontSize: "60px",
+            color: "white",
+            textShadow: "0 0 5px black",
+            opacity: "0.95",
+            transition: "opacity 0.6s ease-out",
+            pointerEvents: "none",
+            zIndex: "9999",
+        });
+        reelDiv.appendChild(icon);
+        setTimeout(() => (icon.style.opacity = "0"), 100);
+        setTimeout(() => icon.remove(), 600);
+        return;
+    }
+
+    // If it's an iframe, try to postMessage a toggle command
+    if (mediaEl && mediaEl.tagName === 'IFRAME') {
+        try {
+            mediaEl.contentWindow.postMessage({ command: "toggleSound" }, "*");
+            const icon = document.createElement("div");
+            icon.textContent = "🔊";
+            Object.assign(icon.style, {
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                fontSize: "48px",
+                color: "white",
+                textShadow: "0 0 5px black",
+                opacity: "0.95",
+                transition: "opacity 0.6s ease-out",
+                pointerEvents: "none",
+                zIndex: "9999",
+            });
+            reelDiv.appendChild(icon);
+            setTimeout(() => (icon.style.opacity = "0"), 100);
+            setTimeout(() => icon.remove(), 600);
+        } catch (err) {
+            console.warn("Iframe sound toggle postMessage failed:", err);
+            // Fallback: show a temporary notice that iframe sound control isn't available
+            const note = document.createElement("div");
+            note.textContent = "Sound control not available for this embed";
+            Object.assign(note.style, {
+                position: "absolute",
+                bottom: "16px",
+                left: "50%",
+                transform: "translateX(-50%)",
+                fontSize: "13px",
+                color: "white",
+                background: "rgba(0,0,0,0.5)",
+                padding: "6px 10px",
+                borderRadius: "6px",
+                zIndex: "9999",
+                pointerEvents: "none"
+            });
+            reelDiv.appendChild(note);
+            setTimeout(()=> note.remove(), 1400);
+        }
+        return;
+    }
+
+    // Nothing found
+    log("No media element found to toggle sound");
+}
+
+
 function loadNextReel() {
   openAdsterraPop();
 
@@ -554,7 +644,8 @@ function loadNextReel() {
   const embedInfo = toEmbedUrlForReels(item.reelLink);
   if (embedInfo.type === "none") {
     log("Invalid embed link, skipping...");
-    loadNextReel();
+    // schedule retry asynchronously to avoid deep recursion
+    setTimeout(loadNextReel, 0);
     return;
   }
 
@@ -570,73 +661,60 @@ function loadNextReel() {
     reelDiv.style.overflow = "hidden";
     reelDiv.style.position = "relative";
 
-    let mediaHtml = "";
-
+    // We'll build DOM nodes to allow overlay handling when iframe is used
     if (embedInfo.type === "video") {
-      mediaHtml = `<video class="reel-video-media" loop playsinline autoplay muted preload="auto" src="${escapeHtml(embedInfo.src)}"></video>`;
-    } else if (embedInfo.type === "iframe") {
-      mediaHtml = `<iframe class="reel-video-media"
-        src="${escapeHtml(embedInfo.src)}"
-        frameborder="0"
-        allow="autoplay; fullscreen; encrypted-media"
-        allowfullscreen
-        style="width:100%;height:100%;border:none;pointer-events:none;"></iframe>`; 
-    }
+      // video tag logic (unchanged)
+      const video = document.createElement('video');
+      video.className = "reel-video-media";
+      video.loop = true;
+      video.playsInline = true;
+      video.autoplay = true;
+      video.muted = true;
+      video.preload = "auto";
+      video.src = embedInfo.src;
+      video.style.width = "100%";
+      video.style.height = "100%";
+      video.style.objectFit = "cover";
 
-// 🧠 Full screen transparent overlay button for tap detection
-reelDiv.innerHTML = `
-  <div class="reel-video-embed" style="position:relative;width:100%;height:100%;">
-      ${mediaHtml}
+      // wrapper for consistent layout
+      const embedWrap = document.createElement('div');
+      embedWrap.className = "reel-video-embed";
+      embedWrap.style.position = "relative";
+      embedWrap.style.width = "100%";
+      embedWrap.style.height = "100%";
+      embedWrap.appendChild(video);
 
-      <div class="reel-touch-overlay"
-          style="position:absolute; inset:0; background:transparent; z-index:30; cursor:pointer;">
-      </div>
-  </div>
+      // overlay for tap detection
+      const overlay = document.createElement('div');
+      overlay.className = "reel-touch-overlay";
+      overlay.style.position = "absolute";
+      overlay.style.inset = "0";
+      overlay.style.background = "transparent";
+      overlay.style.zIndex = "30";
+      overlay.style.cursor = "pointer";
 
-  <div class="reel-buttons" style="z-index:50; justify-content:flex-end;">
-      <button class="next-reel-btn">Next Reel »</button>
-  </div>
-`;
+      overlay.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const now = Date.now();
+        const tapDiff = now - (overlay._lastTap || 0);
+        overlay._lastTap = now;
 
-container.appendChild(reelDiv);
+        // Double tap -> next
+        if (tapDiff < 300) {
+          log("👆 Double tap detected - next reel");
+          loadNextReel();
+          return;
+        }
 
-// --------------- BUTTON LOGIC ---------------
-const nextBtn = reelDiv.querySelector(".next-reel-btn");
-nextBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    log("👉 Next Reel Button Clicked");
-    loadNextReel();
-});
-
-// --------------- TAP DETECTION (Includes sound toggle) ---------------
-const overlay = reelDiv.querySelector(".reel-touch-overlay");
-let lastTap = 0; 
-
-overlay.addEventListener("click", (e) => {
-    e.stopPropagation();
-    const now = Date.now();
-    const tapDiff = now - lastTap;
-    lastTap = now;
-
-    const mediaEl = reelDiv.querySelector(".reel-video-media");
-
-    // 👆 Double tap → Next Reel
-    if (tapDiff < 300) {
-        log("👆 Double tap detected - next reel");
-        loadNextReel();
-        return;
-    }
-
-    // 👇 Single tap → toggle sound (only if video tag)
-    if (mediaEl && mediaEl.tagName === "VIDEO") {
-        mediaEl.muted = !mediaEl.muted;
-        if (!mediaEl.muted) {
-            mediaEl.volume = 1.0;
-            mediaEl.play().catch(()=>{});
+        // Single tap -> toggle sound on video
+        video.muted = !video.muted;
+        if (!video.muted) {
+          video.volume = 1.0;
+          video.play().catch(()=>{});
         }
 
         const icon = document.createElement("div");
-        icon.textContent = mediaEl.muted ? "🔇" : "🔊";
+        icon.textContent = video.muted ? "🔇" : "🔊";
         Object.assign(icon.style, {
             position: "absolute",
             top: "50%",
@@ -653,19 +731,102 @@ overlay.addEventListener("click", (e) => {
         reelDiv.appendChild(icon);
         setTimeout(() => (icon.style.opacity = "0"), 100);
         setTimeout(() => icon.remove(), 600);
-    } else {
-        log("Iframe detected - sound toggle ignored.");
-    }
-});
+      });
 
-// 🛡️ Block iframe clicks opening original site
-const iframe = reelDiv.querySelector("iframe");
-if (iframe) {
-    // Re-apply sandbox for security
-    iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-fullscreen");
-    iframe.style.pointerEvents = "none"; 
-}
-                 
+      embedWrap.appendChild(overlay);
+      reelDiv.appendChild(embedWrap);
+
+    } else if (embedInfo.type === "iframe") {
+      // Create wrapper allowing overlay + sound button while keeping iframe pointer-events disabled
+      const wrapper = document.createElement("div");
+      wrapper.className = "reel-frame";
+      wrapper.style.position = "relative";
+      wrapper.style.width = "100%";
+      wrapper.style.height = "100%";
+      wrapper.style.overflow = "hidden";
+
+      const iframe = document.createElement("iframe");
+      iframe.className = "reel-video-media";
+      iframe.src = embedInfo.src;
+      iframe.frameBorder = "0";
+      iframe.allow = "autoplay; fullscreen; encrypted-media";
+      iframe.allowFullscreen = true;
+      iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-fullscreen");
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      iframe.style.border = "none";
+      // keep pointer-events none to prevent accidental navigation to original site
+      iframe.style.pointerEvents = "none";
+      iframe.style.transformOrigin = "center center";
+
+      // overlay for tap detection (we'll handle single/double tap here)
+      const overlay = document.createElement("div");
+      overlay.className = "reel-touch-overlay";
+      overlay.style.position = "absolute";
+      overlay.style.inset = "0";
+      overlay.style.background = "transparent";
+      overlay.style.zIndex = "30";
+      overlay.style.cursor = "pointer";
+
+      // sound button (visible)
+      const soundBtn = document.createElement("div");
+      soundBtn.className = "sound-btn";
+      soundBtn.innerText = "🔊";
+      soundBtn.style.position = "absolute";
+      soundBtn.style.bottom = "10px";
+      soundBtn.style.right = "10px";
+      soundBtn.style.fontSize = "22px";
+      soundBtn.style.zIndex = "50";
+      soundBtn.style.cursor = "pointer";
+      soundBtn.addEventListener("click", (ev) => {
+        ev.stopPropagation();
+        toggleReelSound();
+      });
+
+      overlay.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const now = Date.now();
+        const tapDiff = now - (overlay._lastTap || 0);
+        overlay._lastTap = now;
+
+        if (tapDiff < 300) {
+          log("👆 Double tap detected - next reel");
+          loadNextReel();
+          return;
+        }
+
+        // On iframe single tap we prefer to toggle sound via postMessage (if supported)
+        toggleReelSound();
+      });
+
+      wrapper.appendChild(iframe);
+      wrapper.appendChild(overlay);
+      wrapper.appendChild(soundBtn);
+
+      reelDiv.appendChild(wrapper);
+    }
+
+    // Buttons area (unchanged)
+    const buttons = document.createElement('div');
+    buttons.className = "reel-buttons";
+    buttons.style.zIndex = "50";
+    buttons.style.justifyContent = "flex-end";
+    buttons.innerHTML = `<button class="next-reel-btn">Next Reel »</button>`;
+    reelDiv.appendChild(buttons);
+
+    container.appendChild(reelDiv);
+
+    // --------------- BUTTON LOGIC ---------------
+    const nextBtn = reelDiv.querySelector(".next-reel-btn");
+    if (nextBtn) {
+      nextBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          log("👉 Next Reel Button Clicked");
+          loadNextReel();
+      });
+    }
+
+    // --------------- AUTOPLAY / IFRAME TWEAKS ---------------
     const mediaEl = reelDiv.querySelector(".reel-video-media");
     if (mediaEl) {
       if (mediaEl.tagName === "VIDEO") {
@@ -768,3 +929,4 @@ async function loadAll(){
 }
 
 loadAll();
+                               
