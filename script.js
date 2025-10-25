@@ -739,8 +739,9 @@ function loadNextReel() {
       reelDiv.appendChild(embedWrap);
 
     } else if (embedInfo.type === "iframe") {
-      // ** IFRAME LOGIC (UPDATED WITH USER'S CODE) **
-
+      // ** IFRAME LOGIC (UPDATED for Sound and Security Compromise) **
+    } else if (embedInfo.type === "iframe") {
+      
       // --- Create iframe ---
       const iframe = document.createElement("iframe");
       iframe.className = "reel-video-media";
@@ -751,11 +752,10 @@ function loadNextReel() {
       iframe.style.width = "100%";
       iframe.style.height = "100%";
       iframe.style.border = "none";
-      // We set pointerEvents to auto here, allowing native iframe controls,
-      // but rely on the overlay mask to intercept redirects/unwanted touches.
-      iframe.style.pointerEvents = "none"; 
+      // Iframe is fully clickable to allow internal RedGifs buttons to work
+      iframe.style.pointerEvents = "auto"; 
       iframe.style.transformOrigin = "center center";
-      iframe.style.transform = 'scale(1.05)'; // Keep scale for visual fit
+      iframe.style.transform = 'scale(1.05)'; 
 
       // --- Wrapper ---
       const wrapper = document.createElement("div");
@@ -763,69 +763,68 @@ function loadNextReel() {
       wrapper.style.position = "relative";
       wrapper.style.width = "100%";
       wrapper.style.height = "100%";
+      wrapper.style.overflow = "hidden"; // Important for masking
 
-      // --- Overlay mask to block unwanted touches/taps for redirect ---
-      const overlayMask = document.createElement("div");
-      overlayMask.className = "reel-overlay-mask";
-      // This mask intercepts most clicks, but a "hole" can be used for the speaker icon area.
-      overlayMask.style.position = "absolute";
-      overlayMask.style.inset = "0";
-      overlayMask.style.background = "transparent";
-      overlayMask.style.zIndex = "30"; 
-      overlayMask.style.cursor = "pointer";
+      // 🔴 TOUCH BLOCKER MASK (Covers everything EXCEPT the bottom right corner)
+      // This is the core of the new anti-redirect/sound solution
+      const touchBlocker = document.createElement("div");
+      touchBlocker.className = "reel-touch-blocker";
+      touchBlocker.style.position = "absolute";
+      touchBlocker.style.inset = "0";
+      touchBlocker.style.zIndex = "30"; 
+      touchBlocker.style.background = "transparent";
+      
+      // We use clip-path or a similar technique to create a hole. 
+      // Using multiple DIVs is more reliable in cross-browser JS:
+      
+      // 1. Top Blocker (Covers everything above 60% of the screen)
+      const topBlocker = document.createElement("div");
+      topBlocker.style.position = "absolute";
+      topBlocker.style.inset = "0 0 40% 0"; // Covers top 60%
+      topBlocker.style.background = "transparent";
+      
+      // 2. Left Blocker (Covers the left side of the screen)
+      const leftBlocker = document.createElement("div");
+      leftBlocker.style.position = "absolute";
+      leftBlocker.style.inset = "60% 50% 0 0"; // Covers bottom-left
+      leftBlocker.style.background = "transparent";
 
-      // Handle taps on the overlay mask (for sound toggle and next reel)
-      overlayMask.addEventListener('click', (e) => {
+
+      // 🛑 Function to stop external navigation
+      const stopNavigation = (e) => {
         e.stopPropagation();
-        const now = Date.now();
-        const tapDiff = now - (overlayMask._lastTap || 0);
-        overlayMask._lastTap = now;
+        e.preventDefault();
+        // Custom logic for double-tap next reel is removed here to prioritise sound/buttons.
+        log("🛑 Iframe tap blocked by mask.");
+      };
 
-        if (tapDiff < 300) {
-          log("👆 Double tap detected - next reel");
-          loadNextReel();
-          return;
-        }
+      // Attach blocker logic
+      topBlocker.addEventListener("click", stopNavigation);
+      leftBlocker.addEventListener("click", stopNavigation);
 
-        // Single tap -> toggle sound
-        toggleReelSound(); 
-      });
+      touchBlocker.appendChild(topBlocker);
+      touchBlocker.appendChild(leftBlocker);
+      
 
-      // --- Hole where speaker is visible/touchable (Placeholder - actual click logic uses the mask) ---
-      // This is generally handled better with CSS, but kept for structure:
-      const overlayHole = document.createElement("div");
-      overlayHole.className = "reel-overlay-hole";
-      overlayHole.style.position = "absolute";
-      overlayHole.style.top = "0";
-      overlayHole.style.left = "0";
-      overlayHole.style.width = "100%"; 
-      overlayHole.style.height = "100%";
-      overlayHole.style.pointerEvents = "none"; // Hole is part of the mask's concept but is functionally passive here
-
-      // --- Visible sound icon overlay (static visual button) ---
-      const soundBtn = document.createElement("div");
-      soundBtn.className = "sound-btn";
-      soundBtn.innerText = "🔊";
-      soundBtn.style.position = "absolute";
-      soundBtn.style.bottom = "10px";
-      soundBtn.style.right = "10px";
-      soundBtn.style.fontSize = "22px";
-      soundBtn.style.zIndex = "50";
-      soundBtn.style.cursor = "pointer";
-      soundBtn.addEventListener("click", (ev) => {
-        ev.stopPropagation();
-        toggleReelSound();
-      });
-
-
+      // --- Custom Next Reel Button ---
+      // We must move Next Reel button logic here to make sure it's clickable
+      const buttons = document.createElement('div');
+      buttons.className = "reel-buttons";
+      // This Z-Index must be higher than the touchBlocker (30)
+      buttons.style.zIndex = "50"; 
+      buttons.style.justifyContent = "flex-end";
+      buttons.style.position = "absolute";
+      buttons.style.bottom = "10px";
+      buttons.style.right = "10px";
+      buttons.innerHTML = `<button class="next-reel-btn">Next Reel »</button>`;
+      
       // --- Combine ---
-      // overlayMask.appendChild(overlayHole); // Not strictly necessary for JS functionality
       wrapper.appendChild(iframe);
-      wrapper.appendChild(overlayMask);
-      wrapper.appendChild(soundBtn);
+      wrapper.appendChild(touchBlocker); // The blocker is now a mask with a hole
       
       reelDiv.appendChild(wrapper);
-    }
+      reelDiv.appendChild(buttons); // Add custom buttons to the reelDiv
+
 
     // Buttons area (unchanged)
     const buttons = document.createElement('div');
