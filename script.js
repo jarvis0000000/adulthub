@@ -1,5 +1,5 @@
 // script.js
-// Dareloom Hub - FINAL V19: Enhanced Iframe Anti-Navigation
+// Dareloom Hub - FINAL V20: Sound/Anti-Redirect Compromise (Open Bottom-Right)
 
 // ------------- CONFIG -------------
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
@@ -472,7 +472,7 @@ function toEmbedUrlForReels(url) {
         return { type: "iframe", src: `https://www.youtube.com/embed/${y}?autoplay=1&mute=1&rel=0&controls=0&enablejsapi=1&playsinline=1&origin=${window.location.origin}` }; 
     }
     
-    // 🔴 REVERTED: RedGifs watch links now load as iframes to bypass the MP4 hotlinking block
+    // RedGifs watch links now load as iframes to bypass the MP4 hotlinking block
     if (url.includes('redgifs.com/watch/')) {
         const parts = url.split("/watch/");
         if (parts.length > 1) {
@@ -487,7 +487,7 @@ function toEmbedUrlForReels(url) {
     if (url.includes('redgifs.com/ifr/')) {
         let videoId = url.split('/').pop(); 
         videoId = videoId.split('?')[0]; 
-        const embedUrl = `https://www.redgifs.com/ifr/${videoId}?autoplay=true&muted=true`; 
+        const embedUrl = `https://www.redgifs.com/ifr/${videoId}`; // Removed muted=true for sound attempt
         return { type: "iframe", src: embedUrl };
     }
 
@@ -571,9 +571,10 @@ function toggleReelSound(e) {
         return;
     }
 
-    // If it's an iframe, try to postMessage a toggle command
+    // If it's an iframe, try to postMessage a toggle command (for YouTube/other)
     if (mediaEl && mediaEl.tagName === 'IFRAME') {
         try {
+            // Note: This rarely works for RedGifs, hence the new "hole" solution.
             mediaEl.contentWindow.postMessage({ command: "toggleSound" }, "*");
             const icon = document.createElement("div");
             icon.textContent = "🔊";
@@ -594,8 +595,8 @@ function toggleReelSound(e) {
             setTimeout(() => (icon.style.opacity = "0"), 100);
             setTimeout(() => icon.remove(), 600);
         } catch (err) {
+            // Error handling for postMessage failure (left in place for non-RedGifs iframes)
             console.warn("Iframe sound toggle postMessage failed:", err);
-            // Fallback: show a temporary notice that iframe sound control isn't available
             const note = document.createElement("div");
             note.textContent = "Sound control not available for this embed";
             Object.assign(note.style, {
@@ -617,8 +618,6 @@ function toggleReelSound(e) {
         return;
     }
 
-    
-    // Nothing found
     log("No media element found to toggle sound");
 }
 
@@ -739,8 +738,8 @@ function loadNextReel() {
       reelDiv.appendChild(embedWrap);
 
     } else if (embedInfo.type === "iframe") {
-      // ** IFRAME LOGIC (UPDATED for Sound and Security Compromise) **
- 
+      // ** IFRAME LOGIC (UPDATED for Sound/Button Access) **
+
       // --- Create iframe ---
       const iframe = document.createElement("iframe");
       iframe.className = "reel-video-media";
@@ -751,7 +750,7 @@ function loadNextReel() {
       iframe.style.width = "100%";
       iframe.style.height = "100%";
       iframe.style.border = "none";
-      // Iframe is fully clickable to allow internal RedGifs buttons to work
+      // Allow clicks on the iframe again so internal RedGifs buttons can work
       iframe.style.pointerEvents = "auto"; 
       iframe.style.transformOrigin = "center center";
       iframe.style.transform = 'scale(1.05)'; 
@@ -762,10 +761,9 @@ function loadNextReel() {
       wrapper.style.position = "relative";
       wrapper.style.width = "100%";
       wrapper.style.height = "100%";
-      wrapper.style.overflow = "hidden"; // Important for masking
+      wrapper.style.overflow = "hidden";
 
       // 🔴 TOUCH BLOCKER MASK (Covers everything EXCEPT the bottom right corner)
-      // This is the core of the new anti-redirect/sound solution
       const touchBlocker = document.createElement("div");
       touchBlocker.className = "reel-touch-blocker";
       touchBlocker.style.position = "absolute";
@@ -773,19 +771,20 @@ function loadNextReel() {
       touchBlocker.style.zIndex = "30"; 
       touchBlocker.style.background = "transparent";
       
-      // We use clip-path or a similar technique to create a hole. 
-      // Using multiple DIVs is more reliable in cross-browser JS:
+      // --- Blocker DIVs to mask the iframe ---
       
-      // 1. Top Blocker (Covers everything above 60% of the screen)
+      // 1. Top Blocker (Covers everything above ~60% of the screen)
       const topBlocker = document.createElement("div");
       topBlocker.style.position = "absolute";
-      topBlocker.style.inset = "0 0 40% 0"; // Covers top 60%
+      // Inset: top right bottom left -> covers top 60% (from 0 to 40% height remaining)
+      topBlocker.style.inset = "0 0 40% 0"; 
       topBlocker.style.background = "transparent";
       
-      // 2. Left Blocker (Covers the left side of the screen)
+      // 2. Left Blocker (Covers the left side in the bottom 40% of the screen)
       const leftBlocker = document.createElement("div");
       leftBlocker.style.position = "absolute";
-      leftBlocker.style.inset = "60% 50% 0 0"; // Covers bottom-left
+      // Inset: from 40% down, 50% left/right -> covers bottom-left
+      leftBlocker.style.inset = "40% 50% 0 0"; 
       leftBlocker.style.background = "transparent";
 
 
@@ -793,44 +792,33 @@ function loadNextReel() {
       const stopNavigation = (e) => {
         e.stopPropagation();
         e.preventDefault();
-        // Custom logic for double-tap next reel is removed here to prioritise sound/buttons.
         log("🛑 Iframe tap blocked by mask.");
+        // Optional: Show a quick message like "Only buttons are clickable"
       };
 
-      // Attach blocker logic
+      // Attach blocker logic to mask divs
       topBlocker.addEventListener("click", stopNavigation);
       leftBlocker.addEventListener("click", stopNavigation);
 
       touchBlocker.appendChild(topBlocker);
       touchBlocker.appendChild(leftBlocker);
       
-
-      // --- Custom Next Reel Button ---
-      // We must move Next Reel button logic here to make sure it's clickable
-      const buttons = document.createElement('div');
-      buttons.className = "reel-buttons";
-      // This Z-Index must be higher than the touchBlocker (30)
-      buttons.style.zIndex = "50"; 
-      buttons.style.justifyContent = "flex-end";
-      buttons.style.position = "absolute";
-      buttons.style.bottom = "10px";
-      buttons.style.right = "10px";
-      buttons.innerHTML = `<button class="next-reel-btn">Next Reel »</button>`;
+      // --- Custom Next Reel Button (Moved out of wrapper for better control) ---
       
       // --- Combine ---
       wrapper.appendChild(iframe);
-      wrapper.appendChild(touchBlocker); // The blocker is now a mask with a hole
+      wrapper.appendChild(touchBlocker); // The blocker mask
       
       reelDiv.appendChild(wrapper);
-      reelDiv.appendChild(buttons); 
-    
-        // Buttons area (unchanged)
+    }
+
+    // Buttons area (Now controls Next Reel button)
     const buttons = document.createElement('div');
     buttons.className = "reel-buttons";
     buttons.style.zIndex = "50";
     buttons.style.justifyContent = "flex-end";
     buttons.innerHTML = `<button class="next-reel-btn">Next Reel »</button>`;
-    reelDiv.appendChild(buttons);
+    reelDiv.appendChild(buttons); // Added here for high z-index and clickability
 
     container.appendChild(reelDiv);
 
@@ -860,10 +848,11 @@ function loadNextReel() {
     setTimeout(() => (container.style.opacity = 1), 50);
 
     // 🧠 Swipe system (attached to container)
-    container.removeEventListener('touchstart', handleTouchStart);
-    container.removeEventListener('touchend', handleTouchEnd);
-    container.addEventListener('touchstart', handleTouchStart);
-    container.addEventListener('touchend', handleTouchEnd);
+    // Removed swipe to avoid conflicts with clicking the lower-right area
+    // container.removeEventListener('touchstart', handleTouchStart);
+    // container.removeEventListener('touchend', handleTouchEnd);
+    // container.addEventListener('touchstart', handleTouchStart);
+    // container.addEventListener('touchend', handleTouchEnd);
 
 
   }, 300);
@@ -921,7 +910,7 @@ function setupGestureListener(){
         document.addEventListener(e, markUserGesture, {once: true});
     });
 
-    // Block Redgifs auto navigation attempts (Added your new code here)
+    // Block Redgifs auto navigation attempts
     window.addEventListener("blur", () => {
         if (document.activeElement && document.activeElement.tagName === "IFRAME") {
             window.focus(); // Prevent external focus / redirect
