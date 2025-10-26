@@ -1,16 +1,18 @@
 // script.js
-// Dareloom Hub - FINAL V21: Pop-up Logic Removed (Smart Link is now in index.html)
+// Dareloom Hub - FINAL V18: RedGifs Iframe Revert to bypass hotlinking block
 
 // ------------- CONFIG -------------
-// ✅ FIXED SHEET ID: 1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 const SHEET_API_REELS = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet3!A:B?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw"; 
 const PER_PAGE = 5;
 const RANDOM_COUNT = 4;
 
-// 🛑 Adsterra Pop-up/Smart Link Config: REMOVED (Handled by index.html)
-// Old variables like POP_COOLDOWN_MS, lastPop, userInteracted have been removed.
-
+// Pop / ads config
+const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
+const POP_COOLDOWN_MS = 4000;
+let lastPop = 0;
+let userInteracted = false; 
+let initialPopFired = false;
 
 // ------------- STATE -------------
 let items = [];
@@ -56,9 +58,25 @@ if (y) return `https://img.youtube.com/vi/${y}/hqdefault.jpg`;
 return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
 
-// 🛑 openAdsterraPop() function REMOVED.
-// User interaction tracking (markUserGesture) is now only for play/UI logic if needed.
+function openAdsterraPop(){
+try{
+const now = Date.now();
+if (now - lastPop < POP_COOLDOWN_MS) return;
+lastPop = now;
 
+if (!userInteracted && !initialPopFired) return;  
+
+    const s = document.createElement('script');  
+    s.src = AD_POP;  
+    s.async = true;  
+    document.body.appendChild(s);  
+    setTimeout(()=>{ try{s.remove();}catch(e){} }, 5000);  
+    initialPopFired = true;  
+    log("ad pop injected");  
+}catch(e){  
+    console.warn("Ad pop failed", e);  
+}
+}
 
 // NOTE: getRedgifsDirect is no longer used for Reels but kept for legacy/testing
 function getRedgifsDirect(link) {
@@ -179,7 +197,6 @@ if (!it.category || !it.category.trim()) return '';
 const parts = it.category.split(',').map(p => p.trim()).filter(Boolean);
 return parts.map(p => `<button class="tag-btn" data-tag="${escapeHtml(p)}">#${escapeHtml(p)}</button>`).join(' ');
 }
-
 function renderRandom(){
 const g = qs('#randomGrid');
 if (!g) return;
@@ -197,7 +214,6 @@ card.addEventListener('click', ()=> openTrailerPage(it));
 g.appendChild(card);
 });
 }
-
 function renderLatest(page = 1){
 const list = qs('#latestList');
 if (!list) return;
@@ -252,6 +268,7 @@ slice.forEach(it => {
 
 renderPagination(totalPages, currentPage);  
 attachLatestListeners();
+
 }
 
 function renderPagination(totalPages, page){
@@ -338,7 +355,7 @@ function changePage(page){
 renderLatest(page);
 const latestSection = qs('#latestSection');
 if (latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' });
-// openAdsterraPop() call removed
+openAdsterraPop();
 }
 
 function attachLatestListeners(){
@@ -357,7 +374,7 @@ tagbtn.addEventListener('click', onTagClick);
 }
 
 function onPreviewClick(e){
-// markUserGesture() call removed
+markUserGesture();
 e.stopPropagation(); 
 const id = e.currentTarget.dataset.id;
 const it = items.find(x => x.id === id); 
@@ -366,7 +383,7 @@ openTrailerPage(it);
 }
 
 function onWatchClick(e){
-// markUserGesture() call removed
+markUserGesture();
 e.stopPropagation(); 
 const url = e.currentTarget.dataset.url; 
 if (!url) return;
@@ -374,17 +391,16 @@ openWatchPage(url);
 }
 
 function onTagClick(e){
-// markUserGesture() call removed
+markUserGesture();
 e.stopPropagation(); 
 const tag = e.currentTarget.dataset.tag;
 if (!tag) return;
 applyTagFilter(tag);
-// openAdsterraPop() call removed
 }
 
 function openTrailerPage(it){
-// markUserGesture() call removed
-// openAdsterraPop() call removed
+markUserGesture();
+openAdsterraPop();
 const trailerURL = `/trailer.html?id=${encodeURIComponent(it.id)}`; 
 setTimeout(()=> {
 try {
@@ -397,8 +413,8 @@ console.error("Failed to open trailer page", e);
 
 function openWatchPage(fullWatchLinks){
     if (!fullWatchLinks) return;
-    // markUserGesture() call removed
-    // openAdsterraPop() call removed
+    markUserGesture();
+    openAdsterraPop();
 
     const finalDestination = `/watch?url=${encodeURIComponent(fullWatchLinks)}`;
     const redirectPage = `/go.html?target=${encodeURIComponent(finalDestination)}`;    
@@ -437,7 +453,7 @@ function applyTagFilter(tag) {
     if(s) s.value = ''; // Clear search input
 }
 
-// ------------- REELS PLAYER LOGIC -------------
+// ------------- REELS PLAYER LOGIC (UPDATED) -------------
 
 function toEmbedUrlForReels(url) {
     if (!url) return { type: "none" };
@@ -456,7 +472,7 @@ function toEmbedUrlForReels(url) {
         return { type: "iframe", src: `https://www.youtube.com/embed/${y}?autoplay=1&mute=1&rel=0&controls=0&enablejsapi=1&playsinline=1&origin=${window.location.origin}` }; 
     }
     
-    // RedGifs watch links now load as iframes to bypass the MP4 hotlinking block
+    // 🔴 REVERTED: RedGifs watch links now load as iframes to bypass the MP4 hotlinking block
     if (url.includes('redgifs.com/watch/')) {
         const parts = url.split("/watch/");
         if (parts.length > 1) {
@@ -471,7 +487,7 @@ function toEmbedUrlForReels(url) {
     if (url.includes('redgifs.com/ifr/')) {
         let videoId = url.split('/').pop(); 
         videoId = videoId.split('?')[0]; 
-        const embedUrl = `https://www.redgifs.com/ifr/${videoId}`; 
+        const embedUrl = `https://www.redgifs.com/ifr/${videoId}?autoplay=true&muted=true`; 
         return { type: "iframe", src: embedUrl };
     }
 
@@ -492,8 +508,8 @@ function toEmbedUrlForReels(url) {
 
 // Open player and fetch reels
 async function openReelsPlayer() {
-    // markUserGesture() call removed
-    // openAdsterraPop() call removed
+    markUserGesture();
+    openAdsterraPop();
 
     if (allReelCandidates.length === 0) {  
         const rawReels = await fetchSheet(SHEET_API_REELS);
@@ -516,7 +532,7 @@ async function openReelsPlayer() {
 }
 
 
-// Helper: toggles sound for current reel 
+// Helper: toggles sound for current reel (works for <video> directly; tries postMessage for iframe)
 function toggleReelSound(e) {
     if (e) e.stopPropagation();
     const container = qs('#reelsContainer');
@@ -555,83 +571,140 @@ function toggleReelSound(e) {
         return;
     }
 
-    // If it's an iframe, try to postMessage a toggle command (for YouTube/other)
-    if (mediaEl && mediaEl.tagName === 'IFRAME') {
-        try {
-            mediaEl.contentWindow.postMessage({ command: "toggleSound" }, "*");
-            const icon = document.createElement("div");
-            icon.textContent = "🔊";
-            Object.assign(icon.style, {
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                fontSize: "48px",
-                color: "white",
-                textShadow: "0 0 5px black",
-                opacity: "0.95",
-                transition: "opacity 0.6s ease-out",
-                pointerEvents: "none",
-                zIndex: "9999",
-            });
-            reelDiv.appendChild(icon);
-            setTimeout(() => (icon.style.opacity = "0"), 100);
-            setTimeout(() => icon.remove(), 600);
-        } catch (err) {
-            console.warn("Iframe sound toggle postMessage failed:", err);
-            const note = document.createElement("div");
-            note.textContent = "Sound control not available for this embed";
-            Object.assign(note.style, {
-                position: "absolute",
-                bottom: "16px",
-                left: "50%",
-                transform: "translateX(-50%)",
-                fontSize: "13px",
-                color: "white",
-                background: "rgba(0,0,0,0.5)",
-                padding: "6px 10px",
-                borderRadius: "6px",
-                zIndex: "9999",
-                pointerEvents: "none"
-            });
-            reelDiv.appendChild(note);
-            setTimeout(()=> note.remove(), 1400);
-        }
-        return;
+    // ** IFRAME LOGIC (UPDATED for Sound and Security Compromise) **
+    } else if (embedInfo.type === "iframe") {
+      
+      // --- Create iframe ---
+      const iframe = document.createElement("iframe");
+      iframe.className = "reel-video-media";
+      iframe.src = embedInfo.src;
+      iframe.allow = "autoplay; fullscreen; encrypted-media";
+      iframe.allowFullscreen = true;
+      iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-fullscreen");
+      iframe.style.width = "100%";
+      iframe.style.height = "100%";
+      iframe.style.border = "none";
+      // Iframe is fully clickable to allow internal RedGifs buttons to work
+      iframe.style.pointerEvents = "auto"; 
+      iframe.style.transformOrigin = "center center";
+      iframe.style.transform = 'scale(1.05)'; 
+
+      // --- Wrapper ---
+      const wrapper = document.createElement("div");
+      wrapper.className = "reel-frame";
+      wrapper.style.position = "relative";
+      wrapper.style.width = "100%";
+      wrapper.style.height = "100%";
+      wrapper.style.overflow = "hidden"; // Important for masking
+
+      // 🔴 TOUCH BLOCKER MASK (Covers everything EXCEPT the bottom right corner)
+      // This is the core of the new anti-redirect/sound solution
+      const touchBlocker = document.createElement("div");
+      touchBlocker.className = "reel-touch-blocker";
+      touchBlocker.style.position = "absolute";
+      touchBlocker.style.inset = "0";
+      touchBlocker.style.zIndex = "30"; 
+      touchBlocker.style.background = "transparent";
+      
+      // We use clip-path or a similar technique to create a hole. 
+      // Using multiple DIVs is more reliable in cross-browser JS:
+      
+      // 1. Top Blocker (Covers everything above 60% of the screen)
+      const topBlocker = document.createElement("div");
+      topBlocker.style.position = "absolute";
+      topBlocker.style.inset = "0 0 40% 0"; // Covers top 60%
+      topBlocker.style.background = "transparent";
+      
+      // 2. Left Blocker (Covers the left side of the screen)
+      const leftBlocker = document.createElement("div");
+      leftBlocker.style.position = "absolute";
+      leftBlocker.style.inset = "60% 50% 0 0"; // Covers bottom-left
+      leftBlocker.style.background = "transparent";
+
+
+      // 🛑 Function to stop external navigation
+      const stopNavigation = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        // Custom logic for double-tap next reel is removed here to prioritise sound/buttons.
+        log("🛑 Iframe tap blocked by mask.");
+      };
+
+      // Attach blocker logic
+      topBlocker.addEventListener("click", stopNavigation);
+      leftBlocker.addEventListener("click", stopNavigation);
+
+      touchBlocker.appendChild(topBlocker);
+      touchBlocker.appendChild(leftBlocker);
+      
+
+      // --- Custom Next Reel Button ---
+      // We must move Next Reel button logic here to make sure it's clickable
+      const buttons = document.createElement('div');
+      buttons.className = "reel-buttons";
+      // This Z-Index must be higher than the touchBlocker (30)
+      buttons.style.zIndex = "50"; 
+      buttons.style.justifyContent = "flex-end";
+      buttons.style.position = "absolute";
+      buttons.style.bottom = "10px";
+      buttons.style.right = "10px";
+      buttons.innerHTML = `<button class="next-reel-btn">Next Reel »</button>`;
+      
+      // --- Combine ---
+      wrapper.appendChild(iframe);
+      wrapper.appendChild(touchBlocker); // The blocker is now a mask with a hole
+      
+      reelDiv.appendChild(wrapper);
+      reelDiv.appendChild(buttons); // Add custom buttons to the reelDiv
+
+      // No custom soundBtn is needed, as the RedGifs internal button is now accessible
+  
+            reelDiv.appendChild(wrapper);
     }
 
-    log("No media element found to toggle sound");
-}
+    // Buttons area (unchanged)
+    const buttons = document.createElement('div');
+    buttons.className = "reel-buttons";
+    buttons.style.zIndex = "50";
+    buttons.style.justifyContent = "flex-end";
+    buttons.innerHTML = `<button class="next-reel-btn">Next Reel »</button>`;
+    reelDiv.appendChild(buttons);
 
+    container.appendChild(reelDiv);
 
-function loadNextReel() {
-  // openAdsterraPop() call removed
+    // --------------- BUTTON LOGIC ---------------
+    const nextBtn = reelDiv.querySelector(".next-reel-btn");
+    if (nextBtn) {
+      nextBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          log("👉 Next Reel Button Clicked");
+          loadNextReel();
+      });
+    }
 
-  const container = qs("#reelsContainer");
-
-  if (usedReelIds.size >= allReelCandidates.length) {
-    usedReelIds.clear();
-    log("♻️ All reels shown once — starting new random cycle.");
-  }
-
-  let available = allReelCandidates.filter(x => !usedReelIds.has(x.id));
-  if (available.length === 0) {
-    container.innerHTML = `<h2 style="color:var(--primary-color);text-align:center;margin-top:40vh;">No Reels Found</h2>`;
-    return;
-  }
-
-      const mediaEl = reelDiv.querySelector(".reel-video-media");
+    // --------------- AUTOPLAY / IFRAME TWEAKS ---------------
+    const mediaEl = reelDiv.querySelector(".reel-video-media");
     if (mediaEl) {
       if (mediaEl.tagName === "VIDEO") {
         // FIX: Autoplay start
         mediaEl.muted = true; 
         mediaEl.volume = 1.0;
         mediaEl.play().catch(() => log("Autoplay blocked — muted"));
+      } else if (mediaEl.tagName === 'IFRAME') {
+         // Slight zoom for IFRAME to hide any black edges
+         mediaEl.style.transform = 'scale(1.05)';
       }
     }
 
     // fade-in
     setTimeout(() => (container.style.opacity = 1), 50);
+
+    // 🧠 Swipe system (attached to container)
+    container.removeEventListener('touchstart', handleTouchStart);
+    container.removeEventListener('touchend', handleTouchEnd);
+    container.addEventListener('touchstart', handleTouchStart);
+    container.addEventListener('touchend', handleTouchEnd);
+
 
   }, 300);
 }
@@ -679,16 +752,14 @@ function closeReelsPlayer(){
 
 // ------------- INIT / BOOT -------------
 
+function markUserGesture(){
+userInteracted = true;
+}
+
 function setupGestureListener(){
-    // Old Adsterra gesture listener removed.
-    
-    // Block Redgifs auto navigation attempts
-    window.addEventListener("blur", () => {
-        if (document.activeElement && document.activeElement.tagName === "IFRAME") {
-            window.focus(); // Prevent external focus / redirect
-            log("🛑 RedGifs blur redirect attempt blocked.");
-        }
-    });
+['click', 'touchstart', 'keydown'].forEach(e => {
+document.addEventListener(e, markUserGesture, {once: true});
+});
 }
 
 async function loadAll(){
@@ -714,3 +785,4 @@ async function loadAll(){
 }
 
 loadAll();
+              
