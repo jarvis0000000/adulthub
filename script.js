@@ -598,10 +598,8 @@ function loadNextReel() {
               onloadeddata="this.play().catch(()=>{})"
           ></video>
           <div class="reel-buttons" style="position: absolute; bottom: 60px; right: 10px; z-index: 10000; display:flex; flex-direction:column; gap:8px;">
-              <button class="sound-btn" onclick="toggleReelSound(event)" style="background: #e91e63; color: white; border: none; padding: 10px; border-radius: 5px; font-weight:bold;">Sound</button>
               <button class="next-btn" onclick="loadNextReel()" style="background: #e91e63; color: white; border: none; padding: 10px; border-radius: 5px; font-weight:bold;">Next Reel</button>
           </div>
-          <div class="reel-title" style="position: absolute; top: 10px; left: 10px; color: white; text-shadow: 0 0 5px black; font-weight: bold;">${escapeHtml(reel.title)}</div>
       `;
       
     // ** START OF USER'S COMPLEX IFRAME LOGIC **
