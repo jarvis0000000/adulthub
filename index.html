@@ -16,6 +16,7 @@
 
   <link rel="preload" href="/path/to/Poppins.woff2" as="font" type="font/woff2" crossorigin>
 
+  <!-- 🧠 Smart Link Script -->
   <script type='text/javascript' src='https://bulletinsituatedelectronics.com/b95e6swf?key=0f61d8bf1a7278d5cf9f161ab55bafbb'></script>
   
   <style>
@@ -69,10 +70,10 @@
       background: var(--redgifs-color);
       color: #fff;
       border: none;
-      border-radius: 8px; /* Changed to square */
+      border-radius: 8px;
       width: auto; 
       height: 38px;
-      padding: 0 10px; /* Added padding */
+      padding: 0 10px;
       cursor: pointer;
       font-size: 1.1rem;
       transition: transform 0.2s;
@@ -94,7 +95,6 @@
       transition: transform 0.3s;
     }
     .card:hover { transform: scale(1.04); }
-    /* CLS FIX: Aspect ratio for images */
     .card img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
     .hero-actions { text-align: center; }
     .watch-movies-btn {
@@ -113,8 +113,6 @@
       transform: scale(1.07);
       background: var(--primary-color);
     }
-
-    /* === LATEST LIST (vertical flex) === */
     #latestList {
       display: flex;
       flex-direction: column;
@@ -135,7 +133,6 @@
       cursor: pointer;
     }
     .latest-item:hover { border-color: var(--primary-color); }
-    /* CLS FIX: Aspect ratio for thumbnails */
     .latest-thumb {
       width: 180px;
       aspect-ratio: 16 / 9;
@@ -158,8 +155,6 @@
       color: #999;
       font-size: 0.9rem;
     }
-
-    /* --- PAGINATION --- */
     #pager {
       display: flex;
       justify-content: center;
@@ -183,8 +178,6 @@
       background: #555;
       border-color: var(--primary-color);
     }
-
-    /* 🎥 REELS PLAYER OVERLAY */
     #reelsPlayer {
       display: none;
       position: fixed;
@@ -249,7 +242,6 @@
       cursor: pointer;
       z-index: 10000;
     }
-
     @media (max-width: 768px){
       .latest-item { flex-direction: column; align-items: flex-start; }
       .latest-thumb { width: 100%; height: auto; }
@@ -268,7 +260,7 @@
       <nav class="nav">  
         <input type="search" id="searchInput" placeholder="Search titles..." aria-label="Search titles">  
         <button class="menu-toggle" aria-label="Scroll Reels" onclick="openReelsPlayer()">REDGIFS</button>  
-        </nav>  
+      </nav>  
     </div>  
   </header>  
 
@@ -302,6 +294,8 @@
   </div>
 
   <script src="/script.js?v=20251017" defer></script>
+
+  <!-- 🌐 Social Bar Script Added -->
+  <script type='text/javascript' src='//bulletinsituatedelectronics.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js'></script>
 </body>
-      </html>
-      
+        </html>
