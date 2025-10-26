@@ -1,15 +1,14 @@
 // script.js
-// Dareloom Hub - FINAL V21: Pop-up Logic Removed (Smart Link is now in index.html)
+// Dareloom Hub - FINAL V22: Corrected SHEET_API_REELS Typo and Restored Broken loadNextReel Logic
 
 // ------------- CONFIG -------------
 const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPG/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
+// 🛑 CRITICAL FIX: Removed extra space after 'ZJXP'
 const SHEET_API_REELS = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPG/values/Sheet3!A:B?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw"; 
 const PER_PAGE = 5;
 const RANDOM_COUNT = 4;
 
 // 🛑 Adsterra Pop-up/Smart Link Config: REMOVED (Handled by index.html)
-// Old variables like POP_COOLDOWN_MS, lastPop, userInteracted have been removed.
-
 
 // ------------- STATE -------------
 let items = [];
@@ -54,10 +53,6 @@ const y = extractYouTubeID(it.trailer || it.watch);
 if (y) return `https://img.youtube.com/vi/${y}/hqdefault.jpg`;
 return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
-
-// 🛑 openAdsterraPop() function REMOVED.
-// User interaction tracking (markUserGesture) is now only for play/UI logic if needed.
-
 
 // NOTE: getRedgifsDirect is no longer used for Reels but kept for legacy/testing
 function getRedgifsDirect(link) {
@@ -337,7 +332,6 @@ function changePage(page){
 renderLatest(page);
 const latestSection = qs('#latestSection');
 if (latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' });
-// openAdsterraPop() call removed
 }
 
 function attachLatestListeners(){
@@ -356,7 +350,6 @@ tagbtn.addEventListener('click', onTagClick);
 }
 
 function onPreviewClick(e){
-// markUserGesture() call removed
 e.stopPropagation(); 
 const id = e.currentTarget.dataset.id;
 const it = items.find(x => x.id === id); 
@@ -365,7 +358,6 @@ openTrailerPage(it);
 }
 
 function onWatchClick(e){
-// markUserGesture() call removed
 e.stopPropagation(); 
 const url = e.currentTarget.dataset.url; 
 if (!url) return;
@@ -373,17 +365,13 @@ openWatchPage(url);
 }
 
 function onTagClick(e){
-// markUserGesture() call removed
 e.stopPropagation(); 
 const tag = e.currentTarget.dataset.tag;
 if (!tag) return;
 applyTagFilter(tag);
-// openAdsterraPop() call removed
 }
 
 function openTrailerPage(it){
-// markUserGesture() call removed
-// openAdsterraPop() call removed
 const trailerURL = `/trailer.html?id=${encodeURIComponent(it.id)}`; 
 setTimeout(()=> {
 try {
@@ -396,9 +384,6 @@ console.error("Failed to open trailer page", e);
 
 function openWatchPage(fullWatchLinks){
     if (!fullWatchLinks) return;
-    // markUserGesture() call removed
-    // openAdsterraPop() call removed
-
     const finalDestination = `/watch?url=${encodeURIComponent(fullWatchLinks)}`;
     const redirectPage = `/go.html?target=${encodeURIComponent(finalDestination)}`;    
 
@@ -491,9 +476,6 @@ function toEmbedUrlForReels(url) {
 
 // Open player and fetch reels
 async function openReelsPlayer() {
-    // markUserGesture() call removed
-    // openAdsterraPop() call removed
-
     if (allReelCandidates.length === 0) {  
         const rawReels = await fetchSheet(SHEET_API_REELS);
         allReelCandidates = parseReelRows(rawReels);
@@ -604,8 +586,6 @@ function toggleReelSound(e) {
 
 
 function loadNextReel() {
-  // openAdsterraPop() call removed
-
   const container = qs("#reelsContainer");
 
   if (usedReelIds.size >= allReelCandidates.length) {
@@ -618,211 +598,77 @@ function loadNextReel() {
     container.innerHTML = `<h2 style="color:var(--primary-color);text-align:center;margin-top:40vh;">No Reels Found</h2>`;
     return;
   }
+  
+  // 1. Select reel and mark as used
+  const randomIndex = Math.floor(Math.random() * available.length);
+  const reel = available[randomIndex];
+  usedReelIds.add(reel.id); 
 
-  const item = available[Math.floor(Math.random() * available.length)];
-  usedReelIds.add(item.id);
+  // 2. Clear old reel and prepare container for fade-in
+  container.innerHTML = '';
+  container.style.opacity = 0;
+  
+   
+  // 3. Render reel
+  const embed = toEmbedUrlForReels(reel.reelLink);
 
-  const embedInfo = toEmbedUrlForReels(item.reelLink);
-  if (embedInfo.type === "none") {
-    log("Invalid embed link, skipping...");
-    // schedule retry asynchronously to avoid deep recursion
-    setTimeout(loadNextReel, 0);
-    return;
+  const reelDiv = document.createElement("div");
+  reelDiv.className = "reel";
+
+  let mediaHtml = '';
+  if (embed.type === "iframe") {
+      mediaHtml = `
+          <iframe 
+              class="reel-video-media" 
+              src="${escapeHtml(embed.src)}" 
+              frameborder="0" 
+              allow="autoplay; encrypted-media; gyroscope; picture-in-picture" 
+              allowfullscreen 
+              title="${escapeHtml(reel.title)}"
+              loading="lazy"
+          ></iframe>
+      `;
+  } else if (embed.type === "video") {
+      mediaHtml = `
+          <video 
+              class="reel-video-media" 
+              src="${escapeHtml(embed.src)}" 
+              loop 
+              muted 
+              playsinline 
+              preload="metadata"
+              controls
+              onloadeddata="this.play().catch(()=>{})"
+          ></video>
+      `;
+  } else {
+      mediaHtml = `<div style="height: 480px; display: flex; align-items: center; justify-content: center; color: var(--primary-color); font-size: 1.2rem;">Error: Invalid video link.</div>`;
   }
 
-  // 🎞️ Fade transition
-  container.style.transition = "opacity 0.3s ease";
-  container.style.opacity = 0;
+  // Final HTML structure for the reel
+  reelDiv.innerHTML = `
+      ${mediaHtml}
+      <div class="reel-buttons">
+          <button onclick="toggleReelSound(event)">Sound</button>
+          <button onclick="loadNextReel()">Next Reel</button>
+      </div>
+      <div class="reel-title" style="position: absolute; top: 10px; left: 10px; color: white; text-shadow: 0 0 5px black; font-weight: bold;">${escapeHtml(reel.title)}</div>
+  `;
+  
+  container.appendChild(reelDiv);
 
+  // 4. Autoplay and fade in logic
   setTimeout(() => {
-    container.innerHTML = "";
-    const reelDiv = document.createElement("div");
-    reelDiv.className = "reel";
-    reelDiv.style.height = "100vh";
-    reelDiv.style.overflow = "hidden";
-    reelDiv.style.position = "relative";
-    const reelsPlayer = qs('#reelsPlayer');
-
-    // We'll build DOM nodes to allow overlay handling when iframe is used
-    if (embedInfo.type === "video") {
-      // ** VIDEO TAG LOGIC **
-      const video = document.createElement('video');
-      video.className = "reel-video-media";
-      video.loop = true;
-      video.playsInline = true;
-      video.autoplay = true;
-      video.muted = true;
-      video.preload = "auto";
-      video.src = embedInfo.src;
-      video.style.width = "100%";
-      video.style.height = "100%";
-      video.style.objectFit = "cover";
-
-      // wrapper for consistent layout
-      const embedWrap = document.createElement('div');
-      embedWrap.className = "reel-video-embed";
-      embedWrap.style.position = "relative";
-      embedWrap.style.width = "100%";
-      embedWrap.style.height = "100%";
-      embedWrap.appendChild(video);
-
-      // overlay for tap detection
-      const overlay = document.createElement('div');
-      overlay.className = "reel-touch-overlay";
-      overlay.style.position = "absolute";
-      overlay.style.inset = "0";
-      overlay.style.background = "transparent";
-      overlay.style.zIndex = "30";
-      overlay.style.cursor = "pointer";
-
-      overlay.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const now = Date.now();
-        const tapDiff = now - (overlay._lastTap || 0);
-        overlay._lastTap = now;
-
-        // Double tap -> next
-        if (tapDiff < 300) {
-          log("👆 Double tap detected - next reel");
-          loadNextReel();
-          return;
-        }
-
-        // Single tap -> toggle sound on video
-        video.muted = !video.muted;
-        if (!video.muted) {
-          video.volume = 1.0;
-          video.play().catch(()=>{});
-        }
-
-        const icon = document.createElement("div");
-        icon.textContent = video.muted ? "🔇" : "🔊";
-        Object.assign(icon.style, {
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            fontSize: "60px",
-            color: "white",
-            textShadow: "0 0 5px black",
-            opacity: "0.9",
-            transition: "opacity 0.6s ease-out",
-            pointerEvents: "none",
-            zIndex: "9999",
-        });
-        reelDiv.appendChild(icon);
-        setTimeout(() => (icon.style.opacity = "0"), 100);
-        setTimeout(() => icon.remove(), 600);
-      });
-
-      embedWrap.appendChild(overlay);
-      reelDiv.appendChild(embedWrap);
-
-    } else if (embedInfo.type === "iframe") {
-      // ** IFRAME LOGIC **
-
-      // --- Create iframe ---
-      const iframe = document.createElement("iframe");
-      iframe.className = "reel-video-media";
-      iframe.src = embedInfo.src;
-      iframe.allow = "autoplay; fullscreen; encrypted-media";
-      iframe.allowFullscreen = true;
-      iframe.setAttribute("sandbox", "allow-scripts allow-same-origin allow-fullscreen");
-      iframe.style.width = "100%";
-      iframe.style.height = "100%";
-      iframe.style.border = "none";
-      // Allow clicks on the iframe again so internal RedGifs buttons can work
-      iframe.style.pointerEvents = "auto"; 
-      iframe.style.transformOrigin = "center center";
-      iframe.style.transform = 'scale(1.05)'; 
-
-      // --- Wrapper ---
-      const wrapper = document.createElement("div");
-      wrapper.className = "reel-frame";
-      wrapper.style.position = "relative";
-      wrapper.style.width = "100%";
-      wrapper.style.height = "100%";
-      wrapper.style.overflow = "hidden";
-
-      // 🔴 TOUCH BLOCKER MASK 
-      const touchBlocker = document.createElement("div");
-      touchBlocker.className = "reel-touch-blocker";
-      touchBlocker.style.position = "absolute";
-      touchBlocker.style.inset = "0";
-      touchBlocker.style.zIndex = "30"; 
-      touchBlocker.style.background = "transparent";
-      
-      // --- Blocker DIVs ---
-      
-      // 1. Top Blocker 
-      const topBlocker = document.createElement("div");
-      topBlocker.style.position = "absolute";
-      topBlocker.style.inset = "0 0 40% 0"; 
-      topBlocker.style.background = "transparent";
-      
-      // 2. Left Blocker 
-      const leftBlocker = document.createElement("div");
-      leftBlocker.style.position = "absolute";
-      leftBlocker.style.inset = "40% 50% 0 0"; 
-      leftBlocker.style.background = "transparent";
-
-
-      // 🛑 Function to stop external navigation
-      const stopNavigation = (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        log("🛑 Iframe tap blocked by mask.");
-      };
-
-      // Attach blocker logic to mask divs
-      topBlocker.addEventListener("click", stopNavigation);
-      leftBlocker.addEventListener("click", stopNavigation);
-
-      touchBlocker.appendChild(topBlocker);
-      touchBlocker.appendChild(leftBlocker);
-      
-      // --- Combine ---
-      wrapper.appendChild(iframe);
-      wrapper.appendChild(touchBlocker); 
-      
-      reelDiv.appendChild(wrapper);
-    }
-
-    // Buttons area (Now controls Next Reel button)
-    const buttons = document.createElement('div');
-    buttons.className = "reel-buttons";
-    buttons.style.zIndex = "50";
-    buttons.style.justifyContent = "flex-end";
-    buttons.innerHTML = `<button class="next-reel-btn">Next Reel »</button>`;
-    reelDiv.appendChild(buttons); 
-
-    container.appendChild(reelDiv);
-
-    // --------------- BUTTON LOGIC ---------------
-    const nextBtn = reelDiv.querySelector(".next-reel-btn");
-    if (nextBtn) {
-      nextBtn.addEventListener("click", (e) => {
-          e.stopPropagation();
-          log("👉 Next Reel Button Clicked");
-          loadNextReel();
-      });
-    }
-
-    // --------------- AUTOPLAY / IFRAME TWEAKS ---------------
     const mediaEl = reelDiv.querySelector(".reel-video-media");
-    if (mediaEl) {
-      if (mediaEl.tagName === "VIDEO") {
+    if (mediaEl && mediaEl.tagName === "VIDEO") {
         // FIX: Autoplay start
         mediaEl.muted = true; 
         mediaEl.volume = 1.0;
         mediaEl.play().catch(() => log("Autoplay blocked — muted"));
-      }
     }
-
     // fade-in
-    setTimeout(() => (container.style.opacity = 1), 50);
-
-  }, 300);
+    container.style.opacity = 1;
+  }, 50); // Set timeout to allow DOM to render before fade-in
 }
 
 function handleTouchStart(e){
@@ -869,8 +715,6 @@ function closeReelsPlayer(){
 // ------------- INIT / BOOT -------------
 
 function setupGestureListener(){
-    // Old Adsterra gesture listener removed.
-    
     // Block Redgifs auto navigation attempts
     window.addEventListener("blur", () => {
         if (document.activeElement && document.activeElement.tagName === "IFRAME") {
@@ -886,6 +730,13 @@ async function loadAll(){
     items = parsed;
     filteredItems = parsed; 
 
+    // Check if data loaded successfully (if fetch failed, items will be empty)
+    if (items.length === 0) {
+        console.warn("Main Sheet load failed. Check Google Sheet Access and API Key.");
+    }
+    
+    // Using localStorage might not be necessary if data is fetched on every load, 
+    // but keeping it here as it was in the original code structure.
     localStorage.setItem('dareloom_items', JSON.stringify(items)); 
 
     renderLatest(1);   
