@@ -9,7 +9,7 @@ const RANDOM_COUNT = 4;
 
 // Pop / ads config
 const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
-const POP_COOLDOWN_MS = 4000;
+const POP_COOLDOWN_MS = 15000;
 let lastPop = 0;
 let userInteracted = false; 
 let initialPopFired = false;
