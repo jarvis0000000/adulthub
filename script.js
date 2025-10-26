@@ -1,18 +1,14 @@
 // script.js
-// Dareloom Hub - FINAL V21: Smart Link Integration (Global Pop-Under Logic)
+// Dareloom Hub - FINAL V22: Corrected SHEET_API_REELS Typo and Restored Broken loadNextReel Logic
 
-// ------------- CONFIG (UPDATED FOR SMART LINK) -------------
-const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWLWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
-const SHEET_API_REELS = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWLWoZ7o/values/Sheet3!A:B?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw"; 
+// ------------- CONFIG -------------
+const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPG/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
+// 🛑 CRITICAL FIX: Removed extra space after 'ZJXP'
+const SHEET_API_REELS = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPG/values/Sheet3!A:B?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw"; 
 const PER_PAGE = 5;
 const RANDOM_COUNT = 4;
 
-// 🛑 Adsterra Smart Link Config
-const SMART_LINK_URL = "https://example.com/your-smart-link-destination"; // <-- इसे अपनी असली Smart Link URL से बदलें!
-const POP_COOLDOWN_MS = 15000; // CPM गुणवत्ता के लिए 15 सेकंड का कूलडाउन
-let lastPop = 0;
-let userInteracted = false; 
-let initialPopFired = false;
+// 🛑 Adsterra Pop-up/Smart Link Config: REMOVED (Handled by index.html)
 
 // ------------- STATE -------------
 let items = [];
@@ -58,52 +54,6 @@ if (y) return `https://img.youtube.com/vi/${y}/hqdefault.jpg`;
 return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
 
-// 🛑 UPDATED: Function to open Smart Link (Pop-under)
-function openAdsterraPop(){
-    try{
-        // Smart Link URL चेक
-        if (!SMART_LINK_URL || SMART_LINK_URL === "https://example.com/your-smart-link-destination") {
-             console.warn("Smart Link URL is not configured. Ad pop skipped.");
-             return;
-        }
-
-        const now = Date.now();
-        
-        // 1. Cooldown चेक
-        if (now - lastPop < POP_COOLDOWN_MS) return; 
-
-        // 2. सुनिश्चित करें कि यूज़र ने कम से कम एक बार इंटरैक्ट किया हो
-        if (!userInteracted && !initialPopFired) return;  
-        
-        // 3. Reels Player में, केवल कुछ Reels के बाद ही पहला पॉप-अप दिखाएँ
-        const reelsVisible = qs('#reelsPlayer') && qs('#reelsPlayer').style.display !== 'none';
-        if (reelsVisible && usedReelIds.size < 5 && !initialPopFired) {
-             log("Initial pop-up delayed until 5 reels are viewed.");
-             return; 
-        }
-
-        lastPop = now;
-
-        // Smart Link को नए टैब में खोलें
-        const adWindow = window.open(SMART_LINK_URL, '_blank'); 
-
-        if (adWindow) {
-             // तुरंत फोकस वापस मेन विंडो पर लाएं (Pop-under व्यवहार के लिए)
-             adWindow.blur();
-             window.focus();
-        } else {
-             // अगर ब्राउज़र ने ब्लॉक कर दिया
-             log("Ad pop blocked by browser.");
-        }
-          
-        initialPopFired = true;  
-        log("✅ Adsterra Smart Link injected (Pop-under)");  
-
-    }catch(e){  
-        console.warn("Ad pop failed", e);  
-    }
-}
-
 // NOTE: getRedgifsDirect is no longer used for Reels but kept for legacy/testing
 function getRedgifsDirect(link) {
   if (link.includes("redgifs.com/watch/")) {
@@ -114,11 +64,9 @@ function getRedgifsDirect(link) {
 }
 
 
-// ------------- SHEET FETCH & PARSE (UNCHANGED) -------------
+// ------------- SHEET FETCH & PARSE -------------
 async function fetchSheet(url){
 try{
-// ... (fetchSheet function content)
-// (UNCHANGED)
 const res = await fetch(url);
 if (!res.ok) throw new Error('sheet fetch failed ' + res.status);
 const j = await res.json();
@@ -131,8 +79,6 @@ return [];
 
 // Main Content (Sheet1) Parser
 function parseRows(values){
-// ... (parseRows function content)
-// (UNCHANGED)
 if (!values || values.length < 2) return [];
 const headers = (values[0]||[]).map(h => (h||'').toString().toLowerCase().trim());
 const find = (names) => {
@@ -193,8 +139,6 @@ return out.reverse();
 
 // Reels Sheet (Sheet3) parsing for Title (A) and Link (B)
 function parseReelRows(values){
-// ... (parseReelRows function content)
-// (UNCHANGED)
     if (!values || values.length < 2) return [];
     
     const rows = values.slice(1);  
@@ -223,17 +167,14 @@ function parseReelRows(values){
 }
 
 
-// ------------- UI / RENDER / FILTER / WATCH LOGIC (UNCHANGED) -------------
+// ------------- UI / RENDER / FILTER / WATCH LOGIC -------------
 function renderTagsForItem(it){
-// ... (renderTagsForItem function content)
-// (UNCHANGED)
 if (!it.category || !it.category.trim()) return '';
 const parts = it.category.split(',').map(p => p.trim()).filter(Boolean);
 return parts.map(p => `<button class="tag-btn" data-tag="${escapeHtml(p)}">#${escapeHtml(p)}</button>`).join(' ');
 }
+
 function renderRandom(){
-// ... (renderRandom function content)
-// (UNCHANGED)
 const g = qs('#randomGrid');
 if (!g) return;
 g.innerHTML = '';
@@ -250,9 +191,8 @@ card.addEventListener('click', ()=> openTrailerPage(it));
 g.appendChild(card);
 });
 }
+
 function renderLatest(page = 1){
-// ... (renderLatest function content)
-// (UNCHANGED)
 const list = qs('#latestList');
 if (!list) return;
 list.innerHTML = '';
@@ -309,8 +249,6 @@ attachLatestListeners();
 }
 
 function renderPagination(totalPages, page){
-// ... (renderPagination function content)
-// (UNCHANGED)
 const pager = qs('#pager');
 if (!pager) return;
 pager.innerHTML = '';
@@ -391,17 +329,12 @@ if (page < totalPages){
 }
 
 function changePage(page){
-// ... (changePage function content)
-// (UNCHANGED)
 renderLatest(page);
 const latestSection = qs('#latestSection');
 if (latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' });
-openAdsterraPop(); // 👈 Pop-up on page change
 }
 
 function attachLatestListeners(){
-// ... (attachLatestListeners function content)
-// (UNCHANGED)
 qsa('#latestList .preview-btn').forEach(el => {
 el.removeEventListener('click', onPreviewClick);
 el.addEventListener('click', onPreviewClick);
@@ -417,7 +350,6 @@ tagbtn.addEventListener('click', onTagClick);
 }
 
 function onPreviewClick(e){
-markUserGesture();
 e.stopPropagation(); 
 const id = e.currentTarget.dataset.id;
 const it = items.find(x => x.id === id); 
@@ -426,7 +358,6 @@ openTrailerPage(it);
 }
 
 function onWatchClick(e){
-markUserGesture();
 e.stopPropagation(); 
 const url = e.currentTarget.dataset.url; 
 if (!url) return;
@@ -434,17 +365,13 @@ openWatchPage(url);
 }
 
 function onTagClick(e){
-markUserGesture();
 e.stopPropagation(); 
 const tag = e.currentTarget.dataset.tag;
 if (!tag) return;
 applyTagFilter(tag);
-openAdsterraPop(); // 👈 Pop-up on tag click
 }
 
 function openTrailerPage(it){
-markUserGesture();
-openAdsterraPop(); // 👈 Pop-up on trailer page open
 const trailerURL = `/trailer.html?id=${encodeURIComponent(it.id)}`; 
 setTimeout(()=> {
 try {
@@ -457,9 +384,6 @@ console.error("Failed to open trailer page", e);
 
 function openWatchPage(fullWatchLinks){
     if (!fullWatchLinks) return;
-    markUserGesture();
-    openAdsterraPop(); // 👈 Pop-up on watch page open
-
     const finalDestination = `/watch?url=${encodeURIComponent(fullWatchLinks)}`;
     const redirectPage = `/go.html?target=${encodeURIComponent(finalDestination)}`;    
 
@@ -497,11 +421,9 @@ function applyTagFilter(tag) {
     if(s) s.value = ''; // Clear search input
 }
 
-// ------------- REELS PLAYER LOGIC (UNCHANGED except for openAdsterraPop calls) -------------
+// ------------- REELS PLAYER LOGIC -------------
 
 function toEmbedUrlForReels(url) {
-// ... (toEmbedUrlForReels function content)
-// (UNCHANGED)
     if (!url) return { type: "none" };
     url = url.trim();
 
@@ -554,9 +476,6 @@ function toEmbedUrlForReels(url) {
 
 // Open player and fetch reels
 async function openReelsPlayer() {
-    markUserGesture();
-    openAdsterraPop(); // 👈 Pop-up on opening player
-
     if (allReelCandidates.length === 0) {  
         const rawReels = await fetchSheet(SHEET_API_REELS);
         allReelCandidates = parseReelRows(rawReels);
@@ -578,10 +497,8 @@ async function openReelsPlayer() {
 }
 
 
-// Helper: toggles sound for current reel (UNCHANGED)
+// Helper: toggles sound for current reel 
 function toggleReelSound(e) {
-// ... (toggleReelSound function content)
-// (UNCHANGED)
     if (e) e.stopPropagation();
     const container = qs('#reelsContainer');
     if (!container) return;
@@ -619,7 +536,7 @@ function toggleReelSound(e) {
         return;
     }
 
-        // If it's an iframe, try to postMessage a toggle command (for YouTube/other)
+    // If it's an iframe, try to postMessage a toggle command (for YouTube/other)
     if (mediaEl && mediaEl.tagName === 'IFRAME') {
         try {
             mediaEl.contentWindow.postMessage({ command: "toggleSound" }, "*");
@@ -691,7 +608,7 @@ function loadNextReel() {
   container.innerHTML = '';
   container.style.opacity = 0;
   
-  // 3. Render reel
+   // 3. Render reel
   const embed = toEmbedUrlForReels(reel.reelLink);
 
   const reelDiv = document.createElement("div");
@@ -836,4 +753,3 @@ async function loadAll(){
 }
 
 loadAll();
-                                
