@@ -1,11 +1,14 @@
 // script.js
-// Dareloom Hub - FINAL V20: Sound/Anti-Redirect Compromise (Open Bottom-Right)
+// Dareloom Hub - FINAL V21: Pop-up Logic Removed (Smart Link is now in index.html)
 
 // ------------- CONFIG -------------
-const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
-const SHEET_API_REELS = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet3!A:B?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw"; 
+const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPG/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
+const SHEET_API_REELS = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXP G/values/Sheet3!A:B?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw"; 
 const PER_PAGE = 5;
 const RANDOM_COUNT = 4;
+
+// 🛑 Adsterra Pop-up/Smart Link Config: REMOVED (Handled by index.html)
+// Old variables like POP_COOLDOWN_MS, lastPop, userInteracted have been removed.
 
 
 // ------------- STATE -------------
@@ -51,6 +54,9 @@ const y = extractYouTubeID(it.trailer || it.watch);
 if (y) return `https://img.youtube.com/vi/${y}/hqdefault.jpg`;
 return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
+
+// 🛑 openAdsterraPop() function REMOVED.
+// User interaction tracking (markUserGesture) is now only for play/UI logic if needed.
 
 
 // NOTE: getRedgifsDirect is no longer used for Reels but kept for legacy/testing
@@ -172,6 +178,7 @@ if (!it.category || !it.category.trim()) return '';
 const parts = it.category.split(',').map(p => p.trim()).filter(Boolean);
 return parts.map(p => `<button class="tag-btn" data-tag="${escapeHtml(p)}">#${escapeHtml(p)}</button>`).join(' ');
 }
+
 function renderRandom(){
 const g = qs('#randomGrid');
 if (!g) return;
@@ -189,6 +196,7 @@ card.addEventListener('click', ()=> openTrailerPage(it));
 g.appendChild(card);
 });
 }
+
 function renderLatest(page = 1){
 const list = qs('#latestList');
 if (!list) return;
@@ -243,7 +251,6 @@ slice.forEach(it => {
 
 renderPagination(totalPages, currentPage);  
 attachLatestListeners();
-
 }
 
 function renderPagination(totalPages, page){
@@ -330,7 +337,7 @@ function changePage(page){
 renderLatest(page);
 const latestSection = qs('#latestSection');
 if (latestSection) window.scrollTo({ top: latestSection.offsetTop - 20, behavior: 'smooth' });
-openAdsterraPop();
+// openAdsterraPop() call removed
 }
 
 function attachLatestListeners(){
@@ -349,7 +356,7 @@ tagbtn.addEventListener('click', onTagClick);
 }
 
 function onPreviewClick(e){
-markUserGesture();
+// markUserGesture() call removed
 e.stopPropagation(); 
 const id = e.currentTarget.dataset.id;
 const it = items.find(x => x.id === id); 
@@ -358,7 +365,7 @@ openTrailerPage(it);
 }
 
 function onWatchClick(e){
-markUserGesture();
+// markUserGesture() call removed
 e.stopPropagation(); 
 const url = e.currentTarget.dataset.url; 
 if (!url) return;
@@ -366,16 +373,17 @@ openWatchPage(url);
 }
 
 function onTagClick(e){
-markUserGesture();
+// markUserGesture() call removed
 e.stopPropagation(); 
 const tag = e.currentTarget.dataset.tag;
 if (!tag) return;
 applyTagFilter(tag);
+// openAdsterraPop() call removed
 }
 
 function openTrailerPage(it){
-markUserGesture();
-openAdsterraPop();
+// markUserGesture() call removed
+// openAdsterraPop() call removed
 const trailerURL = `/trailer.html?id=${encodeURIComponent(it.id)}`; 
 setTimeout(()=> {
 try {
@@ -388,8 +396,8 @@ console.error("Failed to open trailer page", e);
 
 function openWatchPage(fullWatchLinks){
     if (!fullWatchLinks) return;
-    markUserGesture();
-    openAdsterraPop();
+    // markUserGesture() call removed
+    // openAdsterraPop() call removed
 
     const finalDestination = `/watch?url=${encodeURIComponent(fullWatchLinks)}`;
     const redirectPage = `/go.html?target=${encodeURIComponent(finalDestination)}`;    
@@ -428,7 +436,7 @@ function applyTagFilter(tag) {
     if(s) s.value = ''; // Clear search input
 }
 
-// ------------- REELS PLAYER LOGIC (UPDATED) -------------
+// ------------- REELS PLAYER LOGIC -------------
 
 function toEmbedUrlForReels(url) {
     if (!url) return { type: "none" };
@@ -462,7 +470,7 @@ function toEmbedUrlForReels(url) {
     if (url.includes('redgifs.com/ifr/')) {
         let videoId = url.split('/').pop(); 
         videoId = videoId.split('?')[0]; 
-        const embedUrl = `https://www.redgifs.com/ifr/${videoId}`; // Removed muted=true for sound attempt
+        const embedUrl = `https://www.redgifs.com/ifr/${videoId}`; 
         return { type: "iframe", src: embedUrl };
     }
 
@@ -483,8 +491,8 @@ function toEmbedUrlForReels(url) {
 
 // Open player and fetch reels
 async function openReelsPlayer() {
-    markUserGesture();
-    openAdsterraPop();
+    // markUserGesture() call removed
+    // openAdsterraPop() call removed
 
     if (allReelCandidates.length === 0) {  
         const rawReels = await fetchSheet(SHEET_API_REELS);
@@ -507,7 +515,7 @@ async function openReelsPlayer() {
 }
 
 
-// Helper: toggles sound for current reel (works for <video> directly; tries postMessage for iframe)
+// Helper: toggles sound for current reel 
 function toggleReelSound(e) {
     if (e) e.stopPropagation();
     const container = qs('#reelsContainer');
@@ -549,7 +557,6 @@ function toggleReelSound(e) {
     // If it's an iframe, try to postMessage a toggle command (for YouTube/other)
     if (mediaEl && mediaEl.tagName === 'IFRAME') {
         try {
-            // Note: This rarely works for RedGifs, hence the new "hole" solution.
             mediaEl.contentWindow.postMessage({ command: "toggleSound" }, "*");
             const icon = document.createElement("div");
             icon.textContent = "🔊";
@@ -570,7 +577,6 @@ function toggleReelSound(e) {
             setTimeout(() => (icon.style.opacity = "0"), 100);
             setTimeout(() => icon.remove(), 600);
         } catch (err) {
-            // Error handling for postMessage failure (left in place for non-RedGifs iframes)
             console.warn("Iframe sound toggle postMessage failed:", err);
             const note = document.createElement("div");
             note.textContent = "Sound control not available for this embed";
@@ -598,7 +604,7 @@ function toggleReelSound(e) {
 
 
 function loadNextReel() {
-  openAdsterraPop();
+  // openAdsterraPop() call removed
 
   const container = qs("#reelsContainer");
 
@@ -639,7 +645,7 @@ function loadNextReel() {
 
     // We'll build DOM nodes to allow overlay handling when iframe is used
     if (embedInfo.type === "video") {
-      // ** VIDEO TAG LOGIC (UNTOUCHED) **
+      // ** VIDEO TAG LOGIC **
       const video = document.createElement('video');
       video.className = "reel-video-media";
       video.loop = true;
@@ -713,7 +719,7 @@ function loadNextReel() {
       reelDiv.appendChild(embedWrap);
 
     } else if (embedInfo.type === "iframe") {
-      // ** IFRAME LOGIC (UPDATED for Sound/Button Access) **
+      // ** IFRAME LOGIC **
 
       // --- Create iframe ---
       const iframe = document.createElement("iframe");
@@ -738,7 +744,7 @@ function loadNextReel() {
       wrapper.style.height = "100%";
       wrapper.style.overflow = "hidden";
 
-      // 🔴 TOUCH BLOCKER MASK (Covers everything EXCEPT the bottom right corner)
+      // 🔴 TOUCH BLOCKER MASK 
       const touchBlocker = document.createElement("div");
       touchBlocker.className = "reel-touch-blocker";
       touchBlocker.style.position = "absolute";
@@ -746,19 +752,17 @@ function loadNextReel() {
       touchBlocker.style.zIndex = "30"; 
       touchBlocker.style.background = "transparent";
       
-      // --- Blocker DIVs to mask the iframe ---
+      // --- Blocker DIVs ---
       
-      // 1. Top Blocker (Covers everything above ~60% of the screen)
+      // 1. Top Blocker 
       const topBlocker = document.createElement("div");
       topBlocker.style.position = "absolute";
-      // Inset: top right bottom left -> covers top 60% (from 0 to 40% height remaining)
       topBlocker.style.inset = "0 0 40% 0"; 
       topBlocker.style.background = "transparent";
       
-      // 2. Left Blocker (Covers the left side in the bottom 40% of the screen)
+      // 2. Left Blocker 
       const leftBlocker = document.createElement("div");
       leftBlocker.style.position = "absolute";
-      // Inset: from 40% down, 50% left/right -> covers bottom-left
       leftBlocker.style.inset = "40% 50% 0 0"; 
       leftBlocker.style.background = "transparent";
 
@@ -768,7 +772,6 @@ function loadNextReel() {
         e.stopPropagation();
         e.preventDefault();
         log("🛑 Iframe tap blocked by mask.");
-        // Optional: Show a quick message like "Only buttons are clickable"
       };
 
       // Attach blocker logic to mask divs
@@ -778,11 +781,9 @@ function loadNextReel() {
       touchBlocker.appendChild(topBlocker);
       touchBlocker.appendChild(leftBlocker);
       
-      // --- Custom Next Reel Button (Moved out of wrapper for better control) ---
-      
       // --- Combine ---
       wrapper.appendChild(iframe);
-      wrapper.appendChild(touchBlocker); // The blocker mask
+      wrapper.appendChild(touchBlocker); 
       
       reelDiv.appendChild(wrapper);
     }
@@ -793,7 +794,7 @@ function loadNextReel() {
     buttons.style.zIndex = "50";
     buttons.style.justifyContent = "flex-end";
     buttons.innerHTML = `<button class="next-reel-btn">Next Reel »</button>`;
-    reelDiv.appendChild(buttons); // Added here for high z-index and clickability
+    reelDiv.appendChild(buttons); 
 
     container.appendChild(reelDiv);
 
@@ -816,19 +817,10 @@ function loadNextReel() {
         mediaEl.volume = 1.0;
         mediaEl.play().catch(() => log("Autoplay blocked — muted"));
       }
-      // Note: Iframe scale is already applied above
     }
 
     // fade-in
     setTimeout(() => (container.style.opacity = 1), 50);
-
-    // 🧠 Swipe system (attached to container)
-    // Removed swipe to avoid conflicts with clicking the lower-right area
-    // container.removeEventListener('touchstart', handleTouchStart);
-    // container.removeEventListener('touchend', handleTouchEnd);
-    // container.addEventListener('touchstart', handleTouchStart);
-    // container.addEventListener('touchend', handleTouchEnd);
-
 
   }, 300);
 }
@@ -876,15 +868,9 @@ function closeReelsPlayer(){
 
 // ------------- INIT / BOOT -------------
 
-function markUserGesture(){
-userInteracted = true;
-}
-
 function setupGestureListener(){
-    ['click', 'touchstart', 'keydown'].forEach(e => {
-        document.addEventListener(e, markUserGesture, {once: true});
-    });
-
+    // Old Adsterra gesture listener removed.
+    
     // Block Redgifs auto navigation attempts
     window.addEventListener("blur", () => {
         if (document.activeElement && document.activeElement.tagName === "IFRAME") {
