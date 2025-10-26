@@ -7,12 +7,6 @@ const SHEET_API_REELS = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODn
 const PER_PAGE = 5;
 const RANDOM_COUNT = 4;
 
-// Pop / ads config
-const AD_POP = "https://bulletinsituatedelectronics.com/b95e6swf?key=0f61d8bf1a7278d5cf9f161ab55bafbb";
-const POP_COOLDOWN_MS = 15000;
-let lastPop = 0;
-let userInteracted = false; 
-let initialPopFired = false;
 
 // ------------- STATE -------------
 let items = [];
@@ -58,25 +52,6 @@ if (y) return `https://img.youtube.com/vi/${y}/hqdefault.jpg`;
 return 'https://placehold.co/600x400?text=Dareloom+Hub';
 }
 
-function openAdsterraPop(){
-try{
-const now = Date.now();
-if (now - lastPop < POP_COOLDOWN_MS) return;
-lastPop = now;
-
-if (!userInteracted && !initialPopFired) return;  
-
-    const s = document.createElement('script');  
-    s.src = AD_POP;  
-    s.async = true;  
-    document.body.appendChild(s);  
-    setTimeout(()=>{ try{s.remove();}catch(e){} }, 5000);  
-    initialPopFired = true;  
-    log("ad pop injected");  
-}catch(e){  
-    console.warn("Ad pop failed", e);  
-}
-}
 
 // NOTE: getRedgifsDirect is no longer used for Reels but kept for legacy/testing
 function getRedgifsDirect(link) {
