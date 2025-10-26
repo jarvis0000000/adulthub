@@ -2,12 +2,12 @@
 // Dareloom Hub - FINAL V22: Corrected SHEET_API_REELS Typo and Restored Broken loadNextReel Logic
 
 // ------------- CONFIG -------------
-const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPG/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
-// 🛑 CRITICAL FIX: Removed extra space after 'ZJXP'
-const SHEET_API_REELS = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPG/values/Sheet3!A:B?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw"; 
+// ✅ FIXED SHEET ID: 1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o
+const SHEET_API = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet1?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
+const SHEET_API_REELS = "https://sheets.googleapis.com/v4/spreadsheets/1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o/values/Sheet3!A:B?alt=json&key=AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw"; 
 const PER_PAGE = 5;
 const RANDOM_COUNT = 4;
-
+ 
 // 🛑 Adsterra Pop-up/Smart Link Config: REMOVED (Handled by index.html)
 
 // ------------- STATE -------------
