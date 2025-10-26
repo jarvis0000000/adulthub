@@ -8,7 +8,7 @@ const PER_PAGE = 5;
 const RANDOM_COUNT = 4;
 
 // Pop / ads config
-const AD_POP = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
+const AD_POP = "https://bulletinsituatedelectronics.com/b95e6swf?key=0f61d8bf1a7278d5cf9f161ab55bafbb";
 const POP_COOLDOWN_MS = 15000;
 let lastPop = 0;
 let userInteracted = false; 
