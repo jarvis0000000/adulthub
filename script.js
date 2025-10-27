@@ -1,5 +1,5 @@
 // script.js
-// Dareloom Hub - FINAL V23 (Custom Mask Logic for IFRAME Added per User Request)
+// Dareloom Hub - FINAL V23 (Updated)
 
 // -----------------------------------------------------
 // 🛠️ IMPORTANT: Configuration with Corrected Sheet ID
@@ -140,19 +140,17 @@ function parseReelRows(values){
     
     const rows = values.slice(1);  
     const out = [];  
-    let untitledCounter = 1;
-
+    
     for (let r of rows){  
         r = Array.isArray(r) ? r : [];  
         
-        const titleCandidate = (r[0] || '').toString().trim();  
+        const finalTitle = (r[0] || '').toString().trim();  // Title can be empty
         const reelLink = (r[1] || '').toString().trim(); 
 
         if (!reelLink) continue;  
 
-        const finalTitle = titleCandidate || (`Untitled Reel ${untitledCounter}`);
-        const id = `${slugify(finalTitle)}|${Math.random().toString(36).slice(2,8)}`;  
-        untitledCounter++;
+        // Removed the check for untitledCounter, now takes whatever is in the cell.
+        const id = `${slugify(finalTitle || 'reel')}|${Math.random().toString(36).slice(2,8)}`;  
 
         out.push({  
             id,  
@@ -368,33 +366,31 @@ if (!tag) return;
 applyTagFilter(tag);
 }
 
+// ⚠️ FIXED: Removed setTimeout to resolve Smart Link conflict.
 function openTrailerPage(it){
-const trailerURL = `/trailer.html?id=${encodeURIComponent(it.id)}`; 
-setTimeout(()=> {
-try {
-window.location.href = trailerURL;
-} catch(e){
-console.error("Failed to open trailer page", e);
-}
-}, 120);
+    const trailerURL = `/trailer.html?id=${encodeURIComponent(it.id)}`; 
+    try {
+        window.location.href = trailerURL;
+    } catch(e){
+        console.error("Failed to open trailer page", e);
+    }
 }
 
+// ⚠️ FIXED: Removed setTimeout to resolve Smart Link conflict.
 function openWatchPage(fullWatchLinks){
     if (!fullWatchLinks) return;
 
     const finalDestination = `/watch?url=${encodeURIComponent(fullWatchLinks)}`;
     const redirectPage = `/go.html?target=${encodeURIComponent(finalDestination)}`;    
 
-    setTimeout(()=> {  
-        try {  
-            const w = window.open(redirectPage, '_blank');    
-            if (!w || w.closed || typeof w.closed === 'undefined'){    
-                alert("Please allow pop-ups to open the link in a new tab!");    
-            }    
-        } catch(e){    
-            console.error(e);    
-        }  
-    }, 120);
+    try {  
+        const w = window.open(redirectPage, '_blank');    
+        if (!w || w.closed || typeof w.closed === 'undefined'){    
+            alert("Please allow pop-ups to open the link in a new tab!");    
+        }    
+    } catch(e){    
+        console.error(e);    
+    }
 }
 
 function filterVideos(query = "") {
@@ -486,75 +482,18 @@ async function openReelsPlayer() {
 }
 
 
+// ❌ Removed toggleReelSound function as requested
 function toggleReelSound(e) {
+    // This function is now empty as the sound button and logic were removed.
+    // However, Redgifs iframes may still play sound if the user interacts with them.
     if (e) e.stopPropagation();
-    const container = qs('#reelsContainer');
-    if (!container) return;
-    const reelDiv = container.querySelector('.reel');
+    const reelDiv = qs('#reelsContainer .reel');
     if (!reelDiv) return;
-
     const mediaEl = reelDiv.querySelector('.reel-video-media');
-
-    // Case 1: HTML Video Tag (Full Control - No Block)
+    
     if (mediaEl && mediaEl.tagName === 'VIDEO') {
         mediaEl.muted = !mediaEl.muted;
-        if (!mediaEl.muted) {
-            mediaEl.volume = 1.0;
-            mediaEl.play().catch(()=>{});
-        }
-        // Quick icon feedback
-        const icon = document.createElement("div");
-        icon.textContent = mediaEl.muted ? "🔇" : "🔊";
-        Object.assign(icon.style, {
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            fontSize: "60px",
-            color: "white",
-            textShadow: "0 0 5px black",
-            opacity: "0.95",
-            transition: "opacity 0.6s ease-out",
-            pointerEvents: "none",
-            zIndex: "9999",
-        });
-        reelDiv.appendChild(icon);
-        setTimeout(() => (icon.style.opacity = "0"), 100);
-        setTimeout(() => icon.remove(), 600);
-        return;
     }
-
-    // Case 2: Iframe (Redgifs/YouTube) - Blocked by Browser Policy
-    if (mediaEl && mediaEl.tagName === 'IFRAME') {
-        const note = document.createElement("div");
-        
-        try {
-            mediaEl.contentWindow.postMessage(JSON.stringify({ event: 'command', func: 'unMute' }), '*');
-        } catch(e) {
-            console.warn("PostMessage failed for sound control:", e);
-        }
-
-        note.textContent = "🔇 Sound is often blocked by the browser for embedded videos.";
-        
-        Object.assign(note.style, {
-            position: "absolute",
-            bottom: "16px",
-            left: "50%",
-            transform: "translateX(-50%)",
-            fontSize: "13px",
-            color: "white",
-            background: "rgba(0,0,0,0.7)",
-            padding: "8px 12px",
-            borderRadius: "6px",
-            zIndex: "10001",
-            pointerEvents: "none"
-        });
-        reelDiv.appendChild(note);
-        setTimeout(()=> note.remove(), 3000);
-        return;
-    }
-
-    log("No media element found to toggle sound");
 }
 
 
@@ -664,11 +603,9 @@ function loadNextReel() {
       touchBlocker.appendChild(topBlocker);
       touchBlocker.appendChild(leftBlocker);
       
-      // --- CUSTOM BUTTONS (Added back the sound button as it was missing) ---
-      // We must move Next Reel button logic here to make sure it's clickable
+      // --- CUSTOM BUTTONS ---
       const buttons = document.createElement('div');
       buttons.className = "reel-buttons";
-      // This Z-Index must be higher than the touchBlocker (30)
       buttons.style.zIndex = "50"; 
       buttons.style.position = "absolute";
       buttons.style.bottom = "60px";
@@ -676,9 +613,9 @@ function loadNextReel() {
       buttons.style.display = "flex";
       buttons.style.flexDirection = "column";
       buttons.style.gap = "8px";
-      // Restoring both Sound and Next Reel buttons
+      
+      // ❌ Sound button removed here as requested. Only Next Reel button remains.
       buttons.innerHTML = `
-          <button class="sound-btn" onclick="toggleReelSound(event)" style="background: #e91e63; color: white; border: none; padding: 10px; border-radius: 5px; font-weight:bold;">Sound</button>
           <button class="next-reel-btn" onclick="loadNextReel()" style="background: #e91e63; color: white; border: none; padding: 10px; border-radius: 5px; font-weight:bold;">Next Reel »</button>
       `;
       
@@ -689,12 +626,14 @@ function loadNextReel() {
       reelDiv.appendChild(wrapper);
       reelDiv.appendChild(buttons); // Add custom buttons to the reelDiv
       
-      // Add Title
-      const titleDiv = document.createElement('div');
-      titleDiv.className = "reel-title";
-      titleDiv.style.cssText = "position: absolute; top: 10px; left: 10px; color: white; text-shadow: 0 0 5px black; font-weight: bold;";
-      titleDiv.textContent = escapeHtml(reel.title);
-      reelDiv.appendChild(titleDiv);
+      // Add Title (Only if title is not empty in the sheet)
+      if (reel.title) {
+        const titleDiv = document.createElement('div');
+        titleDiv.className = "reel-title";
+        titleDiv.style.cssText = "position: absolute; top: 10px; left: 10px; color: white; text-shadow: 0 0 5px black; font-weight: bold;";
+        titleDiv.textContent = escapeHtml(reel.title);
+        reelDiv.appendChild(titleDiv);
+      }
       
     // ** END OF USER'S COMPLEX IFRAME LOGIC **
     
