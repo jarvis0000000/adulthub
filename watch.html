@@ -383,15 +383,23 @@ async function loadVideo(){
         let embedLink = null;
         let isMega = false;
         
-        // **NEW PRIORITY LOGIC:** 1. Streamwish > 2. MixDrop > 3. Streamtape > Other
-        // IMPORTANT: We check for a valid embed URL that is NOT 'MEGA'
-        if (hostLinks.streamwish.embedUrl && hostLinks.streamwish.embedUrl !== 'MEGA' && !hostLinks.streamwish.embedUrl.startsWith('http') && hostLinks.streamwish.embedUrl.includes('/e/')) {
+        // **UPDATED PRIORITY LOGIC:** Mixdrop (P1) > Streamwish (P2) > Streamtape (P3)
+        // Mixdrop को P1 पर इसलिए सेट किया गया है क्योंकि आपने पुष्टि की कि इसका लिंक काम कर रहा है।
+        
+        // 1. MixDrop (P1)
+        if (hostLinks.mixdrop.embedUrl && hostLinks.mixdrop.embedUrl !== 'MEGA' && hostLinks.mixdrop.embedUrl.includes('/e/')) {
+            embedLink = hostLinks.mixdrop.embedUrl; 
+        } 
+        // 2. Streamwish (P2)
+        else if (hostLinks.streamwish.embedUrl && hostLinks.streamwish.embedUrl !== 'MEGA' && hostLinks.streamwish.embedUrl.includes('/e/')) {
             embedLink = hostLinks.streamwish.embedUrl;
-        } else if (hostLinks.mixdrop.embedUrl && hostLinks.mixdrop.embedUrl !== 'MEGA' && hostLinks.mixdrop.embedUrl.includes('/e/')) {
-            embedLink = hostLinks.mixdrop.embedUrl;
-        } else if (hostLinks.streamtape.embedUrl && hostLinks.streamtape.embedUrl !== 'MEGA' && hostLinks.streamtape.embedUrl.includes('/e/')) {
+        } 
+        // 3. Streamtape (P3)
+        else if (hostLinks.streamtape.embedUrl && hostLinks.streamtape.embedUrl !== 'MEGA' && hostLinks.streamtape.embedUrl.includes('/e/')) {
             embedLink = hostLinks.streamtape.embedUrl;
-        } else if (hostLinks.other.embedUrl && hostLinks.other.embedUrl !== 'MEGA' && hostLinks.other.embedUrl.startsWith('http')) {
+        } 
+        // 4. Other (P4)
+        else if (hostLinks.other.embedUrl && hostLinks.other.embedUrl !== 'MEGA' && hostLinks.other.embedUrl.startsWith('http')) {
             embedLink = hostLinks.other.embedUrl;
         } else if (hostLinks.mega.embedUrl === 'MEGA') {
             isMega = true;
@@ -463,5 +471,4 @@ async function loadVideo(){
 document.addEventListener('DOMContentLoaded', loadVideo);
 </script>
 </body>
-    </html>
-    
+</html>
