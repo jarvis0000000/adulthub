@@ -47,6 +47,39 @@ const m = url.match(/(?:v=|youtu.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
 return m ? m[1] : null;
 }
 
+/**
+ * 💥 EMBED FIX: Streamwish and Mixdrop URLs को सही Embed Format में बदलता है।
+ * यह लॉजिक Mixdrop के /f/ को /e/ से और Streamwish के डायरेक्ट ID को /e/ से बदलता है।
+ * @param {string} videoUrl - Google Sheet से मिला वीडियो URL
+ * @returns {string} - सही Embed URL
+ */
+function getEmbedUrl(videoUrl) {
+    if (!videoUrl) return null;
+
+    // 1. Mixdrop Fix: /f/ को /e/ से बदलता है (डोमेन बदलने पर भी काम करेगा)
+    if (videoUrl.includes('mixdrop') || videoUrl.includes('mixdrops')) {
+        // Case-insensitive replacement
+        return videoUrl.replace(/\/f\//i, '/e/');
+    }
+
+    // 2. Streamwish Fix: 
+    // (A) अगर URL में /file/ है, तो उसे /e/ से बदलें (पुराने Streamwish फॉर्मेट के लिए)
+    if (videoUrl.includes('/file/')) {
+        return videoUrl.replace('/file/', '/e/');
+    }
+
+    // (B) अगर URL में सिर्फ Domain के बाद ID है (जैसे cavanhabg.com/ID) 
+    // यह आपके लेटेस्ट लिंक फॉर्मेट (https://cavanhabg.com/bxn0k4h288lw) को ठीक करेगा।
+    if (videoUrl.match(/https?:\/\/[^\/]+\/[a-zA-Z0-9]+$/)) {
+        // Regex: Domain/ID को Domain/e/ID में बदलता है
+        return videoUrl.replace(/\/([a-zA-Z0-9]+)$/, '/e/$1');
+    }
+
+    // 3. Streamtape या अन्य (अगर कोई Fix ज़रूरी नहीं है)
+    return videoUrl;
+}
+// 💥 END OF EMBED FIX LOGIC
+
 function makeThumbnail(it){
 if (it.poster && it.poster.trim()) return it.poster.trim();
 const y = extractYouTubeID(it.trailer || it.watch);
@@ -567,6 +600,7 @@ function loadNextReel() {
       wrapper.style.height = "100%";
       wrapper.style.overflow = "hidden"; // Important for masking
 
+      
       // 🔴 TOUCH BLOCKER MASK (Covers everything EXCEPT the bottom right corner)
       const touchBlocker = document.createElement("div");
       touchBlocker.className = "reel-touch-blocker";
