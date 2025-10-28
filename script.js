@@ -68,7 +68,7 @@ function getEmbedUrl(videoUrl) {
         return videoUrl.replace('/file/', '/e/');
     }
 
-    // (B) अगर URL में सिर्फ Domain के बाद ID है (जैसे cavanhabg.com/ID) 
+    // (B) अगर URL में सिर्फ Domain के बाद ID है (जैसे hglink.to/ID) 
     // यह आपके लेटेस्ट लिंक फॉर्मेट (https://cavanhabg.com/bxn0k4h288lw) को ठीक करेगा।
     if (videoUrl.match(/https?:\/\/[^\/]+\/[a-zA-Z0-9]+$/)) {
         // Regex: Domain/ID को Domain/e/ID में बदलता है
@@ -600,7 +600,6 @@ function loadNextReel() {
       wrapper.style.height = "100%";
       wrapper.style.overflow = "hidden"; // Important for masking
 
-      
       // 🔴 TOUCH BLOCKER MASK (Covers everything EXCEPT the bottom right corner)
       const touchBlocker = document.createElement("div");
       touchBlocker.className = "reel-touch-blocker";
