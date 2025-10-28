@@ -246,6 +246,7 @@ function checkAdBlocker(){
 }
 // ------------- VIDEO LOAD LOGIC (FINAL UPDATED PRIORITY) -------------
 /**
+ * 💥 EMBED FIX: Streamwish और Mixdrop के सभी डोमेन को सपोर्ट करने के लिए अपडेट किया गया।
  * @param {string} url 
  * @returns {string} The embeddable URL for the given host
  */
@@ -254,25 +255,39 @@ function getEmbedUrl(url) {
     
     let finalEmbedUrl = url.trim();
 
-    // 1. Streamwish (Priority 1)
-    if (finalEmbedUrl.includes("streamwish.") || finalEmbedUrl.includes("dumbalag.com")) {
-        // Match the ID from the end of the URL path
-        const m = finalEmbedUrl.match(/\/([0-9A-Za-z_-]{12,})/);
-        if (m && m[1]) {
-            return `https://streamwish.to/e/${m[1]}`;
+    // 1. Streamwish Fix (P1): किसी भी डोमेन के लिए ID निकालकर streamwish.to/e/ID बनाता है
+    if (finalEmbedUrl.includes("streamwish.") || finalEmbedUrl.includes("dumbalag.com") || finalEmbedUrl.includes("hglink.to")) {
+        // Regex to find ID at the end, regardless of domain (e.g., hglink.to/1kmdiikkt0to)
+        let idMatch = finalEmbedUrl.match(/\/([0-9A-Za-z_-]{12,})$/); 
+        
+        // Handle streamwish.com/file/ID format
+        if (!idMatch) {
+            idMatch = finalEmbedUrl.match(/\/file\/([0-9A-Za-z_-]{12,})/);
+        }
+        
+        // If an ID is found, construct the reliable embed URL
+        if (idMatch && idMatch[1]) {
+            return `https://streamwish.to/e/${idMatch[1]}`;
         }
     }
 
-    // 2. MixDrop (Priority 2) - Added support for mdy48tn97.com type links
-    if (finalEmbedUrl.includes("mixdrop.") || finalEmbedUrl.includes("/f/") && finalEmbedUrl.includes("mdy")) {
-        // Use a regex to reliably extract the file ID (12+ chars)
-        const m = finalEmbedUrl.match(/\/([0-9A-Za-z_-]{12,})/); 
-        if (m && m[1]) {
-            return `https://mixdrop.co/e/${m[1]}`; // Using mixdrop.co for reliable embed
+    // 2. MixDrop Fix (P2): किसी भी डोमेन के लिए ID निकालकर mixdrop.co/e/ID बनाता है
+    if (finalEmbedUrl.includes("mixdrop.") || finalEmbedUrl.includes("mdy48tn97.com") || finalEmbedUrl.includes("/f/")) {
+        // Regex to find ID at the end or after /f/
+        let idMatch = finalEmbedUrl.match(/\/([0-9A-Za-z_-]{12,})$/); 
+        
+        // Handle /f/ID format explicitly
+        if (!idMatch) {
+            idMatch = finalEmbedUrl.match(/\/f\/([0-9A-Za-z_-]{12,})/);
+        }
+        
+        // If an ID is found, construct the reliable embed URL
+        if (idMatch && idMatch[1]) {
+            return `https://mixdrop.co/e/${idMatch[1]}`; // Using mixdrop.co for reliable embed
         }
     }
     
-    // 3. Streamtape (Priority 3)
+    // 3. Streamtape (P3)
     if (finalEmbedUrl.includes("streamtape.com/v/")){
         const m = finalEmbedUrl.match(/\/v\/([0-9A-Za-z_-]+)\//);
         if (m && m[1]) return `https://streamtape.com/e/${m[1]}/`;
@@ -328,31 +343,38 @@ async function loadVideo(){
         
         // Parse all links and categorize them
         for(const link of links){
-            if (link.includes("t.me") || link.includes("telegram.me")) {
+            const normalizedLink = link.toLowerCase(); // Use lower case for checking host
+
+            if (normalizedLink.includes("t.me") || normalizedLink.includes("telegram.me")) {
                 telegramLink = link;
-            } else if (link.includes("mixdrop.") || link.includes("/f/") && link.includes("mdy")) {
+            } else if (normalizedLink.includes("mixdrop.") || normalizedLink.includes("/f/") || normalizedLink.includes("mdy")) {
                 if (!hostLinks.mixdrop.url) { 
                     hostLinks.mixdrop.url = link;
+                    // *** USE getEmbedUrl HERE ***
                     hostLinks.mixdrop.embedUrl = getEmbedUrl(link);
                 }
-            } else if (link.includes("streamwish.") || link.includes("dumbalag.com")) {
+            } else if (normalizedLink.includes("streamwish.") || normalizedLink.includes("dumbalag.com") || normalizedLink.includes("hglink.to")) {
                 if (!hostLinks.streamwish.url) {
                     hostLinks.streamwish.url = link;
+                    // *** USE getEmbedUrl HERE ***
                     hostLinks.streamwish.embedUrl = getEmbedUrl(link);
                 }
-            } else if (link.includes("streamtape.com/")) {
+            } else if (normalizedLink.includes("streamtape.com/")) {
                 if (!hostLinks.streamtape.url) {
                     hostLinks.streamtape.url = link;
+                    // *** USE getEmbedUrl HERE ***
                     hostLinks.streamtape.embedUrl = getEmbedUrl(link);
                 }
-            } else if (link.includes("mega.nz")) {
+            } else if (normalizedLink.includes("mega.nz")) {
                 if (!hostLinks.mega.url) {
                     hostLinks.mega.url = link;
+                    // *** USE getEmbedUrl HERE ***
                     hostLinks.mega.embedUrl = getEmbedUrl(link);
                 }
             } else {
                 if (!hostLinks.other.url) {
                     hostLinks.other.url = link;
+                    // *** USE getEmbedUrl HERE ***
                     hostLinks.other.embedUrl = getEmbedUrl(link);
                 }
             }
@@ -362,13 +384,14 @@ async function loadVideo(){
         let isMega = false;
         
         // **NEW PRIORITY LOGIC:** 1. Streamwish > 2. MixDrop > 3. Streamtape > Other
-        if (hostLinks.streamwish.embedUrl && hostLinks.streamwish.embedUrl !== 'MEGA') {
+        // IMPORTANT: We check for a valid embed URL that is NOT 'MEGA'
+        if (hostLinks.streamwish.embedUrl && hostLinks.streamwish.embedUrl !== 'MEGA' && !hostLinks.streamwish.embedUrl.startsWith('http') && hostLinks.streamwish.embedUrl.includes('/e/')) {
             embedLink = hostLinks.streamwish.embedUrl;
-        } else if (hostLinks.mixdrop.embedUrl && hostLinks.mixdrop.embedUrl !== 'MEGA') {
+        } else if (hostLinks.mixdrop.embedUrl && hostLinks.mixdrop.embedUrl !== 'MEGA' && hostLinks.mixdrop.embedUrl.includes('/e/')) {
             embedLink = hostLinks.mixdrop.embedUrl;
-        } else if (hostLinks.streamtape.embedUrl && hostLinks.streamtape.embedUrl !== 'MEGA') {
+        } else if (hostLinks.streamtape.embedUrl && hostLinks.streamtape.embedUrl !== 'MEGA' && hostLinks.streamtape.embedUrl.includes('/e/')) {
             embedLink = hostLinks.streamtape.embedUrl;
-        } else if (hostLinks.other.embedUrl && hostLinks.other.embedUrl !== 'MEGA') {
+        } else if (hostLinks.other.embedUrl && hostLinks.other.embedUrl !== 'MEGA' && hostLinks.other.embedUrl.startsWith('http')) {
             embedLink = hostLinks.other.embedUrl;
         } else if (hostLinks.mega.embedUrl === 'MEGA') {
             isMega = true;
@@ -440,4 +463,5 @@ async function loadVideo(){
 document.addEventListener('DOMContentLoaded', loadVideo);
 </script>
 </body>
-</html>
+    </html>
+    
