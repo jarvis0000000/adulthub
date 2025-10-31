@@ -80,7 +80,6 @@ function movieCardHtml(item) {
   return `
   <div class="card" onclick="navigateTo('#/item/${encodeURIComponent(item._id)}')">
     <img src="${item.Poster || ''}" alt="${item.Title}">
-    <!-- Genre is a clickable <a> tag, event.stopPropagation() prevents detail page click -->
     <a href="javascript:void(0)" class="card-category" onclick="event.stopPropagation(); navigateTo('${genreHash}')">${genre}</a>
     <div class="card-body">
       <h3>${item.Title}</h3>
@@ -106,7 +105,46 @@ function renderCategoryList(categories) {
   return ''; 
 }
 
+// 🌟 NEW FUNCTION: Dynamic SEO Update 🌟
+function updateDynamicSEO(item) {
+  // Fallback values
+  const defaultTitle = "Dareloom Hub - Movies, Shows & Anime";
+  const defaultDescription = "Dareloom Hub पर HD क्वालिटी में सभी नई फ़िल्में, शो और एनिमेशन देखें और डाउनलोड करें।";
+
+  if (!item || !item.Title) {
+      document.title = defaultTitle;
+      // Also reset meta description to default
+      let meta = document.querySelector('meta[name="description"]');
+      if (meta) meta.content = defaultDescription;
+      return;
+  }
+
+  const movieName = item.Title;
+  const year = item.Year || new Date().getFullYear();
+  // Ensure description is used, with fallback to name if empty
+  const description = item.Description?.trim() || `Watch and download ${movieName} (${year}) full movie online.`;
+
+  // 1. Title Tag अपडेट करें
+  document.title = `${movieName} (${year}) Full Movie Watch Online & Download - Dareloom Hub`;
+
+  // 2. META Description Tag अपडेट करें
+  let meta = document.querySelector('meta[name="description"]');
+  if (!meta) {
+      // अगर meta tag मौजूद नहीं है, तो नया बनाएं (should be in index.html, but safety first)
+      meta = document.createElement('meta');
+      meta.name = 'description';
+      document.head.appendChild(meta);
+  }
+  // SEO optimization: Include keywords in the meta description
+  meta.content = `${description} | ${movieName} (${year}) को Dareloom Hub पर HD क्वालिटी में देखें और डाउनलोड करें।`;
+}
+
+// ---------------------------------------------------------------------------------
+
 async function renderHome(page = 1) {
+  // 🌟 SEO FIX: Reset to default SEO for Home Page
+  updateDynamicSEO(null); 
+  
   const app = qs('#app');
   const data = await fetchAllRows();
   const categories = await getUniqueCategories(data);
@@ -124,11 +162,15 @@ async function renderHome(page = 1) {
 }
 
 async function renderCategory(cat, page = 1) {
+  // 🌟 SEO FIX: Reset to default SEO for Category Page
+  updateDynamicSEO(null); 
+  
   const app = qs('#app');
+  const catTitle = decodeURIComponent(cat).toUpperCase();
   app.innerHTML = `
   <div class="container">
     <div class="header-title-style">
-      <h2 class="category-heading">${decodeURIComponent(cat).toUpperCase()}</h2>
+      <h2 class="category-heading">${catTitle}</h2>
     </div>
     <div id="list" class="grid"></div>
     <div id="pagination" class="pagination"></div>
@@ -148,6 +190,9 @@ async function renderCategory(cat, page = 1) {
 }
 
 async function renderSearch(query, page = 1) {
+  // 🌟 SEO FIX: Reset to default SEO for Search Page
+  updateDynamicSEO(null); 
+  
   const app = qs('#app');
   app.innerHTML = `
   <div class="container">
@@ -170,14 +215,31 @@ async function renderSearch(query, page = 1) {
 function createWatchLinksHtml(item) {
   const watchData = item["Watch Link"] || item.WatchLink || '';
   if (!watchData) return '';
-  const parts = watchData.split('|').map(s => s.trim()).filter(s => s);
-  if (parts.length < 2) return '';
+  const parts = watchData.split(',').map(s => s.trim()).filter(s => s); // 🌟 FIX: Split by comma (,) as discussed earlier
+  
   let html = '<div class="watch-links-section"><h3>Watch Links:</h3><div class="watch-links">';
-  for (let i = 0; i < parts.length; i += 2) {
-    const label = parts[i];
-    const url = parts[i + 1];
-    if (label && url) html += `<a class="btn btn-watch-dynamic" href="${url}" target="_blank">${label}</a>`;
+  
+  // 🌟 FIX: Pass only the single string of links to /watch page
+  const watchUrl = encodeURIComponent(watchData); 
+  
+  // Display only one main Watch Now button that links to your /watch page
+  html += `<a class="btn btn-watch-dynamic" href="/watch?url=${watchUrl}" target="_blank" onclick="openAdsterraPop();">
+              ▶️ Watch Now & Download
+            </a>`;
+  
+  // Also display Telegram/Other links as regular buttons if they are present in the Watch Link column
+  if (parts.length > 0) {
+      parts.forEach(link => {
+          const lowerLink = link.toLowerCase();
+          if (lowerLink.includes("t.me") || lowerLink.includes("telegram")) {
+              html += `<a class="btn btn-telegram" href="${link}" target="_blank" onclick="openAdsterraPop();">
+                        ⬇️ Telegram Channel
+                     </a>`;
+          }
+          // Note: Mixdrop/Streamwish buttons are now combined into the main 'Watch Now' button
+      });
   }
+
   html += '</div></div>';
   return html;
 }
@@ -198,9 +260,18 @@ async function renderItemDetail(id) {
   const data = await fetchAllRows();
   // Since we reversed the data for home/pagination, we need to find the item in the reversed array
   const item = data.find(d => d._id === decodeURIComponent(id)); 
-  if (!item) { app.innerHTML = "<p class='not-found'>Item not found</p>"; return; }
+  if (!item) { 
+    app.innerHTML = "<p class='not-found'>Item not found</p>"; 
+    // 🌟 SEO FIX: Reset SEO if item not found
+    updateDynamicSEO(null); 
+    return; 
+  }
+  
+  // 🌟 SEO FIX: Update Title and Meta Tags for this specific movie
+  updateDynamicSEO(item); 
 
   const title = item.Title || 'Untitled';
+  const year = item.Year || 'N/A';
   const desc = item.Description || 'No description available.';
   const poster = item.Poster || '';
   // Use the full list of categories/genres for detail page
@@ -221,7 +292,7 @@ async function renderItemDetail(id) {
     <div class="detail-card">
       <img src="${poster}" alt="${title}" class="detail-poster">
       <div class="detail-meta">
-        <h1 class="detail-title">${title}</h1>
+        <h1 class="detail-title">${title} (${year})</h1> 
         <div class="detail-info-row">
           ${categoryTags}
           <span class="info-tag rating-tag">⭐ ${rating}</span>
