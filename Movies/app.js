@@ -1,4 +1,4 @@
-Const SHEET_ID = "1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o";
+const SHEET_ID = "1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o";
 const API_KEY = "AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 const SHEET_NAME = "Sheet2";
 const PAGE_SIZE = 6;
@@ -80,7 +80,6 @@ function movieCardHtml(item) {
   return `
   <div class="card" onclick="navigateTo('#/item/${encodeURIComponent(item._id)}')">
     <img src="${item.Poster || ''}" alt="${item.Title}">
-    <!-- Genre is a clickable <a> tag, event.stopPropagation() prevents detail page click -->
     <a href="javascript:void(0)" class="card-category" onclick="event.stopPropagation(); navigateTo('${genreHash}')">${genre}</a>
     <div class="card-body">
       <h3>${item.Title}</h3>
@@ -267,8 +266,5 @@ qs('#searchInput')?.addEventListener('keyup', (e) => {
   if (e.key === 'Enter') {
     const q = e.target.value.trim();
     if (q) window.location.hash = `#/search/${encodeURIComponent(q)}/page/1`;
-  }
-});
-
-window.addEventListener('hashchange', router);
-window.addEventListener('load', router);
+            }
+  
