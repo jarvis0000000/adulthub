@@ -1,4 +1,4 @@
-// ping-search.js
+// ping-search.mjs
 // ✅ Purpose: Notify Google, Bing & IndexNow instantly
 
 import fetch from "node-fetch";
@@ -35,7 +35,11 @@ async function pingSearchEngines() {
 
   for (const e of endpoints) {
     try {
-      const res = await fetch(e.url, e);
+      const res = await fetch(e.url, {
+        method: e.method || "GET",
+        headers: e.headers,
+        body: e.body
+      });
       if (res.ok) console.log(`✅ ${e.name} ping success`);
       else console.log(`⚠️ ${e.name} failed (${res.status})`);
     } catch (err) {
