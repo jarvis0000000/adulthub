@@ -13,14 +13,14 @@
   <meta name="rating" content="adult" />
   <link rel="canonical" href="https://dareloom.fun/" />
 
-  <!-- Preload main font (keep path correct on server) -->
+  <!-- Preload font -->
   <link rel="preload" href="/path/to/Poppins.woff2" as="font" type="font/woff2" crossorigin>
 
-  <!-- Icons (preserve your existing assets; change paths if you optimize later) -->
+  <!-- Icons -->
   <link rel="icon" href="/favicon.ico">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
-  <!-- Open Graph (for social sharing preview) -->
+  <!-- Open Graph -->
   <meta property="og:site_name" content="Dareloom Hub">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Dareloom Hub — Watch Trailers & Movies in HD">
@@ -28,13 +28,13 @@
   <meta property="og:url" content="https://dareloom.fun/">
   <meta property="og:image" content="https://dareloom.fun/web-app-manifest-512x512.png">
 
-  <!-- Twitter Card -->
+  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Dareloom Hub — Watch Trailers & Movies in HD">
   <meta name="twitter:description" content="Watch the latest erotic & romantic web series, movie trailers, and uncut clips in HD.">
   <meta name="twitter:image" content="https://dareloom.fun/web-app-manifest-512x512.png">
 
-  <!-- Structured Data: Website & Organization (helps search engines) -->
+  <!-- Structured Data -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -62,10 +62,8 @@
   }
   </script>
 
-  <!-- NOTE: Inline styles are kept (you asked not to remove). Ideally move this CSS to style.css -->
   <link rel="stylesheet" href="/style.css?v=20251017" />
   <style>
-    /* 🛑 NOTE: Inline styles present — recommended to move to style.css later */
     :root {
       --primary-color: #ff4b91;
       --secondary-color: #1e90ff;
@@ -291,11 +289,6 @@
       #latestList { gap: 12px; }
     }
   </style>
-
-  <!-- Third-party trackers: loading as async so they don't block initial render.
-       NOTE: If these are critical for revenue/ads and must run before content, revisit and load conditionally. -->
-  <script async src="https://bulletinsituatedelectronics.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js"></script>
-
 </head>
 
 <body>
@@ -341,10 +334,20 @@
     <div id="reelsContainer"></div>
   </div>
 
-  <!-- Additional 3rd-party script (async) -->
-  <script async src="https://bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js"></script>
+  <!-- Safe Ad Inject Logic -->
+  <script>
+    window.addEventListener("load", function() {
+      const ad1 = document.createElement("script");
+      ad1.src = "https://bulletinsituatedelectronics.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js";
+      document.body.appendChild(ad1);
 
-  <!-- Local site script: defer so it doesn't block parsing -->
+      const ad2 = document.createElement("script");
+      ad2.src = "https://bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
+      document.body.appendChild(ad2);
+    });
+  </script>
+
+  <!-- Main Script -->
   <script src="/script.js?v=20251017" defer></script>
 </body>
-</html>
+  </html>
