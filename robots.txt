@@ -32,6 +32,18 @@ Disallow: /
 User-agent: meta-externalagent
 Disallow: /
 
+User-agent: DataForSeoBot
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
 # -------------------------------
 # Major Search Engines
 # -------------------------------
@@ -40,19 +52,22 @@ Allow: /
 Disallow: /admin/
 Disallow: /private/
 
-User-agent: Google-Extended
-Allow: / 
-Disallow: /admin/
-Disallow: /private/
-
 User-agent: Bingbot
 Allow: /
+Disallow: /admin/
+Disallow: /private/
 
 User-agent: Yandex
 Allow: /
 
+User-agent: DuckDuckBot
+Allow: /
+
+User-agent: Applebot
+Allow: /
+
 # -------------------------------
-# Default Rules
+# SEO & Crawler Management
 # -------------------------------
 User-agent: *
 Disallow: /admin/
@@ -66,6 +81,23 @@ Disallow: /*?*filter=*
 Disallow: /*?*session=*
 Disallow: /*?*ref=*
 Disallow: /*?*utm_*
+Crawl-delay: 10
+Clean-param: utm_source&utm_medium&utm_campaign&utm_term&utm_content&ref / 
+
+# -------------------------------
+# Backlink & SEO Tool Crawlers (Optional block)
+# -------------------------------
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: Majestic
+Disallow: /
+
+User-agent: SEOkicks-Robot
+Disallow: /
 
 # -------------------------------
 # Sitemap Location
@@ -73,3 +105,7 @@ Disallow: /*?*utm_*
 Sitemap: https://dareloom.fun/sitemap.xml
 Sitemap: https://dareloom.fun/sitemap-video.xml
 Sitemap: https://dareloom.fun/sitemap-seo.xml
+
+# -------------------------------
+# End of File
+# -------------------------------
