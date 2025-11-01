@@ -1,17 +1,30 @@
 {
   "name": "dareloom-hub",
   "version": "1.0.0",
+  "description": "Dareloom.fun SEO generator – unified sitemap, robots, and IndexNow automation",
   "type": "module",
   "scripts": {
-    "build-pages": "node generate-actresses.js",
-    "build-sitemap": "node generate-sitemap.js",
-    "ping": "node ping-search.js",
+    "build-pages": "node generate-actresses.mjs",
+    "build-sitemap": "node generate-sitemap.mjs",
+    "ping": "node ping-search.mjs",
     "full": "npm run build-pages && npm run build-sitemap && npm run ping",
     "cron": "npm run full"
   },
   "dependencies": {
-    "node-fetch": "^3.3.2",
-    "path": "^0.12.7",
-    "fs": "^0.0.1-security"
-  }
+    "node-fetch": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "license": "MIT",
+  "author": "Namo",
+  "keywords": [
+    "dareloom",
+    "sitemap",
+    "seo",
+    "robots",
+    "indexnow",
+    "google-sheets",
+    "automation"
+  ]
 }
