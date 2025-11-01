@@ -1,0 +1,134 @@
+name: 🤖 Auto SEO + IndexNow + Cloudflare Deploy
+
+on:
+  schedule:
+    - cron: "0 */12 * * *" # ⏰ Every 12 hours
+  workflow_dispatch:
+
+jobs:
+  auto-seo:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ----------------------------------------
+      # 1️⃣ Checkout Repo
+      # ----------------------------------------
+      - name: 🧾 Checkout Repository
+        uses: actions/checkout@v4
+
+      # ----------------------------------------
+      # 2️⃣ Setup Node.js + Cache
+      # ----------------------------------------
+      - name: ⚙️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      # ----------------------------------------
+      # 3️⃣ Install Dependencies
+      # ----------------------------------------
+      - name: 📦 Install Dependencies
+        run: npm ci
+
+      # ----------------------------------------
+      # 4️⃣ Ensure IndexNow Key
+      # ----------------------------------------
+      - name: 🔑 Ensure IndexNow Key
+        run: |
+          mkdir -p ./public || true
+          if [ ! -f indexnow-key.txt ]; then
+            echo "⚙️ Generating new indexnow-key.txt..."
+            KEY=$(openssl rand -hex 16)
+            echo "$KEY" > indexnow-key.txt
+            echo "✅ New IndexNow key generated: $KEY"
+          else
+            echo "✅ Existing indexnow-key.txt found"
+          fi
+
+      # ----------------------------------------
+      # 5️⃣ Generate Main Sitemap + SEO Meta
+      # ----------------------------------------
+      - name: 🌐 Generate Main SEO Files
+        env:
+          SHEET_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }}
+        run: |
+          echo "🗺️ Running generate-sitemap.mjs..."
+          node generate-sitemap.mjs || echo "⚠️ Skipped main sitemap"
+
+      # ----------------------------------------
+      # 6️⃣ Generate Actress Pages + Sitemap
+      # ----------------------------------------
+      - name: 🎬 Generate Actress Pages + SEO Data
+        continue-on-error: true
+        run: |
+          echo "🎥 Running generate-actresses.mjs..."
+          node generate-actresses.mjs || echo "⚠️ Skipped actresses generation"
+
+      # ----------------------------------------
+      # 7️⃣ Commit and Push Changes
+      # ----------------------------------------
+      - name: 💾 Commit SEO Updates
+        id: commit
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add -f sitemap.xml sitemap.xml.gz robots.txt seo-meta.json \
+            sitemap-actors.xml seo-meta-actors.json sitemap-index.xml \
+            actors/ indexnow-key.txt _headers || true
+
+          if git diff --cached --quiet; then
+            echo "✅ No file changes to commit."
+            echo "files_committed=false" >> $GITHUB_OUTPUT
+          else
+            echo "📝 Files changed:"
+            git status -s
+            TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+            git commit -m "🤖 Auto SEO + IndexNow update: ${TIMESTAMP}"
+            git push origin main --no-verify
+            echo "✅ Changes committed & pushed."
+            echo "files_committed=true" >> $GITHUB_OUTPUT
+          fi
+
+      # ----------------------------------------
+      # 8️⃣ Trigger Cloudflare Pages Deploy
+      # ----------------------------------------
+      - name: 🚀 Deploy to Cloudflare Pages
+        if: success() && steps.commit.outputs.files_committed == 'true'
+        env:
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          CF_PROJECT_NAME: ${{ secrets.CF_PROJECT_NAME }}
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          echo "🚀 Deploying new build to Cloudflare..."
+          curl -X POST "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PROJECT_NAME}/deployments" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"branch":"main"}' \
+            --fail --silent --show-error || echo "⚠️ Cloudflare deploy skipped"
+
+      # ----------------------------------------
+      # 9️⃣ Purge Cloudflare Cache
+      # ----------------------------------------
+      - name: 🧹 Purge Cloudflare Cache
+        if: success() && steps.commit.outputs.files_committed == 'true'
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
+        run: |
+          echo "🧹 Clearing Cloudflare cache..."
+          curl -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
+            -H "Authorization: Bearer ${CF_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"files":["https://dareloom.fun/sitemap.xml","https://dareloom.fun/sitemap-actors.xml","https://dareloom.fun/robots.txt"]}'
+
+      # ----------------------------------------
+      # 🔟 Notify Search Engines (via ping-search.mjs)
+      # ----------------------------------------
+      - name: 🔔 Notify Search Engines
+        if: success() && steps.commit.outputs.files_committed == 'true'
+        continue-on-error: true
+        run: |
+          echo "🔔 Running ping-search.mjs..."
+          node ping-search.mjs || echo "⚠️ Ping script failed but continuing"
