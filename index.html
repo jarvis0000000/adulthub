@@ -1,26 +1,71 @@
 <!doctype html>
-<html lang="en">  
-<head>  
-  <meta charset="utf-8" />  
-  <meta name="viewport" content="width=device-width,initial-scale=1" />  
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />  
-  <title>Dareloom Hub — Watch Trailers & Movies in HD</title>  
-  <meta name="description" content="Watch the latest erotic & romantic web series, movie trailers, and uncut clips in HD. Daily updates, fast player, and curated picks for adults (18+)." />  
-  <meta name="keywords" content="Dareloom, erotic series, romantic movies, trailers, uncut clips, HD streaming, watch online, 18+ content" />  
-  <meta name="robots" content="index, follow" />  
-  <meta name="author" content="Dareloom Hub" />  
-  <meta name="theme-color" content="#000000" />  
-  <meta name="rating" content="adult" />  
-  <link rel="canonical" href="https://dareloom.fun/" />  
-  <link rel="stylesheet" href="/style.css?v=20251017" />  
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>Dareloom Hub — Watch Trailers & Movies in HD</title>
+  <meta name="description" content="Watch the latest erotic & romantic web series, movie trailers, and uncut clips in HD. Daily updates, fast player, and curated picks for adults (18+)." />
+  <meta name="keywords" content="Dareloom, erotic series, romantic movies, trailers, uncut clips, HD streaming, watch online, 18+ content" />
+  <meta name="robots" content="index, follow" />
+  <meta name="author" content="Dareloom Hub" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="rating" content="adult" />
+  <link rel="canonical" href="https://dareloom.fun/" />
 
+  <!-- Preload main font (keep path correct on server) -->
   <link rel="preload" href="/path/to/Poppins.woff2" as="font" type="font/woff2" crossorigin>
 
-  
-  <script type='text/javascript' src='https://bulletinsituatedelectronics.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js'></script>
-  
+  <!-- Icons (preserve your existing assets; change paths if you optimize later) -->
+  <link rel="icon" href="/favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+  <!-- Open Graph (for social sharing preview) -->
+  <meta property="og:site_name" content="Dareloom Hub">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Dareloom Hub — Watch Trailers & Movies in HD">
+  <meta property="og:description" content="Watch the latest erotic & romantic web series, movie trailers, and uncut clips in HD. Daily updates, fast player, and curated picks for adults (18+).">
+  <meta property="og:url" content="https://dareloom.fun/">
+  <meta property="og:image" content="https://dareloom.fun/web-app-manifest-512x512.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Dareloom Hub — Watch Trailers & Movies in HD">
+  <meta name="twitter:description" content="Watch the latest erotic & romantic web series, movie trailers, and uncut clips in HD.">
+  <meta name="twitter:image" content="https://dareloom.fun/web-app-manifest-512x512.png">
+
+  <!-- Structured Data: Website & Organization (helps search engines) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://dareloom.fun/#website",
+        "url": "https://dareloom.fun/",
+        "name": "Dareloom Hub",
+        "description": "Watch the latest erotic & romantic web series, movie trailers, and uncut clips in HD.",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://dareloom.fun/?s={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
+      },
+      {
+        "@type": "Organization",
+        "@id": "https://dareloom.fun/#org",
+        "name": "Dareloom Hub",
+        "url": "https://dareloom.fun/",
+        "logo": "https://dareloom.fun/web-app-manifest-512x512.png"
+      }
+    ]
+  }
+  </script>
+
+  <!-- NOTE: Inline styles are kept (you asked not to remove). Ideally move this CSS to style.css -->
+  <link rel="stylesheet" href="/style.css?v=20251017" />
   <style>
-    /* 🛑 NOTE: Inline styles yahan hain, but ideally ye sab style.css mein hone chahiye. */
+    /* 🛑 NOTE: Inline styles present — recommended to move to style.css later */
     :root {
       --primary-color: #ff4b91;
       --secondary-color: #1e90ff;
@@ -28,8 +73,7 @@
       --card-bg: #111;
       --text-color: #fff;
       --border-radius-base: 12px;
-      /* New color for Reels button */
-      --redgifs-color: #ff0000; 
+      --redgifs-color: #ff0000;
     }
     body {
       margin: 0;
@@ -65,13 +109,12 @@
       align-items: center;
       gap: 10px;
     }
-    /* 🔴 REDGIFS BUTTON STYLING (CENTERED) */
     .menu-toggle {
       background: var(--redgifs-color);
       color: #fff;
       border: none;
       border-radius: 8px;
-      width: auto; 
+      width: auto;
       height: 38px;
       padding: 0 10px;
       cursor: pointer;
@@ -82,10 +125,10 @@
       transform: scale(1.1);
       background: var(--primary-color);
     }
-    .grid { 
-      display: grid; 
-      gap: 20px; 
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); 
+    .grid {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     }
     .card {
       background: var(--card-bg);
@@ -248,54 +291,60 @@
       #latestList { gap: 12px; }
     }
   </style>
-</head>  
 
-<body>  
-  <header class="site">  
-    <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;">  
-      <div class="brand">  
-        <img src="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" alt="Dareloom Hub Logo" width="40" height="40">  
-        <h1 class="title">Dareloom Hub</h1>  
-      </div>  
-      <nav class="nav">  
-        <input type="search" id="searchInput" placeholder="Search titles..." aria-label="Search titles">  
-        <button class="menu-toggle" aria-label="Scroll Reels" onclick="openReelsPlayer()">REDGIFS</button>  
-      </nav>  
-    </div>  
-  </header>  
+  <!-- Third-party trackers: loading as async so they don't block initial render.
+       NOTE: If these are critical for revenue/ads and must run before content, revisit and load conditionally. -->
+  <script async src="https://bulletinsituatedelectronics.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js"></script>
 
-  <main id="mainWrap" class="wrap">  
-    <section class="hero section">  
-      <div class="hero-actions">  
-        <h2>Ready to watch the latest series?</h2>  
-        <a href="/Movies/" class="watch-movies-btn">🎬 Watch Erotic Movies Here →</a>  
-      </div>  
-    </section>  
+</head>
 
-    <section id="latestSection">  
-      <h2>📺 Latest Full Series Episodes</h2>  
+<body>
+  <header class="site">
+    <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;">
+      <div class="brand">
+        <img src="https://i.ibb.co/kV5CHZb2/web-app-manifest-512x512.png" alt="Dareloom Hub Logo" width="40" height="40" loading="lazy">
+        <h1 class="title">Dareloom Hub</h1>
+      </div>
+      <nav class="nav">
+        <input type="search" id="searchInput" placeholder="Search titles..." aria-label="Search titles">
+        <button class="menu-toggle" aria-label="Scroll Reels" onclick="openReelsPlayer()">REDGIFS</button>
+      </nav>
+    </div>
+  </header>
+
+  <main id="mainWrap" class="wrap">
+    <section class="hero section">
+      <div class="hero-actions">
+        <h2>Ready to watch the latest series?</h2>
+        <a href="/Movies/" class="watch-movies-btn">🎬 Watch Erotic Movies Here →</a>
+      </div>
+    </section>
+
+    <section id="latestSection">
+      <h2>📺 Latest Full Series Episodes</h2>
       <div id="latestList"></div>
       <div id="pager"></div>
-    </section>  
+    </section>
 
-    <section id="randomSection">  
-      <h2>🔥 Trending Erotic & Romantic Picks</h2>  
-      <div id="randomGrid" class="grid"></div>  
-    </section>  
-  </main>  
+    <section id="randomSection">
+      <h2>🔥 Trending Erotic & Romantic Picks</h2>
+      <div id="randomGrid" class="grid"></div>
+    </section>
+  </main>
 
-  <footer style="padding:14px;text-align:center;color:#777;">  
-    © Dareloom Hub — <a href="mailto:dareloom.official@gmail.com" style="color:var(--secondary-color);">Contact</a>  
-  </footer>  
+  <footer style="padding:14px;text-align:center;color:#777;">
+    © Dareloom Hub — <a href="mailto:dareloom.official@gmail.com" style="color:var(--secondary-color);">Contact</a>
+  </footer>
 
   <div id="reelsPlayer">
     <button id="reelsCloseBtn" onclick="closeReelsPlayer()">←</button>
     <div id="reelsContainer"></div>
   </div>
 
-  <script type='text/javascript' src='https://bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js'></script>
+  <!-- Additional 3rd-party script (async) -->
+  <script async src="https://bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js"></script>
 
-  <script src="/script.js?v=20251017"></script>
-
+  <!-- Local site script: defer so it doesn't block parsing -->
+  <script src="/script.js?v=20251017" defer></script>
 </body>
 </html>
