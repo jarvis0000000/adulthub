@@ -6,10 +6,13 @@
   <!-- Homepage -->
   <url>
     <loc>https://dareloom.fun/</loc>
+    <lastmod>2025-10-10T00:00:00+00:00</lastmod>
+    <priority>1.0</priority>
+    <changefreq>daily</changefreq>
     <video:video>
-      <video:title>Dareloom Hub – Free HD Videos &amp; Entertainment</video:title>
-      <video:description>Watch trending and high-quality entertainment videos on Dareloom Hub – updated daily.</video:description>
       <video:thumbnail_loc>https://dareloom.fun/assets/thumbs/home.jpg</video:thumbnail_loc>
+      <video:title><![CDATA[Dareloom Hub – Free HD Videos & Entertainment]]></video:title>
+      <video:description><![CDATA[Watch trending and high-quality entertainment videos on Dareloom Hub – updated daily.]]></video:description>
       <video:player_loc>https://dareloom.fun/watch.html</video:player_loc>
       <video:duration>120</video:duration>
       <video:rating>4.8</video:rating>
@@ -22,10 +25,13 @@
   <!-- Watch Page -->
   <url>
     <loc>https://dareloom.fun/watch.html</loc>
+    <lastmod>2025-10-10T00:00:00+00:00</lastmod>
+    <priority>0.9</priority>
+    <changefreq>daily</changefreq>
     <video:video>
-      <video:title>Latest HD Streaming Videos – Dareloom Hub</video:title>
-      <video:description>Stream full HD videos instantly without limits. Updated from global sources daily.</video:description>
       <video:thumbnail_loc>https://dareloom.fun/assets/thumbs/watch.jpg</video:thumbnail_loc>
+      <video:title><![CDATA[Latest HD Streaming Videos – Dareloom Hub]]></video:title>
+      <video:description><![CDATA[Stream full HD videos instantly without limits. Updated from global sources daily.]]></video:description>
       <video:player_loc>https://dareloom.fun/watch.html</video:player_loc>
       <video:duration>180</video:duration>
       <video:rating>4.9</video:rating>
@@ -35,13 +41,16 @@
     </video:video>
   </url>
 
-  <!-- Example dynamic video pages -->
+  <!-- Example Dynamic Video Pages -->
   <url>
     <loc>https://dareloom.fun/watch?v=1</loc>
+    <lastmod>2025-10-10T00:00:00+00:00</lastmod>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
     <video:video>
-      <video:title>Featured Stream 1 – Dareloom Hub</video:title>
-      <video:description>Watch this trending featured clip only on Dareloom Hub.</video:description>
       <video:thumbnail_loc>https://dareloom.fun/assets/thumbs/v1.jpg</video:thumbnail_loc>
+      <video:title><![CDATA[Featured Stream 1 – Dareloom Hub]]></video:title>
+      <video:description><![CDATA[Watch this trending featured clip only on Dareloom Hub.]]></video:description>
       <video:player_loc>https://dareloom.fun/watch?v=1</video:player_loc>
       <video:duration>200</video:duration>
       <video:rating>4.7</video:rating>
@@ -53,10 +62,13 @@
 
   <url>
     <loc>https://dareloom.fun/watch?v=2</loc>
+    <lastmod>2025-10-10T00:00:00+00:00</lastmod>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
     <video:video>
-      <video:title>Featured Stream 2 – Dareloom Hub</video:title>
-      <video:description>Enjoy smooth HD playback with top-tier global video hosting.</video:description>
       <video:thumbnail_loc>https://dareloom.fun/assets/thumbs/v2.jpg</video:thumbnail_loc>
+      <video:title><![CDATA[Featured Stream 2 – Dareloom Hub]]></video:title>
+      <video:description><![CDATA[Enjoy smooth HD playback with top-tier global video hosting.]]></video:description>
       <video:player_loc>https://dareloom.fun/watch?v=2</video:player_loc>
       <video:duration>210</video:duration>
       <video:rating>4.8</video:rating>
