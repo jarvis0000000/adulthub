@@ -2,12 +2,13 @@ name: 🗺️ Update Sitemap & Trigger Cloudflare Deployment
 
 on:
   schedule:
-    - cron: '0 * * * *' # every hour
+    - cron: '0 * * * *' # every hour (UTC)
   workflow_dispatch:
 
 jobs:
   build-sitemap:
     runs-on: ubuntu-latest
+
     steps:
       - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
@@ -20,19 +21,21 @@ jobs:
       - name: 📦 Install Dependencies
         run: npm ci
 
-      - name: 🗺️ Generate Sitemap
+      - name: 🗺️ Generate Sitemap + Ping Search Engines
         env:
           SHEET_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }}
-        run: npm run build
+        run: |
+          npm run build-sitemap || npm run build
+          npm run ping || true
 
       - name: 💾 Commit & Push Sitemap Updates
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add -f sitemap.xml sitemap.xml.gz robots.txt seo-meta.json _headers indexnow-key.txt || true
+          git add -f sitemap*.xml sitemap.xml.gz robots.txt seo-meta*.json _headers indexnow-key.txt || true
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          git commit -m "Auto-update sitemap: ${TIMESTAMP}" || echo "No changes to commit"
-          git push origin main || echo "No push needed"
+          git commit -m "Auto-update sitemap: ${TIMESTAMP}" || echo "🟡 No sitemap changes to commit"
+          git push origin main || echo "🟢 Nothing to push"
 
       - name: 🚀 Trigger Cloudflare Pages Deployment
         env:
@@ -44,12 +47,10 @@ jobs:
           curl -X POST "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PAGES_PROJECT}/deployments" \
           -H "Authorization: Bearer ${CLOUDFLARE_TOKEN}" \
           -H "Content-Type: application/json" \
-          --fail \
-          --silent \
-          --show-error \
-          --data '{"branch":"main"}'
+          --data '{"branch":"main"}' \
+          --fail --silent --show-error
 
-      - name: 🧹 Purge Cloudflare Cache (Optional)
+      - name: 🧹 Purge Cloudflare Cache
         if: env.CLOUDFLARE_ZONE_ID != ''
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -59,7 +60,5 @@ jobs:
           curl -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
           -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
           -H "Content-Type: application/json" \
-          --fail \
-          --silent \
-          --show-error \
-          --data '{"files":["https://dareloom.fun/sitemap.xml","https://dareloom.fun/robots.txt"]}'
+          --data '{"files":["https://dareloom.fun/sitemap.xml","https://dareloom.fun/robots.txt"]}' \
+          --fail --silent --show-error
