@@ -1,5 +1,6 @@
 # ===============================
 # Dareloom.fun - Cloudflare Headers (SEO + Performance)
+# Updated for SEO Injector Integration
 # ===============================
 
 # --------------------------------
@@ -9,11 +10,11 @@
   Content-Type: application/xml; charset=utf-8
   Cache-Control: public, max-age=3600
 
-/sitemap-actors.xml
+/sitemap-index.xml
   Content-Type: application/xml; charset=utf-8
   Cache-Control: public, max-age=3600
 
-/sitemap-index.xml
+/sitemap-actors.xml
   Content-Type: application/xml; charset=utf-8
   Cache-Control: public, max-age=3600
 
@@ -26,9 +27,13 @@
   Content-Type: text/plain; charset=utf-8
   Cache-Control: public, max-age=3600
 
+/indexnow-key.txt
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=86400
+
 
 # --------------------------------
-# HTML Files (Main Pages)
+# HTML Files (Main + Dynamic Routes)
 # --------------------------------
 /*
   Content-Type: text/html; charset=utf-8
@@ -36,12 +41,14 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer-when-downgrade
   X-XSS-Protection: 1; mode=block
-  Cache-Control: public, max-age=600
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Cache-Control: public, max-age=900, must-revalidate
+  Link: </manifest.webmanifest>; rel="manifest"
+  Content-Security-Policy: default-src 'self' data: blob: https:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'self'; form-action 'self'
 
 
 # --------------------------------
-# Static Assets (CSS, JS, Images)
+# Static Assets (CSS, JS, Images, Fonts)
 # --------------------------------
 /*.css
   Content-Type: text/css; charset=utf-8
@@ -69,9 +76,13 @@
 /*.ico
   Cache-Control: public, max-age=604800, immutable
 
+/*.woff2
+  Content-Type: font/woff2
+  Cache-Control: public, max-age=31536000, immutable
+
 
 # --------------------------------
-# Security Headers
+# Security + Privacy Enhancements
 # --------------------------------
 /*
   Permissions-Policy: accelerometer=(), camera=(), geolocation=(), microphone=(), payment=()
