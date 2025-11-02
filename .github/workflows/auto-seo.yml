@@ -1,150 +1,109 @@
-name: 🤖 Auto SEO + IndexNow + Cloudflare Deploy
+name: 🧠 Auto SEO + Sitemap + Cloudflare Deploy (with Smart Logs)
 
 on:
   schedule:
-    - cron: "0 */12 * * *" # ⏰ Every 12 hours
+    - cron: "0 */12 * * *" # ⏰ every 12 hours
   workflow_dispatch:
 
 jobs:
-  auto-seo:
+  seo-auto:
     runs-on: ubuntu-latest
 
     steps:
-      # ----------------------------------------
-      # 1️⃣ Checkout Repo
-      # ----------------------------------------
-      - name: 🧾 Checkout Repository
+      # 🧾 1️⃣ Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # ----------------------------------------
-      # 2️⃣ Setup Node.js + Cache
-      # ----------------------------------------
-      - name: ⚙️ Setup Node.js
+      # ⚙️ 2️⃣ Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
 
-      # ----------------------------------------
-      # 3️⃣ Install Dependencies
-      # ----------------------------------------
-      - name: 📦 Install Dependencies
+      # 📦 3️⃣ Install deps
+      - name: Install Dependencies
         run: npm ci
 
-      # ----------------------------------------
-      # 4️⃣ Ensure IndexNow Key
-      # ----------------------------------------
-      - name: 🔑 Ensure IndexNow Key
-        run: |
-          mkdir -p ./public || true
-          if [ ! -f indexnow-key.txt ]; then
-            echo "⚙️ Generating new indexnow-key.txt..."
-            KEY=$(openssl rand -hex 16)
-            echo "$KEY" > indexnow-key.txt
-            echo "✅ New IndexNow key generated: $KEY"
-          else
-            echo "✅ Existing indexnow-key.txt found"
-          fi
-
-      # ----------------------------------------
-      # 5️⃣ Generate Main Sitemap + SEO Meta
-      # ----------------------------------------
-      - name: 🌐 Generate Main SEO Files
+      # 🗺️ 4️⃣ Generate sitemap & ping
+      - name: Generate Sitemap + SEO Meta
         env:
           SHEET_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }}
         run: |
-          echo "🗺️ Running generate-sitemap.mjs..."
-          node generate-sitemap.mjs || echo "⚠️ Skipped main sitemap"
+          echo "🗺️ Generating sitemap..."
+          npm run build-sitemap || npm run build
+          npm run ping || true
 
-      # ----------------------------------------
-      # 6️⃣ Generate Actress Pages + Sitemap
-      # ----------------------------------------
-      - name: 🎬 Generate Actress Pages + SEO Data
-        continue-on-error: true
-        run: |
-          echo "🎥 Running generate-actresses.mjs..."
-          node generate-actresses.mjs || echo "⚠️ Skipped actresses generation"
-
-      # ----------------------------------------
-      # 7️⃣ Generate Sitemap Index + Update Log
-      # ----------------------------------------
-      - name: 🗂️ Build Sitemap Index + Update Log
-        run: |
-          echo "🗂️ Creating sitemap-index.xml..."
-          node sitemap-index.mjs || echo "⚠️ Sitemap index skipped"
-          echo "🧾 Updating run log..."
-          node update-log.mjs || echo "⚠️ Log update skipped"
-
-      # ----------------------------------------
-      # 8️⃣ Commit and Push Changes
-      # ----------------------------------------
-      - name: 💾 Commit SEO Updates
+      # 💾 5️⃣ Commit sitemap updates
+      - name: Commit & Push Sitemap Updates
         id: commit
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          git add -f sitemap.xml sitemap.xml.gz robots.txt seo-meta.json \
-            sitemap-actors.xml seo-meta-actors.json sitemap-index.xml \
-            actors/ indexnow-key.txt _headers logs/ || true
-
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -f sitemap*.xml sitemap.xml.gz robots.txt seo-meta*.json _headers indexnow-key.txt || true
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           if git diff --cached --quiet; then
-            echo "✅ No file changes to commit."
             echo "files_committed=false" >> $GITHUB_OUTPUT
+            echo "✅ No sitemap changes detected"
           else
-            echo "📝 Files changed:"
-            git status -s
-            TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-            git commit -m "🤖 Auto SEO + IndexNow update: ${TIMESTAMP}"
-            git push origin main --no-verify
-            echo "✅ Changes committed & pushed."
+            git commit -m "🗺️ Auto-update sitemap: ${TIMESTAMP}"
+            git push origin main
             echo "files_committed=true" >> $GITHUB_OUTPUT
           fi
 
-      # ----------------------------------------
-      # 9️⃣ Trigger Cloudflare Pages Deploy
-      # ----------------------------------------
-      - name: 🚀 Deploy to Cloudflare Pages
-        if: success() && steps.commit.outputs.files_committed == 'true'
+      # 🚀 6️⃣ Deploy to Cloudflare
+      - name: Deploy to Cloudflare Pages
+        if: steps.commit.outputs.files_committed == 'true'
         env:
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
           CF_PROJECT_NAME: ${{ secrets.CF_PROJECT_NAME }}
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
-          echo "🚀 Deploying new build to Cloudflare..."
+          echo "🚀 Triggering Cloudflare deploy..."
           curl -X POST "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PROJECT_NAME}/deployments" \
             -H "Authorization: Bearer ${CF_API_TOKEN}" \
             -H "Content-Type: application/json" \
             --data '{"branch":"main"}' \
             --fail --silent --show-error || echo "⚠️ Cloudflare deploy skipped"
 
-      # ----------------------------------------
-      # 🔟 Purge Cloudflare Cache
-      # ----------------------------------------
-      - name: 🧹 Purge Cloudflare Cache
-        if: success() && steps.commit.outputs.files_committed == 'true'
+      # 🧹 7️⃣ Purge Cloudflare Cache
+      - name: Purge Cloudflare Cache
+        if: steps.commit.outputs.files_committed == 'true'
         env:
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CF_ZONE_ID: ${{ secrets.CF_ZONE_ID }}
         run: |
-          echo "🧹 Clearing Cloudflare cache..."
+          echo "🧹 Purging Cloudflare cache..."
           curl -X POST "https://api.cloudflare.com/client/v4/zones/${CF_ZONE_ID}/purge_cache" \
             -H "Authorization: Bearer ${CF_API_TOKEN}" \
             -H "Content-Type: application/json" \
-            --data '{"files":["https://dareloom.fun/sitemap.xml","https://dareloom.fun/sitemap-actors.xml","https://dareloom.fun/sitemap-index.xml","https://dareloom.fun/robots.txt"]}'
+            --data '{"files":["https://dareloom.fun/sitemap.xml","https://dareloom.fun/robots.txt"]}' \
+            --fail --silent --show-error
 
-      # ----------------------------------------
-      # 1️⃣1️⃣ Notify Search Engines (via ping-search.mjs)
-      # ----------------------------------------
-      - name: 🔔 Notify Search Engines
-        if: success() && steps.commit.outputs.files_committed == 'true'
-        continue-on-error: true
+      # 📜 8️⃣ Save logs with timestamp (rotating)
+      - name: Save Run Logs
         run: |
-          echo "🔔 Running ping-search.mjs..."
-          node ping-search.mjs || echo "⚠️ Ping script failed but continuing"
+          mkdir -p ./logs
+          LOGFILE="./logs/seo-run-$(date -u +%Y%m%d-%H%M%S).log"
+          echo "🧾 Saving SEO run log to: $LOGFILE"
+          {
+            echo "Run Timestamp: $(date -u)"
+            echo "Branch: main"
+            echo "Files committed: ${{ steps.commit.outputs.files_committed }}"
+            echo "Sitemap size:"
+            du -h sitemap.xml || true
+            echo "Total sitemap entries:"
+            grep -c "<url>" sitemap.xml || true
+            echo "✅ Workflow completed successfully."
+          } > "$LOGFILE"
 
-      # ----------------------------------------
-      # 1️⃣2️⃣ Confirmation Log
-      # ----------------------------------------
-      - name: ✅ Final Confirmation
-        run: echo "🎉 Auto SEO + Sitemap + IndexNow workflow completed successfully!"
+          # 🧹 Keep last 7 days of logs only
+          find ./logs -type f -mtime +7 -name "seo-run-*.log" -exec rm {} \; || true
+          echo "🧹 Old logs older than 7 days deleted."
+
+      # 📦 9️⃣ Commit logs (optional)
+      - name: Commit Logs
+        run: |
+          git add ./logs || true
+          git commit -m "🧾 Add SEO logs for $(date -u +%Y-%m-%d)" || echo "No new logs to commit"
+          git push origin main || echo "No logs to push"
