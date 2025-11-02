@@ -1,12 +1,8 @@
 / /index.html 200
 /video /index.html 200
 /video/* /index.html 200
-/trailer /index.html 200
-/trailer/* /index.html 200
 /reel /index.html 200
 /reel/* /index.html 200
-/watch /index.html 200
-/watch/* /index.html 200
 /tags /index.html 200
 /tags/* /index.html 200
 /category /index.html 200
