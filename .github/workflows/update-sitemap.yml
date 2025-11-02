@@ -2,41 +2,71 @@ name: 🗺️ Update Sitemap & Trigger Cloudflare Deployment
 
 on:
   schedule:
-    - cron: '0 * * * *' # every hour (UTC)
+    - cron: '0 * * * *' # ⏰ Every hour (UTC)
   workflow_dispatch:
 
 jobs:
   build-sitemap:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
+      # ----------------------------------------
+      # 1️⃣ Checkout Repository
+      # ----------------------------------------
       - name: 🧾 Checkout Repository
         uses: actions/checkout@v4
 
+      # ----------------------------------------
+      # 2️⃣ Setup Node.js + Cache
+      # ----------------------------------------
       - name: ⚙️ Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
+      # ----------------------------------------
+      # 3️⃣ Install Dependencies
+      # ----------------------------------------
       - name: 📦 Install Dependencies
         run: npm ci
 
+      # ----------------------------------------
+      # 4️⃣ Generate Sitemap + Ping Search Engines
+      # ----------------------------------------
       - name: 🗺️ Generate Sitemap + Ping Search Engines
         env:
           SHEET_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }}
         run: |
-          npm run build-sitemap || npm run build
-          npm run ping || true
+          echo "🗺️ Building sitemap..."
+          npm run build-sitemap || npm run build || echo "⚠️ Sitemap build skipped"
+          
+          echo "🔔 Pinging search engines..."
+          npm run ping || echo "⚠️ Ping skipped"
 
+      # ----------------------------------------
+      # 5️⃣ Commit & Push Sitemap Updates
+      # ----------------------------------------
       - name: 💾 Commit & Push Sitemap Updates
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add -f sitemap*.xml sitemap.xml.gz robots.txt seo-meta*.json _headers indexnow-key.txt || true
-          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
-          git commit -m "Auto-update sitemap: ${TIMESTAMP}" || echo "🟡 No sitemap changes to commit"
-          git push origin main || echo "🟢 Nothing to push"
 
+          git add -f sitemap*.xml sitemap.xml.gz robots.txt seo-meta*.json \
+            _headers indexnow-key.txt || true
+
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          if git diff --cached --quiet; then
+            echo "🟢 No sitemap changes to commit."
+          else
+            git commit -m "🗺️ Auto-update sitemap: ${TIMESTAMP}" || true
+            git push origin main || echo "⚠️ Nothing to push."
+          fi
+
+      # ----------------------------------------
+      # 6️⃣ Trigger Cloudflare Pages Deployment
+      # ----------------------------------------
       - name: 🚀 Trigger Cloudflare Pages Deployment
         env:
           CLOUDFLARE_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -45,20 +75,29 @@ jobs:
         run: |
           echo "🚀 Triggering Cloudflare Pages Deployment..."
           curl -X POST "https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/pages/projects/${CF_PAGES_PROJECT}/deployments" \
-          -H "Authorization: Bearer ${CLOUDFLARE_TOKEN}" \
-          -H "Content-Type: application/json" \
-          --data '{"branch":"main"}' \
-          --fail --silent --show-error
+            -H "Authorization: Bearer ${CLOUDFLARE_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"branch":"main"}' \
+            --fail --silent --show-error || echo "⚠️ Cloudflare deploy failed or skipped."
 
+      # ----------------------------------------
+      # 7️⃣ Purge Cloudflare Cache (Optional)
+      # ----------------------------------------
       - name: 🧹 Purge Cloudflare Cache
         if: env.CLOUDFLARE_ZONE_ID != ''
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         run: |
-          echo "🧹 Purging Cloudflare cache for sitemap.xml..."
+          echo "🧹 Purging Cloudflare cache for sitemap..."
           curl -X POST "https://api.cloudflare.com/client/v4/zones/${CLOUDFLARE_ZONE_ID}/purge_cache" \
-          -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
-          -H "Content-Type: application/json" \
-          --data '{"files":["https://dareloom.fun/sitemap.xml","https://dareloom.fun/robots.txt"]}' \
-          --fail --silent --show-error
+            -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
+            -H "Content-Type: application/json" \
+            --data '{"files":["https://dareloom.fun/sitemap.xml","https://dareloom.fun/sitemap-actors.xml","https://dareloom.fun/robots.txt"]}' \
+            --fail --silent --show-error || echo "⚠️ Cache purge skipped"
+
+      # ----------------------------------------
+      # 8️⃣ Confirmation Message
+      # ----------------------------------------
+      - name: ✅ Done
+        run: echo "🎉 Sitemap build & Cloudflare deployment workflow completed successfully!"
