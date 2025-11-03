@@ -1,0 +1,33 @@
+name: Auto Traffic Booster — generate trending suggestions
+on:
+  schedule:
+    - cron: "0 */12 * * *" # every 12 hours
+  workflow_dispatch:
+
+jobs:
+  fetch-trends:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install deps
+        run: npm ci
+      - name: Run auto-traffic-booster
+        env:
+          TRENDS_COUNTRY: "IN"
+          TRENDS_MAX: "30"
+        run: node auto-traffic-booster.mjs
+      - name: Commit suggested files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -f data/suggested-trending.* || true
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: update suggested trending keywords (auto)"
+            git push origin main
+          fi
