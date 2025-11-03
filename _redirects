@@ -1,2 +1,2 @@
-/video /index.html 200
-/video/* /index.html 200
+/video/*   /   200
+/*         /index.html   200
