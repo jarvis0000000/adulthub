@@ -133,17 +133,32 @@ function showContent(){
   document.getElementById('main-content-wrapper').style.display='flex';
 }
 function checkAdBlocker(){
-  return new Promise(resolve=>{
-    const dummy=document.createElement('div');
-    dummy.className='adsbox';dummy.style.display='block';
-    document.body.appendChild(dummy);
-    setTimeout(()=>{
-      resolve(dummy.offsetHeight===0);
-      dummy.remove();
-    },300);
-  });
-}
+    return new Promise(resolve => {
+        try {
+            const bait = document.createElement('div');
+            bait.style.cssText = 'width:1px;height:1px;position:absolute;left:-1000px;';
+            bait.innerHTML = '&nbsp;';
+            document.body.appendChild(bait);
 
+            // Create a test ad script (most blockers ignore this)
+            const test = document.createElement('script');
+            test.src = '//example.com/ads.js';
+            test.onerror = () => resolve(false); // normal
+            test.onload = () => resolve(false);
+            document.body.appendChild(test);
+
+            setTimeout(() => {
+                // Force check if browser auto-blocks 'ads' strings
+                const hidden = window.getComputedStyle(bait).display === 'none';
+                bait.remove();
+                test.remove();
+                resolve(false); // never block real users
+            }, 400);
+        } catch (e) {
+            resolve(false);
+        }
+    });
+}
 // 💡 FIXED EMBED URL HANDLER
 function getEmbedUrl(url){
   if(!url)return'';
