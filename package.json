@@ -7,11 +7,17 @@
     "build-pages": "node generate-actresses.mjs",
     "build-sitemap": "node generate-sitemap.mjs",
     "ping": "node ping-search.mjs",
-    "full": "npm run build-pages && npm run build-sitemap && npm run ping",
+    "auto-seo": "node auto-seo.mjs",
+    "traffic": "node auto-traffic-booster.mjs",
+    "update": "node update-site.mjs",
+    "full": "npm run build-pages && npm run build-sitemap && npm run ping && npm run auto-seo && npm run traffic",
     "cron": "npm run full"
   },
   "dependencies": {
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "google-trends-api": "^4.9.2",
+    "xmlbuilder2": "^3.1.1",
+    "fs-extra": "^11.2.0"
   },
   "engines": {
     "node": ">=18.0.0"
