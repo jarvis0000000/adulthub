@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>🔥 Trending Keywords - Dareloom Hub</title>
+  <meta name="description" content="Discover the latest trending movie & web series keywords — boost SEO and organic traffic for Dareloom Hub. Updated automatically every 6 hours." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://dareloom.fun/trending.html" />
+
+  <!-- OG Tags -->
+  <meta property="og:title" content="Trending Keywords - Dareloom Hub" />
+  <meta property="og:description" content="Auto-updated trending search keywords for Dareloom Hub. Discover the latest hot topics in movies and series." />
+  <meta property="og:url" content="https://dareloom.fun/trending.html" />
+  <meta property="og:image" content="https://dareloom.fun/web-app-manifest-512x512.png" />
+
+  <style>
+    :root {
+      --bg: #0b0b0b;
+      --card: #181818;
+      --text: #f5f5f5;
+      --accent: #ff3d7f;
+      --muted: #aaa;
+      --radius: 10px;
+    }
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    header {
+      text-align: center;
+      padding: 24px 12px;
+      background: #111;
+    }
+    header h1 {
+      color: var(--accent);
+      font-size: 1.8rem;
+      margin: 0;
+    }
+    .intro {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-top: 6px;
+    }
+    #keywords {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 14px;
+      padding: 20px;
+    }
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 12px;
+      text-align: center;
+      transition: 0.2s;
+      border: 1px solid #222;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+    }
+    .card a {
+      text-decoration: none;
+      color: var(--text);
+      font-weight: 500;
+    }
+    footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 20px;
+      font-size: 0.85rem;
+      border-top: 1px solid #222;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🔥 Trending Keywords</h1>
+    <div class="intro">
+      Latest trending movie & web series search terms — updated every 6 hours.
+    </div>
+  </header>
+
+  <main id="keywords">
+    <div>Loading trending keywords...</div>
+  </main>
+
+  <footer>
+    © Dareloom Hub | Updated automatically for SEO & traffic growth 🚀
+  </footer>
+
+  <script>
+    async function loadTrending() {
+      try {
+        const res = await fetch("/data/trending-keywords.json");
+        const data = await res.json();
+        const list = document.getElementById("keywords");
+        list.innerHTML = "";
+
+        data.keywords.slice(0, 200).forEach(keyword => {
+          const el = document.createElement("div");
+          el.className = "card";
+          el.innerHTML = `<a href="https://www.google.com/search?q=${encodeURIComponent(keyword)}" target="_blank">${keyword}</a>`;
+          list.appendChild(el);
+        });
+      } catch (e) {
+        document.getElementById("keywords").innerHTML = "<p>⚠️ Failed to load keywords.</p>";
+      }
+    }
+    loadTrending();
+  </script>
+</body>
+</html>
