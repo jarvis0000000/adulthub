@@ -1,32 +1,52 @@
-// ✅ Adsterra Combo Setup (Popunder + Social Bar + Smartlink)
-// Load all after slight delay for better performance
+// 💰 Dareloom.fun - Adsterra Combo Booster v5
+// ✅ Popunder + Social Bar + SmartLink (Bulletinsituatedelectronics) + Retry + Delay Optimized
 
-setTimeout(() => {
-  // --- Popunder ---
-  const pop = document.createElement('script');
-  pop.async = true;
-  pop.src = "//pl19088548.profitablegatecpm.com/9b/11/60/9b1160b85f1a9d4cb9b84a91df10b3f0.js";
-  document.body.appendChild(pop);
+(function () {
+  console.log("🚀 Adsterra Combo Booster v5 Loaded (Bulletinsituatedelectronics)");
 
-  // --- Social Bar ---
-  const social = document.createElement('script');
-  social.async = true;
-  social.src = "//pl19088550.profitablegatecpm.com/15/3f/17/153f1788bb62cbb931fdf94cfeb0a3fc.js";
-  document.body.appendChild(social);
+  // 🔗 Ad URLs (replace only if you get new ones)
+  const POPUNDER = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
+  const SOCIALBAR = "//bulletinsituatedelectronics.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js";
+  const SMARTLINK = "https://bulletinsituatedelectronics.com/b95e6swf?key=0f61d8bf1a7278d5cf9f161ab55bafbb";
 
-  // --- Smartlink (Open silently for earning boost) ---
-  const smartLink = "https://www.profitablecpmrate.com/fpdd7ztfb?key=f5e28ff4d94a3f3e3c2f29e7cd395aa4";
-  const openSmartlink = () => {
-    const a = document.createElement("a");
-    a.href = smartLink;
-    a.target = "_blank";
-    a.rel = "noopener noreferrer";
-    a.click();
-  };
-
-  // Trigger smartlink once per session (after 10s)
-  if (!sessionStorage.getItem("smartlink_shown")) {
-    setTimeout(openSmartlink, 10000);
-    sessionStorage.setItem("smartlink_shown", "1");
+  // 🧩 Dynamic ad loader with retry
+  function loadAd(src, retries = 3) {
+    const s = document.createElement("script");
+    s.src = src;
+    s.async = true;
+    s.onload = () => console.log("✅ Loaded:", src);
+    s.onerror = () => {
+      console.warn("⚠️ Failed:", src, "| Retrying...");
+      if (retries > 0) setTimeout(() => loadAd(src, retries - 1), 2500);
+    };
+    document.body.appendChild(s);
   }
-}, 3000);
+
+  // 🚀 Gradual load (for smooth user experience)
+  function startAds() {
+    loadAd(POPUNDER); // Popunder first
+    setTimeout(() => loadAd(SOCIALBAR), 4000); // SocialBar after 4s
+  }
+
+  // 💥 SmartLink trigger (after real engagement only)
+  function triggerSmartlink() {
+    if (sessionStorage.getItem("smartlink_done")) return;
+    sessionStorage.setItem("smartlink_done", "1");
+
+    // natural random delay (looks organic)
+    setTimeout(() => {
+      window.open(SMARTLINK, "_blank");
+      console.log("🔗 Smartlink opened!");
+    }, Math.random() * 4000 + 2000);
+  }
+
+  // 🎯 Trigger Smartlink only on real user actions
+  ["click", "scroll", "touchstart"].forEach(evt => {
+    document.addEventListener(evt, triggerSmartlink, { once: true });
+  });
+
+  // ⏱ Start ads once page is ready
+  window.addEventListener("DOMContentLoaded", () => {
+    setTimeout(startAds, 3000);
+  });
+})();
