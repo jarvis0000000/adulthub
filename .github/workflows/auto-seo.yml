@@ -1,4 +1,4 @@
-name: 🧠 Auto SEO + Sitemap + Cloudflare Deploy (with Smart Logs)
+name: 🧠 Auto SEO + Sitemap + Cloudflare Deploy (Dareloom Smart Edition)
 
 on:
   schedule:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 🧾 1️⃣ Checkout
+      # 🧾 1️⃣ Checkout Repo
       - name: Checkout Repository
         uses: actions/checkout@v4
 
@@ -21,37 +21,38 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      # 📦 3️⃣ Install deps
+      # 📦 3️⃣ Install Dependencies
       - name: Install Dependencies
-        run: npm ci
+        run: npm ci || npm install
 
-      # 🗺️ 4️⃣ Generate sitemap & ping
-      - name: Generate Sitemap + SEO Meta
+      # ⚡ 4️⃣ Run Auto SEO (from Google Sheet)
+      - name: Fetch Sheet & Generate SEO Files
         env:
-          SHEET_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }}
+          SHEET_ID: "1A2I6jODnR99Hwy9ZJXPkGDtAFKfpYwrm3taCWZWoZ7o"
+          DOMAIN: "https://dareloom.fun"
         run: |
-          echo "🗺️ Generating sitemap..."
-          npm run build-sitemap || npm run build
-          npm run ping || true
+          echo "📥 Fetching sheet & generating SEO..."
+          node auto-seo.mjs "$SHEET_ID" "$DOMAIN"
+          echo "✅ SEO data generated: sitemap.xml, seo-meta.json, robots.txt"
 
-      # 💾 5️⃣ Commit sitemap updates
-      - name: Commit & Push Sitemap Updates
+      # 💾 5️⃣ Commit & Push Updates
+      - name: Commit Sitemap Updates
         id: commit
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add -f sitemap*.xml sitemap.xml.gz robots.txt seo-meta*.json _headers indexnow-key.txt || true
+          git add -f sitemap*.xml robots.txt seo-meta*.json indexnow-key.txt || true
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
           if git diff --cached --quiet; then
             echo "files_committed=false" >> $GITHUB_OUTPUT
-            echo "✅ No sitemap changes detected"
+            echo "✅ No new SEO changes"
           else
-            git commit -m "🗺️ Auto-update sitemap: ${TIMESTAMP}"
+            git commit -m "🧭 Auto SEO update — ${TIMESTAMP}"
             git push origin main
             echo "files_committed=true" >> $GITHUB_OUTPUT
           fi
 
-      # 🚀 6️⃣ Deploy to Cloudflare
+      # 🚀 6️⃣ Cloudflare Deploy
       - name: Deploy to Cloudflare Pages
         if: steps.commit.outputs.files_committed == 'true'
         env:
@@ -64,7 +65,7 @@ jobs:
             -H "Authorization: Bearer ${CF_API_TOKEN}" \
             -H "Content-Type: application/json" \
             --data '{"branch":"main"}' \
-            --fail --silent --show-error || echo "⚠️ Cloudflare deploy skipped"
+            --fail --silent --show-error || echo "⚠️ Deploy skipped"
 
       # 🧹 7️⃣ Purge Cloudflare Cache
       - name: Purge Cloudflare Cache
@@ -80,30 +81,23 @@ jobs:
             --data '{"files":["https://dareloom.fun/sitemap.xml","https://dareloom.fun/robots.txt"]}' \
             --fail --silent --show-error
 
-      # 📜 8️⃣ Save logs with timestamp (rotating)
+      # 🧾 8️⃣ Log Reports
       - name: Save Run Logs
         run: |
           mkdir -p ./logs
           LOGFILE="./logs/seo-run-$(date -u +%Y%m%d-%H%M%S).log"
-          echo "🧾 Saving SEO run log to: $LOGFILE"
+          echo "🧾 Saving SEO log to $LOGFILE"
           {
-            echo "Run Timestamp: $(date -u)"
-            echo "Branch: main"
+            echo "Timestamp: $(date -u)"
             echo "Files committed: ${{ steps.commit.outputs.files_committed }}"
-            echo "Sitemap size:"
-            du -h sitemap.xml || true
-            echo "Total sitemap entries:"
+            echo "URLs in sitemap:"
             grep -c "<url>" sitemap.xml || true
-            echo "✅ Workflow completed successfully."
           } > "$LOGFILE"
+          find ./logs -type f -mtime +7 -delete || true
 
-          # 🧹 Keep last 7 days of logs only
-          find ./logs -type f -mtime +7 -name "seo-run-*.log" -exec rm {} \; || true
-          echo "🧹 Old logs older than 7 days deleted."
-
-      # 📦 9️⃣ Commit logs (optional)
+      # 📜 9️⃣ Commit Logs
       - name: Commit Logs
         run: |
           git add ./logs || true
-          git commit -m "🧾 Add SEO logs for $(date -u +%Y-%m-%d)" || echo "No new logs to commit"
-          git push origin main || echo "No logs to push"
+          git commit -m "🧾 Add SEO logs for $(date -u +%Y-%m-%d)" || echo "No logs changed"
+          git push origin main || true
