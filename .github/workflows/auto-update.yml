@@ -13,21 +13,28 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v3
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: "20"
 
       - name: Install Dependencies
-        run: npm install node-fetch@3 googleapis
+        run: |
+          npm install node-fetch@3 googleapis
 
-      - name: Run Auto Update
-        run: node ./update-site.mjs
+      - name: Run Auto SEO + Traffic Booster
+        env:
+          SHEET_KEY: ${{ secrets.SHEET_KEY }}
+          SMARTLINK: "https://bulletinsituatedelectronics.com/b95e6swf?key=0f61d8bf1a7278d5cf9f161ab55bafbb"
+        run: |
+          node ./auto-seo.mjs
+          node ./auto-traffic-booster.mjs
+          node ./update-site.mjs
 
       - name: Commit & Push Changes
         run: |
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
           git add .
-          git commit -m "✅ Auto SEO + Movies Update $(date)"
+          git commit -m "✅ Auto SEO + Traffic Update $(date)"
           git push
