@@ -1,7 +1,7 @@
 // auto-traffic-booster.mjs
-// Fetch trending keywords from Google Trends and generate suggestion rows
-// Output: ./data/suggested-trending.csv and ./data/suggested-trending.json
-// NOTE: This script reads public trends (no OAuth). To automatically write to Google Sheets you need OAuth/service-account - instructions below.
+// 🔥 Google Trends Auto Keyword Fetcher
+// Fetches trending keywords and generates CSV/JSON/TXT under ./data/
+// Works without OAuth. Use service-account if you want direct Google Sheets update.
 
 import fs from "fs";
 import path from "path";
@@ -14,124 +14,153 @@ const __dirname = path.dirname(__filename);
 const OUT_DIR = path.join(process.cwd(), "data");
 if (!fs.existsSync(OUT_DIR)) fs.mkdirSync(OUT_DIR, { recursive: true });
 
-const COUNTRY = process.env.TRENDS_COUNTRY || "IN"; // change to your target e.g. "US","IN","GB"
+const COUNTRY = process.env.TRENDS_COUNTRY || "IN";
 const MAX_KEYWORDS = parseInt(process.env.TRENDS_MAX || "25", 10);
 
-// Helper: slug (simple)
 function slugify(s = "") {
-  return String(s).toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+  return String(s)
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 }
 
 function todayISO() {
   return new Date().toISOString().split("T")[0];
 }
 
-// Convert a trend label -> sheet row object
 function toRowObj(keyword) {
-  // A: Title, C: Trailer, G: Watch, R: Thumbnail, T: Date, U: Category
-  // We create a basic title that includes a trigger phrase to improve search match.
-  const title = `${keyword} — full video`;
-  const trailer = ""; // left blank for manual / downstream pipeline
-  const watch = "";   // left blank
-  const thumb = "";   // left blank
-  const date = todayISO();
-  const category = "adult"; // default category; you can map common keywords to nicer categories
-  return { A: title, C: trailer, G: watch, R: thumb, T: date, U: category };
+  return {
+    A: `${keyword} — full video`,
+    C: "",
+    G: "",
+    R: "",
+    T: todayISO(),
+    U: "adult",
+  };
 }
 
-// Build CSV from rows
 function rowsToCsv(rows) {
-  // header row with columns names (A..U style)
-  const header = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U"];
-  // We'll only populate A,C,G,R,T,U — others empty
+  const header = [
+    "A","B","C","D","E","F","G","H","I","J",
+    "K","L","M","N","O","P","Q","R","S","T","U",
+  ];
   const lines = [header.join(",")];
   for (const r of rows) {
-    const rowArray = header.map(col => {
-      if (col === "A") return `"${(r.A||"").replace(/"/g,'""')}"`;
-      if (col === "C") return `"${(r.C||"").replace(/"/g,'""')}"`;
-      if (col === "G") return `"${(r.G||"").replace(/"/g,'""')}"`;
-      if (col === "R") return `"${(r.R||"").replace(/"/g,'""')}"`;
-      if (col === "T") return `"${(r.T||"").replace(/"/g,'""')}"`;
-      if (col === "U") return `"${(r.U||"").replace(/"/g,'""')}"`;
-      return `""`;
+    const rowArray = header.map((col) => {
+      const val = r[col] || "";
+      return `"${String(val).replace(/"/g, '""')}"`;
     });
     lines.push(rowArray.join(","));
   }
   return lines.join("\n");
 }
 
-// Primary function: fetch daily trending searches for a country
+// 🟢 Try multiple trend sources for max reliability
 async function fetchTrending(country = COUNTRY, max = MAX_KEYWORDS) {
-  console.log(`📈 Fetching top ${max} trending keywords for country: ${country} ...`);
-  try {
-    // google-trends-api: use dailyTrends with geo
-    const res = await googleTrends.dailyTrends({ geo: country, hl: "en-US" , tz: 0 });
-    const json = JSON.parse(res);
+  console.log(`📈 Fetching top ${max} trending keywords for: ${country}...`);
+  let keywords = [];
 
-    // Traversal depends on API structure
-    // dailyTrends contains timelineTrends[0].trendingSearchesDays array — each day object contains trendingSearches
-    const days = (json.default && json.default.trendingSearchesDays) || [];
-    if (!days.length) {
-      console.warn("⚠️ No dailyTrends returned — fallback to top trending queries (if available)");
-    }
-    const keywords = [];
+  try {
+    const res = await googleTrends.dailyTrends({ geo: country, hl: "en-US", tz: 0 });
+    const json = JSON.parse(res);
+    const days = json.default?.trendingSearchesDays || [];
+
     for (const day of days) {
       const searches = day.trendingSearches || [];
       for (const s of searches) {
-        const title = s.title && (s.title.query || s.title.title) || s.title || s;
+        const title = s.title?.query || s.title?.title || s.title || s;
         if (title && !keywords.includes(title)) keywords.push(title);
         if (keywords.length >= max) break;
       }
       if (keywords.length >= max) break;
     }
+  } catch (err) {
+    console.warn("⚠️ dailyTrends failed:", err.message);
+  }
 
-    // Fallback: if empty, try related topics
-    if (keywords.length === 0 && json.default && json.default.rankedList && json.default.rankedList.length) {
-      for (const list of json.default.rankedList) {
-        for (const item of list.rankedKeyword) {
-          if (item && item.topic && item.topic.title && !keywords.includes(item.topic.title)) {
-            keywords.push(item.topic.title);
-            if (keywords.length >= max) break;
-          }
-        }
+  // Fallback: realTimeTrends
+  if (keywords.length === 0) {
+    try {
+      console.log("🔁 Trying realTimeTrends...");
+      const res = await googleTrends.realTimeTrends({ geo: country, category: "all" });
+      const json = JSON.parse(res);
+      const stories = json.storySummaries?.trendingStories || [];
+      for (const story of stories) {
+        const title = story.title || story.entityNames?.[0];
+        if (title && !keywords.includes(title)) keywords.push(title);
         if (keywords.length >= max) break;
       }
+    } catch (err) {
+      console.warn("⚠️ realTimeTrends failed:", err.message);
     }
-
-    return keywords.slice(0, max);
-  } catch (err) {
-    console.error("❌ google-trends fetch error:", err.message || err);
-    return [];
   }
+
+  // Fallback: relatedTopics (generic)
+  if (keywords.length === 0) {
+    try {
+      console.log("🔁 Trying relatedTopics (fallback)...");
+      const res = await googleTrends.relatedTopics({ keyword: "movie", geo: country, hl: "en-US" });
+      const json = JSON.parse(res);
+      const topics = json.default?.rankedList?.[0]?.rankedKeyword || [];
+      for (const t of topics) {
+        const title = t.topic?.title || t.title;
+        if (title && !keywords.includes(title)) keywords.push(title);
+        if (keywords.length >= max) break;
+      }
+    } catch (err) {
+      console.warn("⚠️ relatedTopics fallback failed:", err.message);
+    }
+  }
+
+  if (keywords.length === 0) {
+    console.error("❌ No keywords fetched from any source.");
+  }
+
+  return keywords.slice(0, max);
 }
 
 async function main() {
   const keywords = await fetchTrending(COUNTRY, MAX_KEYWORDS);
+
   if (!keywords.length) {
-    console.warn("⚠️ No trending keywords found. Exiting.");
+    console.warn("⚠️ No keywords found — nothing to save.");
     process.exit(0);
   }
 
-  // convert to rows
-  const rows = keywords.map(k => toRowObj(k));
+  const rows = keywords.map(toRowObj);
 
-  // Write JSON
   const jsonPath = path.join(OUT_DIR, "suggested-trending.json");
-  fs.writeFileSync(jsonPath, JSON.stringify({ generated: new Date().toISOString(), country: COUNTRY, rows, source: "google-trends" }, null, 2), "utf8");
-  console.log("✅ Wrote", jsonPath);
+  fs.writeFileSync(
+    jsonPath,
+    JSON.stringify(
+      {
+        generated: new Date().toISOString(),
+        country: COUNTRY,
+        count: keywords.length,
+        source: "google-trends",
+        rows,
+      },
+      null,
+      2
+    ),
+    "utf8"
+  );
+  console.log("✅ Wrote JSON:", jsonPath);
 
-  // Write CSV
   const csvPath = path.join(OUT_DIR, "suggested-trending.csv");
   fs.writeFileSync(csvPath, rowsToCsv(rows), "utf8");
-  console.log("✅ Wrote", csvPath);
+  console.log("✅ Wrote CSV:", csvPath);
 
-  // Also write a plain keyword list
-  const kwPath = path.join(OUT_DIR, "suggested-trending-keywords.txt");
-  fs.writeFileSync(kwPath, keywords.join("\n"), "utf8");
-  console.log("✅ Wrote", kwPath);
+  const txtPath = path.join(OUT_DIR, "suggested-trending-keywords.txt");
+  fs.writeFileSync(txtPath, keywords.join("\n"), "utf8");
+  console.log("✅ Wrote TXT:", txtPath);
 
-  console.log(`🎯 Done. Inspect ${csvPath} and ${jsonPath}. To push these into your Google Sheet you need OAuth/service-account — instructions below.`);
+  console.log("🎯 Done — Data ready in /data folder!");
   process.exit(0);
 }
 
-main();
+main().catch((err) => {
+  console.error("💥 Fatal Error:", err);
+  process.exit(1);
+});
