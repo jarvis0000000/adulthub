@@ -1,15 +1,17 @@
-# 🔗 Redirect www → non-www (canonical)
-https://www.dareloom.fun/* https://dareloom.fun/:splat 301
+ # 🔗 Redirect www → non-www (canonical)
+/*          /index.html 200
+/www/*      /:splat 301
 
-# 🧭 Redirect HTTP → HTTPS
-http://dareloom.fun/* https://dareloom.fun/:splat 301
+# 🧭 Redirect HTTP → HTTPS (Cloudflare handles this automatically)
+# NOTE: Cloudflare Pages already forces HTTPS. If needed for extra safety, keep below.
+/http/*     /:splat 301
 
 # 🗺️ Direct access to sitemap & robots (no redirect loops)
-/sitemap.xml  /sitemap.xml 200
-/robots.txt   /robots.txt 200
+/sitemap.xml    /sitemap.xml   200
+/robots.txt     /robots.txt    200
 
 # 🎬 Redirect old /video/ URLs → /movies/
-/video/*  /movies/:splat 301
+/video/*   /movies/:splat 301
 
 # 🔍 SEO-friendly short links
 /latest     /movies/latest.html 301
