@@ -1,7 +1,7 @@
 /**
  * 🗺️ Dareloom.fun — Unified Sitemap + Robots.txt + SEO Meta + IndexNow (Movies + SEO)
  * ✅ Cloudflare / Vercel / Node-ready
- * ⚡ Author: Namo — Final Optimized Version
+ * ⚡ Final Optimized Version — by Namo & GPT-5
  */
 
 import fs from "fs";
@@ -31,17 +31,22 @@ const FILES = {
 };
 
 // ========== HELPERS ==========
-const slugify = t =>
-  t.toString().toLowerCase().trim()
+const slugify = (t) =>
+  t
+    .toString()
+    .toLowerCase()
+    .trim()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-const formatDate = d => {
+const formatDate = (d) => {
   const date = new Date(d);
-  return !isNaN(date) ? date.toISOString().split("T")[0] : new Date().toISOString().split("T")[0];
+  return !isNaN(date)
+    ? date.toISOString().split("T")[0]
+    : new Date().toISOString().split("T")[0];
 };
 
-const parseRows = values => {
+const parseRows = (values) => {
   if (!values || values.length < 2) return [];
   const rows = values.slice(1);
   const out = [];
@@ -53,7 +58,10 @@ const parseRows = values => {
 
     if (title && watch) {
       const slug = slugify(title);
-      const id = Buffer.from(watch).toString("base64").slice(0, 8).replace(/[^a-zA-Z0-9]/g, "");
+      const id = Buffer.from(watch)
+        .toString("base64")
+        .slice(0, 8)
+        .replace(/[^a-zA-Z0-9]/g, "");
       out.push({
         url: `${BASE_URL}/movies/${slug}-${id}`,
         title,
@@ -64,9 +72,9 @@ const parseRows = values => {
   return out;
 };
 
-const pingSearchEngines = async urls => {
+const pingSearchEngines = async (urls) => {
+  console.log("📡 Pinging Google, Bing & IndexNow...");
   try {
-    console.log("📡 Pinging Google, Bing, and IndexNow...");
     await Promise.allSettled([
       fetch(`https://www.google.com/ping?sitemap=${BASE_URL}/sitemap.xml`),
       fetch(`https://www.bing.com/ping?sitemap=${BASE_URL}/sitemap.xml`),
@@ -81,7 +89,7 @@ const pingSearchEngines = async urls => {
         }),
       }),
     ]);
-    console.log("✅ Search engine pings sent successfully!");
+    console.log("✅ Pings sent successfully!");
   } catch (err) {
     console.error("⚠️ Ping failed:", err.message);
   }
@@ -98,15 +106,23 @@ async function generate() {
     const items = parseRows(json.values);
     console.log(`✅ Loaded ${items.length} movies from Google Sheets`);
 
-    const staticPages = ["/", "/watch.html", "/seo/main.html", "/seo/global.html", "/movies/"];
+    const staticPages = [
+      "/",
+      "/watch.html",
+      "/seo/main.html",
+      "/seo/global.html",
+      "/movies/",
+    ];
     const seoCats = [
-      "amateur", "anal", "asian", "bdsm", "big-tits", "cosplay", "creampie", "cumshot", "ebony",
-      "gangbang", "global", "handjob", "interracial", "lesbian", "massage", "milf", "pov",
-      "public", "rough-sex", "squirting", "step-fantasy", "teen", "threesome"
+      "amateur", "anal", "asian", "bdsm", "big-tits", "cosplay", "creampie", "cumshot",
+      "ebony", "gangbang", "global", "handjob", "interracial", "lesbian",
+      "massage", "milf", "pov", "public", "rough-sex", "squirting",
+      "step-fantasy", "teen", "threesome"
     ];
 
     const latestMod = formatDate(
-      items.map(i => new Date(i.date)).filter(d => !isNaN(d)).sort((a, b) => b - a)[0] || new Date()
+      items.map((i) => new Date(i.date)).filter((d) => !isNaN(d)).sort((a, b) => b - a)[0] ||
+        new Date()
     );
 
     // ========== SITEMAP.XML ==========
@@ -124,32 +140,22 @@ async function generate() {
 
     xml += `</urlset>`;
     fs.writeFileSync(FILES.SITEMAP, xml.trim());
-    console.log("✅ sitemap.xml generated");
-
-    zlib.gzip(xml.trim(), (err, buf) => {
-      if (!err) fs.writeFileSync(FILES.SITEMAP_GZ, buf);
-    });
+    zlib.gzip(xml.trim(), (err, buf) => !err && fs.writeFileSync(FILES.SITEMAP_GZ, buf));
+    console.log("✅ sitemap.xml + sitemap.xml.gz created");
 
     // ========== ROBOTS.TXT ==========
-    const robotsTxt = `# 🤖 Dareloom Robots.txt — Secure & SEO Friendly
-
-# Block AI & Scraper Bots
+    const robotsTxt = `# 🤖 Dareloom Robots.txt — SEO & Secure Crawling
 User-agent: GPTBot
 Disallow: /
 User-agent: ClaudeBot
 Disallow: /
 User-agent: PerplexityBot
 Disallow: /
-User-agent: Diffbot
-Disallow: /
 User-agent: OmgiliBot
 Disallow: /
 User-agent: ChatGPT
 Disallow: /
-User-agent: FacebookBot
-Disallow: /
 
-# Search Engine Bots
 User-agent: Googlebot
 Allow: /
 Disallow: /admin/
@@ -172,10 +178,10 @@ Sitemap: ${BASE_URL}/sitemap.xml
 Sitemap: ${BASE_URL}/sitemap.xml.gz
 `;
     fs.writeFileSync(FILES.ROBOTS, robotsTxt);
-    console.log("✅ robots.txt created");
+    console.log("✅ robots.txt generated");
 
     // ========== SEO META JSON ==========
-    const meta = items.map(i => ({
+    const meta = items.map((i) => ({
       title: i.title,
       url: i.url,
       description: `${i.title} — Watch full HD video on Dareloom.fun for free.`,
@@ -183,8 +189,9 @@ Sitemap: ${BASE_URL}/sitemap.xml.gz
       lastModified: i.date,
     }));
     fs.writeFileSync(FILES.META, JSON.stringify(meta, null, 2));
+    console.log("✅ seo-meta.json created");
 
-    // ========== HEADERS ==========
+    // ========== HEADERS & INDEXNOW ==========
     const headers = `/sitemap.xml
   Content-Type: application/xml; charset=utf-8
 /sitemap.xml.gz
@@ -198,15 +205,17 @@ Sitemap: ${BASE_URL}/sitemap.xml.gz
 `;
     fs.writeFileSync(FILES.HEADERS, headers);
     fs.writeFileSync(FILES.INDEXNOW, INDEXNOW_KEY);
-    console.log("✅ headers + indexnow key created");
+    console.log("✅ _headers & indexnow key saved");
 
-    // Ping search engines
-    await pingSearchEngines(items.map(i => i.url));
+    await pingSearchEngines(items.map((i) => i.url));
 
-    console.log("🎉 ALL DONE — Sitemap + Robots + SEO + IndexNow successfully generated!");
+    console.log("🎉 DONE — Sitemap + Robots + SEO + IndexNow fully generated!");
   } catch (err) {
     console.error("❌ ERROR:", err.message);
-    fs.writeFileSync(FILES.SITEMAP, '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>');
+    fs.writeFileSync(
+      FILES.SITEMAP,
+      '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>'
+    );
   }
 }
 
