@@ -11,7 +11,7 @@
     "traffic": "node auto-traffic-booster.mjs",
     "update": "node update-site.mjs",
     "full": "npm run build-pages && npm run build-sitemap && npm run ping && npm run auto-seo && npm run traffic",
-    "cron": "npm run full"
+    "cron": "npm run full",
     "deploy": "npm run full && echo '✅ Build complete, ready to deploy to Cloudflare Pages!'"
   },
   "dependencies": {
