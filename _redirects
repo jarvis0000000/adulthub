@@ -1,33 +1,24 @@
 # ===============================
-# Dareloom.fun - Redirect Rules
-# SEO Canonical + SPA Fallback + Legacy Support
+# Dareloom.fun - Optimized Redirect Rules
 # ===============================
 
 # --------------------------------
-# 🔗 Canonical Redirects
+# 🔗 Canonical Redirects (SEO)
+# Enforce HTTPS and non-www as the primary domain
 # --------------------------------
 
 # Redirect www → non-www (canonical)
-https://www.dareloom.fun/*   https://dareloom.fun/:splat   301
+https://www.dareloom.fun/* https://dareloom.fun/:splat   301
 
 # Redirect HTTP → HTTPS
-http://dareloom.fun/*        https://dareloom.fun/:splat   301
+http://dareloom.fun/* https://dareloom.fun/:splat   301
 
 
 # --------------------------------
-# 🗺️ Sitemap & Robots (Prevent loops)
+# 🎬 Legacy Support (Old URL → New Path)
 # --------------------------------
-/sitemap.xml                 /sitemap.xml                   200
-/sitemap-index.xml           /sitemap-index.xml             200
-/sitemap-actors.xml          /sitemap-actors.xml            200
-/robots.txt                  /robots.txt                    200
-/indexnow-key.txt            /indexnow-key.txt              200
-
-
-# --------------------------------
-# 🎬 Old URL → New Path Redirects
-# --------------------------------
-/video/*                     /movies/:splat                 301
+# /video/any-title  → /movies/any-title
+/video/* /movies/:splat                 301
 
 
 # --------------------------------
@@ -40,10 +31,9 @@ http://dareloom.fun/*        https://dareloom.fun/:splat   301
 
 # --------------------------------
 # 🌐 SPA (Single Page App) Fallback
+# Always keep this LAST — catches unknown routes (e.g., /about, /profile)
 # --------------------------------
-# Always keep this LAST — catches unknown routes
-/*                           /index.html                    200
-
+/* /index.html                    200
 
 # ===============================
 # End of File
