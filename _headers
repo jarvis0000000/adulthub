@@ -31,7 +31,6 @@
   Content-Type: text/plain; charset=utf-8
   Cache-Control: public, max-age=86400
 
-
 # --------------------------------
 # HTML Files (Main + Dynamic Routes)
 # --------------------------------
@@ -45,7 +44,10 @@
   Cache-Control: public, max-age=900, must-revalidate
   Link: </manifest.webmanifest>; rel="manifest"
   Content-Security-Policy: default-src 'self' data: blob: https:; script-src 'self' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https:; connect-src 'self' https:; frame-ancestors 'self'; form-action 'self'
-
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), microphone=(), payment=()
+  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Resource-Policy: same-origin
 
 # --------------------------------
 # Static Assets (CSS, JS, Images, Fonts)
@@ -79,16 +81,6 @@
 /*.woff2
   Content-Type: font/woff2
   Cache-Control: public, max-age=31536000, immutable
-
-
-# --------------------------------
-# Security + Privacy Enhancements
-# --------------------------------
-/*
-  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), microphone=(), payment=()
-  Cross-Origin-Embedder-Policy: require-corp
-  Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Resource-Policy: same-origin
 
 # ===============================
 # End of File
