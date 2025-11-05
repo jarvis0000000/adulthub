@@ -10,7 +10,7 @@
   --background: #000;
   --text-color: #fff;
   --muted-color: #aaa;
-  --highlight-green: #4CAF50; /* New Green for Header/Glow */
+  --highlight-green: #4CAF50; /* Green for Header/Glow */
 }
 body,html {
   margin:0;padding:0;height:100%;
@@ -95,41 +95,11 @@ footer {text-align:center;padding:10px;color:var(--muted-color);width:100%;}
   background: #555;
   color: #fff;
 }
-#weekly-top-videos {
-    width: 100%;
-    margin-top: 25px;
-    padding-top: 15px;
-    border-top: 1px solid #222;
-}
-#weekly-top-videos h3 {
-    text-align: center;
-    color: var(--primary);
-    margin-bottom: 15px;
-    text-transform: uppercase;
-}
-#weekly-videos-list {
-    display: flex;
-    justify-content: space-around;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-.video-thumbnail {
-    width: 150px; /* Adjust size as needed */
-    text-align: center;
-    text-decoration: none;
-    color: var(--text-color);
-    font-size: 12px;
-}
-.video-thumbnail img {
-    width: 100%;
-    height: auto;
-    border-radius: 4px;
-    border: 1px solid #444;
-    transition: transform 0.2s;
-}
-.video-thumbnail:hover img {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+#video-title {
+  color: var(--primary); 
+  text-align:center; 
+  margin-top:5px; 
+  font-size:24px;
 }
 </style>
 </head>
@@ -142,14 +112,10 @@ footer {text-align:center;padding:10px;color:var(--muted-color);width:100%;}
 <div id="main-content-wrapper">
   <div id="user-message">🎉 Enjoy watching! Click full screen for best experience.</div>
   
-  <div id="tags-container">
+  <h2 id="video-title"></h2> <div id="tags-container">
     <p style="color:var(--muted-color); font-size:14px; margin-bottom: 5px;">Categories/Tags:</p>
     <div id="current-video-tags">
-      <a href="/?category=milf" class="tag-link">MILF</a>
-      <a href="/?category=public" class="tag-link">Public</a>
-      <a href="/?category=asmr" class="tag-link">ASMR</a>
-      <a href="/?category=cosplay" class="tag-link">Cosplay</a>
-    </div>
+      </div>
   </div>
 
   <div id="videoWrap"></div>
@@ -174,32 +140,6 @@ footer {text-align:center;padding:10px;color:var(--muted-color);width:100%;}
 
   <div id="controls-container"></div>
   
-  <div id="weekly-top-videos">
-    <h3>🔥 Weekly Top Picks</h3>
-    <div id="weekly-videos-list">
-      <a href="/watch.html?id=1" class="video-thumbnail">
-          <img src="https://via.placeholder.com/150x84/111/fff?text=Video+1" alt="Top Video 1">
-          <p>Title 1</p>
-      </a>
-      <a href="/watch.html?id=2" class="video-thumbnail">
-          <img src="https://via.placeholder.com/150x84/111/fff?text=Video+2" alt="Top Video 2">
-          <p>Title 2</p>
-      </a>
-      <a href="/watch.html?id=3" class="video-thumbnail">
-          <img src="https://via.placeholder.com/150x84/111/fff?text=Video+3" alt="Top Video 3">
-          <p>Title 3</p>
-      </a>
-      <a href="/watch.html?id=4" class="video-thumbnail">
-          <img src="https://via.placeholder.com/150x84/111/fff?text=Video+4" alt="Top Video 4">
-          <p>Title 4</p>
-      </a>
-      <a href="/watch.html?id=5" class="video-thumbnail">
-          <img src="https://via.placeholder.com/150x84/111/fff?text=Video+5" alt="Top Video 5">
-          <p>Title 5</p>
-      </a>
-    </div>
-  </div>
-
 </div>
 <footer>© Dareloom Hub</footer>
 <script>
@@ -256,15 +196,15 @@ function checkAdBlocker(){
         }
     });
 }
-// 💡 FIXED EMBED URL HANDLER (Kept original logic)
+// 💡 FIXED EMBED URL HANDLER (Mixdrop fix improved)
 function getEmbedUrl(url){
   if(!url)return'';
   let u=url.trim();
   
-  // MixDrop Fix
+  // MixDrop Fix: /f/ को /e/ से बदलता है, चाहे डोमेन कुछ भी हो
   if(u.includes("mixdrop.")||u.includes("/f/")){
     let id=u.match(/(?:\/f\/|\/)([A-Za-z0-9]{6,20})/);
-    if(id&&id[1])return`https://mixdrop.co/e/${id[1]}`;
+    if(id&&id[1])return`https://mixdrop.co/e/${id[1]}`; // Always point to mixdrop.co/e/
   }
   
   // Streamwish
@@ -289,57 +229,39 @@ function getEmbedUrl(url){
   return u;
 }
 
-// 💡 NEW: Function to load weekly top videos data
-function loadWeeklyVideos() {
-    // This is the data you said you update daily from your sheet.
-    // Replace this placeholder array with a function call to fetch your actual data,
-    // or manually update this array daily/weekly.
-    const weeklyVideos = [
-        { title: "Summer Fun", url: "/watch.html?id=123", thumbnail: "https://via.placeholder.com/150x84/1e88e5/fff?text=Summer+Fun" },
-        { title: "New Release 2", url: "/watch.html?id=456", thumbnail: "https://via.placeholder.com/150x84/e91e63/fff?text=New+Release+2" },
-        { title: "Top Hit Today", url: "/watch.html?id=789", thumbnail: "https://via.placeholder.com/150x84/4CAF50/fff?text=Top+Hit+Today" },
-        { title: "Cosplay Special", url: "/watch.html?id=101", thumbnail: "https://via.placeholder.com/150x84/ff4500/fff?text=Cosplay+Special" },
-        { title: "Latest Find", url: "/watch.html?id=102", thumbnail: "https://via.placeholder.com/150x84/6a0dad/fff?text=Latest+Find" }
-    ];
-
-    const listContainer = document.getElementById('weekly-videos-list');
-    if (!listContainer) return;
-
-    listContainer.innerHTML = ''; // Clear placeholders
-
-    weeklyVideos.forEach(video => {
-        const link = document.createElement('a');
-        link.href = video.url;
-        link.className = 'video-thumbnail';
-        link.innerHTML = `
-            <img src="${video.thumbnail}" alt="${video.title}">
-            <p>${video.title}</p>
-        `;
-        listContainer.appendChild(link);
-    });
+// 💡 NEW: Function to load video title from URL params
+function loadVideoTitle(title) {
+    const titleElement = document.getElementById('video-title');
+    if (title && titleElement) {
+        const decodedTitle = decodeURIComponent(title);
+        titleElement.textContent = decodedTitle;
+        document.title = decodedTitle + ' - Dareloom Hub'; 
+    } else {
+         titleElement.textContent = 'Watch Video';
+         document.title = 'Watch Video - Dareloom Hub';
+    }
 }
 
-// 💡 NEW: Function to load current video tags
-function loadVideoTags() {
-    // You'll need to update the logic here to read the tags for the current video.
-    // Since your current URL structure only passes a 'url' parameter, I'll use placeholders.
-    // If you pass 'tags' in the URL (e.g., ?url=...&tags=milf,asmr,public), you can retrieve them.
-    const params = new URLSearchParams(location.search);
-    const rawTags = params.get("tags");
-    
+// 💡 NEW: Function to load current video tags from URL parameter
+function loadVideoTags(rawTags) {
     const tagsContainer = document.getElementById('current-video-tags');
     tagsContainer.innerHTML = '';
 
-    // Placeholder Tags - UPDATE THIS WITH YOUR ACTUAL TAG LOGIC
-    const tags = (rawTags ? rawTags.split(',').map(t => t.trim()) : ["milf", "public", "asmr", "cosplay"]); 
+    if (!rawTags) {
+        tagsContainer.innerHTML = '<span style="color:var(--muted-color); font-style: italic;">No tags available.</span>';
+        return;
+    }
+
+    // Split tags by comma, trim spaces, and filter empty ones
+    const tags = decodeURIComponent(rawTags).split(',').map(t => t.trim()).filter(Boolean);
 
     tags.forEach(tag => {
         const tagElement = document.createElement('a');
         tagElement.className = 'tag-link';
-        // This makes the tag clickable, leading to a category/search page
+        // Tag links redirect to a search/category page
         tagElement.href = `/?category=${encodeURIComponent(tag.toLowerCase())}`;
         tagElement.textContent = tag.toUpperCase();
-        tagElement.setAttribute('onclick', 'openAdsterraPop()'); // Open pop ad on click
+        tagElement.setAttribute('onclick', 'openAdsterraPop()'); 
         tagsContainer.appendChild(tagElement);
     });
 }
@@ -351,6 +273,9 @@ async function loadVideo(){
   
   const params=new URLSearchParams(location.search);
   const raw=params.get("url");
+  const videoTitle = params.get("title"); // Get title
+  const videoTags = params.get("tags");   // Get tags
+
   const videoWrap=document.getElementById("videoWrap");
   const ctr=document.getElementById("controls-container");
   ctr.innerHTML='';
@@ -363,7 +288,8 @@ async function loadVideo(){
   
   for(const l of links){
     const x=l.toLowerCase();
-    if(x.includes("t.me"))telegram=l;
+    // 💡 FIX: Telegram link kept as its own variable
+    if(x.includes("t.me") || x.includes("telegram"))telegram=l; 
     else if(x.includes("mixdrop.")||x.includes("/f/"))host.mixdrop=l;
     else if(x.includes("streamwish.")||x.includes("dumbalag.")||x.includes("hglink."))host.streamwish=l;
     else if(x.includes("streamtape."))host.streamtape=l;
@@ -387,15 +313,16 @@ async function loadVideo(){
   }
   
   // Buttons
-  if(telegram)ctr.innerHTML+=`<a class="btn btn-telegram" href="${telegram}" target="_blank" onclick="openAdsterraPop()">⬇️ Download / Telegram</a>`;
+  // 💡 FIX: Telegram button opens link directly
+  if(telegram)ctr.innerHTML+=`<a class="btn btn-telegram" href="${telegram}" target="_blank">⬇️ Download / Telegram</a>`;
   if(host.mixdrop)ctr.innerHTML+=`<a class="btn btn-mixdrop" href="${host.mixdrop}" target="_blank" onclick="openAdsterraPop()">🔗 MixDrop</a>`;
   if(host.streamwish)ctr.innerHTML+=`<a class="btn btn-streamwish" href="${host.streamwish}" target="_blank" onclick="openAdsterraPop()">🔗 Streamwish</a>`;
   if(host.streamtape)ctr.innerHTML+=`<a class="btn btn-streamtape" href="${host.streamtape}" target="_blank" onclick="openAdsterraPop()">🔗 Streamtape</a>`;
   if(host.mega)ctr.innerHTML+=`<a class="btn btn-mega" href="${host.mega}" target="_blank" onclick="openAdsterraPop()">🔗 MEGA</a>`;
 
   // Load new elements
-  loadVideoTags();
-  loadWeeklyVideos();
+  loadVideoTitle(videoTitle); 
+  loadVideoTags(videoTags);   
 }
   
 document.addEventListener("DOMContentLoaded",loadVideo);
