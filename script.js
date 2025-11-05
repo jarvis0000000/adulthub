@@ -10,7 +10,7 @@ const API_KEY = "AIzaSyBFnyqCW37BUL3qrpGva0hitYUhxE_x5nw";
 
 const SHEET_API = `https://sheets.googleapis.com/v4/spreadsheets/${CORRECT_SHEET_ID}/values/Sheet1?alt=json&key=${API_KEY}`;
 const SHEET_API_REELS = `https://sheets.googleapis.com/v4/spreadsheets/${CORRECT_SHEET_ID}/values/Sheet3!A:B?alt=json&key=${API_KEY}`;
-const PER_PAGE = 5;
+const PER_PAGE = 6;
 const RANDOM_COUNT = 4;
 
 // ------------- STATE -------------
