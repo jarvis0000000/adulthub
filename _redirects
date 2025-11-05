@@ -4,13 +4,13 @@
 # ===============================
 
 # 🔗 Redirect www → non-www (canonical)
-/*  /:splat 301!
-https://www.dareloom.fun/*  /:splat 301!
+https://www.dareloom.fun/* https://dareloom.fun/:splat 301
 
 # 🧭 Redirect HTTP → HTTPS
-http://dareloom.fun/*  https://dareloom.fun/:splat 301!
+http://dareloom.fun/* https://dareloom.fun/:splat 301
 
 # 🗺️ Direct access to sitemap & robots (no redirect loops)
+# Prevent redirect loops for XML and TXT
 /sitemap.xml          /sitemap.xml 200
 /sitemap-index.xml    /sitemap-index.xml 200
 /sitemap-actors.xml   /sitemap-actors.xml 200
@@ -20,15 +20,15 @@ http://dareloom.fun/*  https://dareloom.fun/:splat 301!
 /indexnow-key.txt     /indexnow-key.txt 200
 
 # 🎬 Redirect old /video/ URLs → /movies/
-/video/*  /movies/:splat 301
+/video/* /movies/:splat 301
 
-# 🔍 SEO-friendly short links (placed before wildcards)
+# 🔍 SEO-friendly short links
 /latest     /movies/latest.html 301
 /trending   /trending.html 301
 /actresses  /actors.html 301
 
-# 🌐 SPA fallback (no infinite loop)
-/*  /index.html 200!
+# 🌐 SPA fallback (must be last)
+/* /index.html 200
 
 # ===============================
 # End of File
