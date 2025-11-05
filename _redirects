@@ -1,39 +1,33 @@
 # ===============================
-# Dareloom.fun - Optimized Redirect Rules
+# Dareloom.fun - Redirect Rules (SEO + SPA)
 # ===============================
 
-# --------------------------------
-# 🔗 Canonical Redirects (SEO)
-# Enforce HTTPS and non-www as the primary domain
-# --------------------------------
+# 🔗 Redirect www → non-www (canonical)
+www/* /:splat 301
 
-# Redirect www → non-www (canonical)
-https://www.dareloom.fun/* https://dareloom.fun/:splat   301
+# 🧭 Redirect HTTP → HTTPS
+http://* https://dareloom.fun/:splat 301
 
-# Redirect HTTP → HTTPS
-http://dareloom.fun/* https://dareloom.fun/:splat   301
+# 🗺️ Direct access to sitemap & robots (no redirect loops)
+/sitemap.xml          /sitemap.xml 200
+/sitemap-index.xml    /sitemap-index.xml 200
+/sitemap-actors.xml   /sitemap-actors.xml 200
+/sitemap-video.xml    /sitemap-video.xml 200
+/sitemap-seo.xml      /sitemap-seo.xml 200
+/robots.txt           /robots.txt 200
+/indexnow-key.txt     /indexnow-key.txt 200
 
+# 🎬 Redirect old /video/ URLs → /movies/
+/video/*  /movies/:splat 301
 
-# --------------------------------
-# 🎬 Legacy Support (Old URL → New Path)
-# --------------------------------
-# /video/any-title  → /movies/any-title
-/video/* /movies/:splat                 301
+# 🔍 SEO-friendly short links
+/latest     /movies/latest.html 301
+/trending   /trending.html 301
+/actresses  /actors.html 301
 
-
-# --------------------------------
-# 🔍 SEO-Friendly Shortcuts
-# --------------------------------
-/latest                      /movies/latest.html            301
-/trending                    /trending.html                 301
-/actresses                   /actors.html                   301
-
-
-# --------------------------------
-# 🌐 SPA (Single Page App) Fallback
-# Always keep this LAST — catches unknown routes (e.g., /about, /profile)
-# --------------------------------
-/* /index.html                    200
+# 🌐 Universal fallback (for SPA support)
+# Keep this LAST — handles all unknown routes
+/*  /index.html 200
 
 # ===============================
 # End of File
