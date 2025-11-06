@@ -3,7 +3,26 @@
 <head>  
   <meta charset="utf-8" />  
   <meta name="viewport" content="width=device-width,initial-scale=1" />  
-  <title id="pageTitle">Trailer & Watch Details</title>  
+  <title id="pageTitle">Loading Trailer & Details...</title> 
+  <meta name="description" id="metaDescription" content="Watch trailer and details for the latest series and movies." />
+  <meta name="keywords" id="metaKeywords" content="trailer, watch, movie, series, hd" />
+  
+  <meta property="og:site_name" content="Dareloom Hub">
+  <meta property="og:type" content="video.other">
+  <meta property="og:title" id="ogTitle" content="Loading Trailer...">
+  <meta property="og:description" id="ogDescription" content="">
+  <meta property="og:url" id="ogUrl" content="">
+  <meta property="og:image" id="ogImage" content="">
+  
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" id="twitterTitle" content="Loading Trailer...">
+  <meta name="twitter:description" id="twitterDescription" content="">
+  <meta name="twitter:image" id="twitterImage" content="">
+
+  <link rel="canonical" id="canonicalUrl" href="https://dareloom.fun/trailer.html">
+
+  <script type="application/ld+json" id="schemaMarkup">{}</script>
+
   <link rel="stylesheet" href="/style.css?v=20251021" />  
   <style>
     /* Inline styles for trailer.html specific layout */
@@ -78,14 +97,13 @@
       background: var(--primary-color);
       color: #fff;
     }
-    /* Note: Streamtape and Telegram button styles are now redundant but kept for style consistency */
-    #streamtapeButton {
-      background: #0088ff; 
-      color: #fff;
+    /* Dynamic Info Styles */
+    .meta-detail {
+        margin: 10px 0;
+        font-size: 1.1rem;
     }
-    #telegramButton {
-      background: #2aabee; 
-      color: #fff;
+    .meta-detail strong {
+        color: var(--primary-color);
     }
     #description {
       color: #aaa;
@@ -100,6 +118,7 @@
         border: none;
         padding: 5px 10px;
         margin-right: 5px;
+        margin-bottom: 5px;
         border-radius: 4px;
         cursor: pointer;
         font-size: 0.9rem;
@@ -116,7 +135,16 @@
 
 <body>  
     <div class="wrap">
+        <a href="/" style="display:inline-block; margin-bottom:10px; color:var(--secondary-color);">← Back to Homepage</a>
+        
         <h1 id="videoTitle">Loading...</h1>
+        
+        <div id="metaInfo" style="margin-bottom: 20px;">
+            <p class="meta-detail" id="studioInfo"></p>
+            <p class="meta-detail" id="castInfo"></p>
+            <p class="meta-detail" id="yearInfo"></p>
+        </div>
+        
         <div class="video-player-container">
             <div id="playerEmbed">
                 </div>
@@ -125,11 +153,12 @@
         <div class="action-buttons">
             </div>
 
-        <h2>Description and Tags</h2>
+        <h2>Description</h2>
         <p id="description">Loading description...</p>
+        
+        <h2>Tags & Categories</h2>
         <div id="tagsContainer"></div>
 
-        <a href="/" style="display:block; text-align:center; margin-top:30px; color:var(--secondary-color);">← Back to Homepage</a>
     </div>
 
     <script>
@@ -140,10 +169,31 @@
             return new URLSearchParams(window.location.search).get(name);
         }
         
+        function escapeHtml(s){
+            return (s||'').toString()
+                .replace(/&/g,'&amp;')
+                .replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;')
+                .replace(/"/g,'&quot;')
+                .replace(/'/g,'&#39;');
+        }
+        
+        function slugify(text){
+            return (text||'').toString().toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+        }
+
         function extractYouTubeID(url) {
             if (!url) return null;
             const m = url.match(/(?:v=|youtu.be\/|shorts\/|embed\/)([0-9A-Za-z_-]{11})/);
             return m ? m[1] : null;
+        }
+
+        function makeThumbnail(it){
+            if (it.poster && it.poster.trim()) return it.poster.trim();
+            const y = extractYouTubeID(it.trailer || it.watch);
+            // Default YouTube HD thumbnail or generic fallback
+            if (y) return `https://img.youtube.com/vi/${y}/hqdefault.jpg`; 
+            return 'https://placehold.co/600x400?text=Dareloom+Hub';
         }
         
         // 🛑 FINAL EMBED LOGIC: Supports YouTube, Streamtape, and Direct URLs
@@ -168,8 +218,6 @@
             return '';
         }
         
-        // Simplified: Since you are using /go.html as an ad-gate/redirect, 
-        // the target URL should just be the original watch link.
         function openWatchPage(targetUrl){
             if (!targetUrl) return;
             // Target URL is the original full link (could be multiple links)
@@ -177,11 +225,104 @@
             window.location.href = redirectPage; 
         }
 
+        /**
+         * 💡 Renders Studio, Cast, and Category tags, linking them back to the homepage filter.
+         */
         function renderTagsForItem(it){
-            if (!it.category || !it.category.trim()) return '';
-            const parts = it.category.split(',').map(p => p.trim()).filter(Boolean);
-            return parts.map(p => `<span class="tag-btn" data-tag="${p}">#${p}</span>`).join(' ');
+            const parts = [];
+            // Add Studio as a filterable tag
+            if (it.studio) {
+                parts.push({ name: it.studio, type: 'studio' });
+            }
+            // Add Cast members as filterable tags
+            if (it.cast) {
+                it.cast.split(',').map(p => p.trim()).filter(Boolean).forEach(c => 
+                    parts.push({ name: c, type: 'cast' })
+                );
+            }
+            // Add Categories/Tags
+            if (it.category) {
+                it.category.split(',').map(p => p.trim()).filter(Boolean).forEach(c => 
+                    parts.push({ name: c, type: 'category' })
+                );
+            }
+
+            // Remove duplicates based on name
+            const uniqueParts = [...new Map(parts.map(item => [item.name, item])).values()];
+
+            return uniqueParts.map(p => {
+                const filterUrl = `/?filter=${slugify(p.name)}`;
+                return `<a href="${filterUrl}" class="tag-btn">${escapeHtml(p.name)}</a>`;
+            }).join(' ');
         }
+        
+        /**
+         * 💡 Sets all necessary meta tags (Title, Description, OG/Twitter) for SEO.
+         */
+        function setMetaTags(item) {
+            const title = item.title || 'Untitled Video';
+            const desc = item.description.substring(0, 150) + '...' || 'Watch the trailer and details for this exclusive video.';
+            const thumb = makeThumbnail(item);
+            const url = window.location.href.split('?')[0] + '?id=' + encodeURIComponent(item.id);
+
+            // 1. Core Tags
+            qs('#pageTitle').textContent = `${title} | Watch Trailer & Details`;
+            qs('#metaDescription').setAttribute('content', desc);
+            
+            // Build Keywords from all relevant fields
+            const keywords = [title, item.studio, item.cast, item.category, 'trailer', 'watch online'].filter(Boolean).join(', ').substring(0, 200);
+            qs('#metaKeywords').setAttribute('content', keywords);
+            qs('#canonicalUrl').setAttribute('href', url);
+
+            // 2. Open Graph / Twitter Tags (CRITICAL FOR SOCIAL SHARING & SEO)
+            qs('#ogTitle').setAttribute('content', title);
+            qs('#ogDescription').setAttribute('content', desc);
+            qs('#ogUrl').setAttribute('content', url);
+            qs('#ogImage').setAttribute('content', thumb);
+
+            qs('#twitterTitle').setAttribute('content', title);
+            qs('#twitterDescription').setAttribute('content', desc);
+            qs('#twitterImage').setAttribute('content', thumb);
+        }
+
+        /**
+         * 💡 Creates JSON-LD VideoObject Schema for Rich Results in Google Search.
+         */
+        function createVideoSchema(item) {
+            const datePublished = item.date ? new Date(item.date).toISOString() : new Date().toISOString();
+            const embedUrl = item.trailer ? toEmbedUrl(item.trailer) : '';
+
+            const schema = {
+                "@context": "https://schema.org",
+                "@type": "VideoObject",
+                "name": item.title,
+                "description": item.description,
+                "thumbnailUrl": makeThumbnail(item),
+                "uploadDate": datePublished,
+                "contentUrl": embedUrl || item.watch, // Use embed if available, otherwise the main watch link
+                "embedUrl": embedUrl,
+                "duration": "PT0M0S", // Duration needs to be fetched if possible, setting to 0 for now
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "Dareloom Hub",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": "https://dareloom.fun/web-app-manifest-512x512.png" // Replace with your actual logo URL
+                    }
+                }
+            };
+            
+            // Add actors/cast if available
+            if (item.cast) {
+                schema.actor = item.cast.split(',').map(name => ({
+                    "@type": "Person",
+                    "name": name.trim()
+                }));
+            }
+
+            qs('#schemaMarkup').textContent = JSON.stringify(schema, null, 2);
+        }
+
 
         // --- Main Trailer Page Logic ---
         async function loadTrailerPage() {
@@ -191,20 +332,31 @@
             const item = allItems.find(i => i.id === id);
 
             if (!id || !item) {
-                qs('#videoTitle').textContent = 'Error: Video details not found.';
-                qs('#description').textContent = 'Please return to the homepage and select a video.';
+                const defaultTitle = 'Error: Video details not found.';
+                qs('#videoTitle').textContent = defaultTitle;
+                qs('#description').textContent = 'Please return to the homepage and select a video. (Data may be loading or cache cleared.)';
+                
+                // Set error meta tags
+                qs('#pageTitle').textContent = defaultTitle;
                 return;
             }
 
-            // 1. Set details
-            document.title = item.title + " | Details";
+            // 1. SEO Setup: Set all dynamic Meta Tags and Schema Markup first
+            setMetaTags(item);
+            createVideoSchema(item);
+            
+            // 2. Set details (Visible UI elements)
             qs('#videoTitle').textContent = item.title;
             
-            // 2. Set Description 
+            // 3. Set Description 
             qs('#description').textContent = item.description || 'No description available.';
 
-            // 3. Embed Player: Prioritize Trailer, then Watch Link
-            // Only embed if it's a direct embed link (YouTube, Streamtape, direct MP4)
+            // 4. Render Studio, Cast, Year (New Info)
+            if (item.studio) qs('#studioInfo').innerHTML = `<strong>Studio:</strong> <a href="/?filter=${slugify(item.studio)}" style="color:#fff;">${item.studio}</a>`;
+            if (item.cast) qs('#castInfo').innerHTML = `<strong>Cast:</strong> ${item.cast}`;
+            if (item.year) qs('#yearInfo').innerHTML = `<strong>Year:</strong> ${item.year}`;
+
+            // 5. Embed Player: Prioritize Trailer, then Watch Link
             const embedUrl = toEmbedUrl(item.trailer || item.watch);
             
             if (embedUrl) {
@@ -219,21 +371,22 @@
                 qs('#playerEmbed').innerHTML = '<div style="color: #fff; font-weight: bold; font-size: 1.1rem; padding: 20px;">Trailer/Video cannot be embedded here. Please use the "Open Player" button below.</div>';
             }
 
-            // 4. Render Buttons (Only the Open Player button)
+            // 6. Render Buttons
             const buttonsContainer = qs('.action-buttons');
-            buttonsContainer.innerHTML = ''; // Clear any existing content
+            buttonsContainer.innerHTML = ''; 
             
             if (item.watch) {
-                // Open Player Button: Uses the original watch link which goes through the ad-gate (/go.html)
-                buttonsContainer.innerHTML += `<button id="watchButton" onclick="openWatchPage('${item.watch}')">Open Player</button>`;
+                buttonsContainer.innerHTML += `<button id="watchButton" onclick="openWatchPage('${escapeHtml(item.watch)}')">Open Full Player</button>`;
+            }
+            if (item.telegram) {
+                 buttonsContainer.innerHTML += `<a id="telegramButton" href="${escapeHtml(item.telegram)}" target="_blank" rel="noopener noreferrer">Telegram Link</a>`;
             }
             
-            if (!item.watch) {
-                buttonsContainer.innerHTML = '<p style="text-align:center; width:100%; color:#aaa;">No watch link available for this title.</p>';
+            if (!item.watch && !item.telegram) {
+                buttonsContainer.innerHTML = '<p style="text-align:center; width:100%; color:#aaa;">No watch or direct link available for this title.</p>';
             }
 
-
-            // 5. Render Tags
+            // 7. Render Tags
             qs('#tagsContainer').innerHTML = renderTagsForItem(item);
         }
 
@@ -241,4 +394,5 @@
         loadTrailerPage();
     </script>
 </body>
-</html>
+  </html>
+  
