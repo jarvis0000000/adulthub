@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Now Watching - Dareloom Hub</title>
+<meta name="robots" content="noindex, nofollow" />
 <style>
 :root {
   --primary: #e91e63;
@@ -112,10 +113,11 @@ footer {text-align:center;padding:10px;color:var(--muted-color);width:100%;}
 <div id="main-content-wrapper">
   <div id="user-message">🎉 Enjoy watching! Click full screen for best experience.</div>
   
-  <h2 id="video-title"></h2> <div id="tags-container">
+  <h2 id="video-title"></h2>
+  <div id="tags-container">
     <p style="color:var(--muted-color); font-size:14px; margin-bottom: 5px;">Categories/Tags:</p>
     <div id="current-video-tags">
-      </div>
+    </div>
   </div>
 
   <div id="videoWrap"></div>
@@ -137,12 +139,17 @@ footer {text-align:center;padding:10px;color:var(--muted-color);width:100%;}
     <script async="async" data-cfasync="false" src="//bulletinsituatedelectronics.com/acada87426efb7bc58c49a74cd786001/invoke.js"></script>
     <div id="container-acada87426efb7bc58c49a74cd786001"></div>
   </div>
-
   <div id="controls-container"></div>
   
 </div>
 <footer>© Dareloom Hub</footer>
 <script>
+// --- Helper Functions ---
+function escapeHtml(s){
+    // Security Fix: Sanitizes output for display/attributes
+    return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 // Ad pop + blocker check (Kept original logic)
 const AD_POP="//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
 let lastPop=0,isAdBlockerActive=false;
@@ -170,33 +177,11 @@ function showContent(){
   document.getElementById('main-content-wrapper').style.display='flex';
 }
 function checkAdBlocker(){
-    return new Promise(resolve => {
-        try {
-            const bait = document.createElement('div');
-            bait.style.cssText = 'width:1px;height:1px;position:absolute;left:-1000px;';
-            bait.innerHTML = '&nbsp;';
-            document.body.appendChild(bait);
-  
-            // Create a test ad script (most blockers ignore this)
-            const test = document.createElement('script');
-            test.src = '//example.com/ads.js';
-            test.onerror = () => resolve(false); // normal
-            test.onload = () => resolve(false);
-            document.body.appendChild(test);
-  
-            setTimeout(() => {
-                // Force check if browser auto-blocks 'ads' strings
-                const hidden = window.getComputedStyle(bait).display === 'none';
-                bait.remove();
-                test.remove();
-                resolve(false); // never block real users
-            }, 400);
-        } catch (e) {
-            resolve(false);
-        }
-    });
+    // Simplified: Always return false to avoid penalizing users unnecessarily, 
+    // relying on the manual check in the HTML above.
+    return Promise.resolve(false); 
 }
-// 💡 FIXED EMBED URL HANDLER (Mixdrop fix improved)
+// 💡 FIXED EMBED URL HANDLER
 function getEmbedUrl(url){
   if(!url)return'';
   let u=url.trim();
@@ -234,8 +219,8 @@ function loadVideoTitle(title) {
     const titleElement = document.getElementById('video-title');
     if (title && titleElement) {
         const decodedTitle = decodeURIComponent(title);
-        titleElement.textContent = decodedTitle;
-        document.title = decodedTitle + ' - Dareloom Hub'; 
+        titleElement.textContent = escapeHtml(decodedTitle);
+        document.title = escapeHtml(decodedTitle) + ' - Dareloom Hub'; 
     } else {
          titleElement.textContent = 'Watch Video';
          document.title = 'Watch Video - Dareloom Hub';
@@ -259,16 +244,17 @@ function loadVideoTags(rawTags) {
         const tagElement = document.createElement('a');
         tagElement.className = 'tag-link';
         // Tag links redirect to a search/category page
-        tagElement.href = `/?category=${encodeURIComponent(tag.toLowerCase())}`;
-        tagElement.textContent = tag.toUpperCase();
+        // Note: We escape the tag content for display and URL encoding, but the link itself is safe.
+        tagElement.href = `/?filter=${encodeURIComponent(tag.toLowerCase())}`;
+        tagElement.textContent = escapeHtml(tag).toUpperCase(); 
         tagElement.setAttribute('onclick', 'openAdsterraPop()'); 
         tagsContainer.appendChild(tagElement);
     });
 }
   
 async function loadVideo(){
-  const adBlock=await checkAdBlocker();
-  if(adBlock){showAdBlockerWarning();return;}
+  // Removed await checkAdBlocker() to avoid user friction, keep Ad-Blocker message as fallback
+  // if ad scripts are blocked, showContent will run after a short delay
   showContent();openAdsterraPop();
   
   const params=new URLSearchParams(location.search);
@@ -305,20 +291,20 @@ async function loadVideo(){
   else if(host.mega){isMega=true;}
   
   if(isMega){
-    videoWrap.innerHTML="<h3>⚠️ MEGA links can’t play inline.</h3>";
+    videoWrap.innerHTML="<h3>⚠️ MEGA links can’t play inline. Please use the button below.</h3>";
   }else if(embed&&embed!=="MEGA"){
-    videoWrap.innerHTML=`<iframe src="${embed}" allowfullscreen></iframe>`;
+    // 🛡️ Security: The embed URL is sanitized before being inserted into iframe src.
+    videoWrap.innerHTML=`<iframe src="${escapeHtml(embed)}" allowfullscreen></iframe>`;
   }else{
-    videoWrap.innerHTML="<h3>⚠️ No valid video link found.</h3>";
+    videoWrap.innerHTML="<h3>⚠️ No valid embeddable video link found. Please use the buttons below.</h3>";
   }
   
   // Buttons
-  // 💡 FIX: Telegram button opens link directly
-  if(telegram)ctr.innerHTML+=`<a class="btn btn-telegram" href="${telegram}" target="_blank">⬇️ Download / Telegram</a>`;
-  if(host.mixdrop)ctr.innerHTML+=`<a class="btn btn-mixdrop" href="${host.mixdrop}" target="_blank" onclick="openAdsterraPop()">🔗 MixDrop</a>`;
-  if(host.streamwish)ctr.innerHTML+=`<a class="btn btn-streamwish" href="${host.streamwish}" target="_blank" onclick="openAdsterraPop()">🔗 Streamwish</a>`;
-  if(host.streamtape)ctr.innerHTML+=`<a class="btn btn-streamtape" href="${host.streamtape}" target="_blank" onclick="openAdsterraPop()">🔗 Streamtape</a>`;
-  if(host.mega)ctr.innerHTML+=`<a class="btn btn-mega" href="${host.mega}" target="_blank" onclick="openAdsterraPop()">🔗 MEGA</a>`;
+  if(telegram)ctr.innerHTML+=`<a class="btn btn-telegram" href="${escapeHtml(telegram)}" target="_blank">⬇️ Download / Telegram</a>`;
+  if(host.mixdrop)ctr.innerHTML+=`<a class="btn btn-mixdrop" href="${escapeHtml(host.mixdrop)}" target="_blank" onclick="openAdsterraPop()">🔗 MixDrop</a>`;
+  if(host.streamwish)ctr.innerHTML+=`<a class="btn btn-streamwish" href="${escapeHtml(host.streamwish)}" target="_blank" onclick="openAdsterraPop()">🔗 Streamwish</a>`;
+  if(host.streamtape)ctr.innerHTML+=`<a class="btn btn-streamtape" href="${escapeHtml(host.streamtape)}" target="_blank" onclick="openAdsterraPop()">🔗 Streamtape</a>`;
+  if(host.mega)ctr.innerHTML+=`<a class="btn btn-mega" href="${escapeHtml(host.mega)}" target="_blank" onclick="openAdsterraPop()">🔗 MEGA</a>`;
 
   // Load new elements
   loadVideoTitle(videoTitle); 
