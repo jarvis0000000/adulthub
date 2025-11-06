@@ -4,6 +4,7 @@
 
 # -------------------------------
 # Block AI & Scraper Bots
+# NOTE: Keeping these blocks is highly recommended for content protection.
 # -------------------------------
 User-agent: GPTBot
 Disallow: /
@@ -49,6 +50,7 @@ Disallow: /
 # -------------------------------
 User-agent: Googlebot
 Allow: /
+Allow: /*?filter=* # 💡 NEW: Explicitly allow crawling of URLs with the 'filter' parameter
 Disallow: /admin/
 Disallow: /private/
 
@@ -77,7 +79,7 @@ Disallow: /scripts/
 Disallow: /private/
 Disallow: /temp/
 Disallow: /*?*sort=*
-Disallow: /*?*filter=*
+# Disallow: /*?*filter=* <-- REMOVED from the global section to allow specific bots (like Googlebot) to crawl it.
 Disallow: /*?*session=*
 Disallow: /*?*ref=*
 Disallow: /*?*utm_*
@@ -100,7 +102,7 @@ User-agent: SEOkicks-Robot
 Disallow: /
 
 # -------------------------------
-# Sitemap Locations
+# Sitemap Locations (Auto-Discovery Method)
 # -------------------------------
 Sitemap: https://dareloom.fun/sitemap-index.xml
 Sitemap: https://dareloom.fun/sitemap.xml
@@ -110,3 +112,4 @@ Sitemap: https://dareloom.fun/sitemap-seo.xml
 # -------------------------------
 # End of File
 # -------------------------------
+
