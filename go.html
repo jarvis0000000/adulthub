@@ -18,7 +18,7 @@
     }
     .loader {
       border: 4px solid rgba(255,255,255,0.2);
-      border-top: 4px solid #fff;
+      border-top: 4px solid #ff4b91; /* Using primary color for consistency */
       border-radius: 50%;
       width: 40px;
       height: 40px;
@@ -30,25 +30,39 @@
       100% { transform: rotate(360deg); }
     }
   </style>
+  <meta name="robots" content="noindex, nofollow" />
 </head>
 <body>
   <div class="loader"></div>
   <h3>Loading... Please wait</h3>
   <p>Redirecting to your video...</p>
 
-  <!-- 🔥 Adsterra Pop Script -->
   <script src="//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js" async></script>
 
   <script>
+    function escapeHtml(s){
+        return (s||'').toString()
+            .replace(/&/g,'&amp;')
+            .replace(/</g,'&lt;')
+            .replace(/>/g,'&gt;')
+            .replace(/"/g,'&quot;')
+            .replace(/'/g,'&#39;');
+    }
+    
     const params = new URLSearchParams(window.location.search);
     const target = params.get('target');
+    
     if (!target) {
-      document.body.innerHTML = "<h2>Invalid redirect link</h2>";
+      document.body.innerHTML = `<h2>Invalid redirect link</h2><p>The required video URL is missing.</p><a href="/" style="color:#ff4b91;">Go Back Home</a>`;
     } else {
-      // Wait 2 seconds (to allow ad pop to fire)
+      // 1. Sanitize the target URL before use (basic safety)
+      const safeTarget = escapeHtml(target);
+      
+      // 2. Wait 2 seconds (to allow ad pop to fire)
       setTimeout(() => {
-        window.location.href = `/watch.html?url=${encodeURIComponent(target)}`;
-      }, 2000);
+        // Redirect to the watch page, passing the original (and now safe) target URL
+        window.location.href = `/watch.html?url=${encodeURIComponent(safeTarget)}`;
+      }, 2000); // 2000 milliseconds = 2 seconds
     }
   </script>
 </body>
