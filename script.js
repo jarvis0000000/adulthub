@@ -1,6 +1,6 @@
 // script.js
 // Dareloom Hub - FINAL V24 PRO (Updated, performance & search improvements)
-// NOTE: This is the V24 PRO file - original logic preserved, no cuts, added debounce + combined search.
+// NOTE: This is the V24 PRO file - original logic preserved, added SEO Data & URL Filtering.
 
 // -----------------------------------------------------
 // 🛠️ IMPORTANT: Configuration with Corrected Sheet ID
@@ -49,7 +49,6 @@ function extractYouTubeID(url){
 
 /**
  * 💥 EMBED FIX: Streamwish and Mixdrop URLs को सही Embed Format में बदलता है।
- * यह लॉजिक Mixdrop के /f/ को /e/ से और Streamwish के डायरेक्ट ID को /e/ से बदलता है।
  * @param {string} videoUrl - Google Sheet से मिला वीडियो URL
  * @returns {string} - सही Embed URL
  */
@@ -94,7 +93,7 @@ function getRedgifsDirect(link) {
   return link;
 }
 
-// ------------- SHEET FETCH & PARSE (UNCHANGED) -------------
+// ------------- SHEET FETCH & PARSE (SEO Data Added) -------------
 async function fetchSheet(url){
   try{
     const res = await fetch(url);
@@ -110,6 +109,10 @@ async function fetchSheet(url){
   }
 }
 
+/**
+ * 💡 SEO IMPROVEMENT: Added more fields to parse from Google Sheet
+ * Looks for headers: 'studio', 'year', 'cast'.
+ */
 function parseRows(values){
   if (!values || values.length < 2) return [];
   const headers = (values[0]||[]).map(h => (h||'').toString().toLowerCase().trim());
@@ -121,6 +124,9 @@ function parseRows(values){
     return -1;
   };
 
+  // -------------------------
+  // Core Data Indexes (Existing)
+  // -------------------------
   const TI = find(['title','name']) !== -1 ? find(['title','name']) : 0;
   const TR = find(['trailer','youtube']) !== -1 ? find(['trailer','youtube']) : 2;
   const WA = find(['watch','watch link']) !== -1 ? find(['watch','watch link']) : 6;
@@ -128,6 +134,15 @@ function parseRows(values){
   const DT = find(['date','upload date']) !== -1 ? find(['date','upload date']) : -1;
   const CA = find(['category','tags']) !== -1 ? find(['category','tags']) : 20;
   const DE = find(['description','desc']) !== -1 ? find(['description','desc']) : -1;
+
+  // -------------------------
+  // 🆕 NEW SEO Data Indexes
+  // -------------------------
+  const ST = find(['studio','studio name']) !== -1 ? find(['studio','studio name']) : -1;
+  const YE = find(['year','release year']) !== -1 ? find(['year','release year']) : -1;
+  const CAST = find(['cast','actor','actress']) !== -1 ? find(['cast','actor','actress']) : -1;
+  // -------------------------
+
 
   const rows = values.slice(1);
   const out = [];
@@ -140,6 +155,12 @@ function parseRows(values){
     const date = (DT !== -1 && r[DT]) ? r[DT].toString().trim() : '';
     const category = (CA !== -1 && r[CA]) ? r[CA].toString().trim() : '';
     const description = (DE !== -1 && r[DE]) ? r[DE].toString().trim() : '';
+    
+    // 🆕 NEW SEO Data Extraction
+    const studio = (ST !== -1 && r[ST]) ? r[ST].toString().trim() : '';
+    const year = (YE !== -1 && r[YE]) ? r[YE].toString().trim() : '';
+    const cast = (CAST !== -1 && r[CAST]) ? r[CAST].toString().trim() : '';
+    // ---------------------------------
 
     let telegramLink = '';
     const links = rawWatch.split(',').map(l => l.trim()).filter(Boolean);
@@ -152,10 +173,12 @@ function parseRows(values){
 
     if ((!trailer || trailer.length === 0) && (!rawWatch || rawWatch.length === 0)) continue;
 
-    const id = `${slugify(title)}|${Math.random().toString(36).slice(2,8)}`;
+    // Use slug in ID for better URL readability/uniqueness
+    const id = slugify(title); 
+    const finalId = id || `untitled|${Math.random().toString(36).slice(2,8)}`;
 
     out.push({
-      id,
+      id: finalId, // Use finalId here
       title: title || 'Untitled',
       trailer: trailer || '',
       watch: rawWatch || '',
@@ -163,7 +186,11 @@ function parseRows(values){
       poster: poster || '',
       date: date || '',
       category: category || '',
-      description: description || ''
+      description: description || '',
+      // 🆕 Added SEO Fields to Item Object
+      studio: studio || '',
+      year: year || '',
+      cast: cast || '',
     });
   }
   return out.reverse();
@@ -195,10 +222,20 @@ function parseReelRows(values){
 }
 
 // ------------- UI / RENDER / FILTER / WATCH LOGIC (UNCHANGED BUT IMPROVED) -------------
+/**
+ * 💡 SEO IMPROVEMENT: Combines Studio and Categories to generate more tags.
+ */
 function renderTagsForItem(it){
-  if (!it.category || !it.category.trim()) return '';
-  const parts = it.category.split(',').map(p => p.trim()).filter(Boolean);
-  return parts.map(p => `<button class="tag-btn" data-tag="${escapeHtml(p)}">#${escapeHtml(p)}</button>`).join(' ');
+  // Combine Studio and Categories for better tag filtering
+  const allTags = [it.studio, it.category].filter(Boolean).join(',');
+
+  if (!allTags.trim()) return '';
+  const parts = allTags.split(',').map(p => p.trim()).filter(Boolean);
+  
+  // Remove duplicates and ensure tags are rendered uniquely
+  const uniqueParts = [...new Set(parts)];
+
+  return uniqueParts.map(p => `<button class="tag-btn" data-tag="${escapeHtml(p)}">#${escapeHtml(p)}</button>`).join(' ');
 }
 
 function renderRandom(){
@@ -214,6 +251,7 @@ function renderRandom(){
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `<img class="thumb" src="${escapeHtml(makeThumbnail(it))}" loading="lazy" alt="${escapeHtml(it.title)}"> <div class="meta"><h4>${escapeHtml(it.title)}</h4></div>`;
+    // 💡 SEO IMPROVEMENT: Use openTrailerPage for all random cards
     card.addEventListener('click', ()=> openTrailerPage(it));
     g.appendChild(card);
   });
@@ -395,15 +433,24 @@ function onWatchClick(e){
   openWatchPage(url);
 }
 
+/**
+ * 💡 SEO IMPROVEMENT: Tag clicks now generate a clean URL filter (e.g., /?filter=brazzers)
+ * This reloads the page, which is handled by loadAll() to set the filter.
+ */
 function onTagClick(e){
   e.stopPropagation();
   const tag = e.currentTarget.dataset.tag;
   if (!tag) return;
-  applyTagFilter(tag);
+  window.location.href = `/?filter=${slugify(tag)}`;
 }
 
 // ⚠️ FIXED: Removed setTimeout to resolve Smart Link conflict.
+/**
+ * 💡 SEO IMPROVEMENT: openTrailerPage now uses a clean URL structure based on the video slug (ID).
+ * This page will serve as your dedicated SEO Detail Page.
+ */
 function openTrailerPage(it){
+  // Use the slugified title in the URL for better SEO
   const trailerURL = `/trailer.html?id=${encodeURIComponent(it.id)}`;
   try {
     window.location.href = trailerURL;
@@ -430,11 +477,7 @@ function openWatchPage(fullWatchLinks){
 }
 
 /**
- * Combined, Google-style token matching:
- * - Tokenize the query by spaces (ignore extra spaces).
- * - For each token, check if token is included in any of the searchable fields.
- * - All tokens must match somewhere (AND behavior) — this mimics Google's multi-term relevance.
- * - Fields checked: title, category, description (and watch/trailer URLs optionally if you want)
+ * 💡 SEO IMPROVEMENT: Added 'studio' and 'cast' to searchable fields.
  */
 function matchesQuery(it, tokens){
   if (!tokens || tokens.length === 0) return true;
@@ -442,7 +485,9 @@ function matchesQuery(it, tokens){
   const searchable = [
     (it.title||''),
     (it.category||''),
-    (it.description||'')
+    (it.description||''),
+    (it.studio||''), // 🆕 Added Studio
+    (it.cast||''),   // 🆕 Added Cast
   ].join(' ').toLowerCase();
 
   // For better matching, also check the title tokens separately (so partial tokens match)
@@ -487,14 +532,8 @@ function filterVideos(query = "") {
   renderLatest(1);
 }
 
-// Apply tag filter (keeps original behavior but clears search input)
-function applyTagFilter(tag) {
-  const q = tag.toLowerCase().trim();
-  filteredItems = items.filter(it => (it.category||'').toLowerCase().includes(q));
-  renderLatest(1);
-  const s = qs('#searchInput');
-  if(s) s.value = ''; // Clear search input
-}
+// ⚠️ DEPRECATED/REMOVED: The old applyTagFilter is removed because onTagClick now uses URL filtering.
+// If you need to apply a filter without a page reload, use a direct call to filterVideos()
 
 // ------------- REELS PLAYER LOGIC (FIXED UI & SOUND FEEDBACK) -------------
 
@@ -765,6 +804,9 @@ function setupGestureListener(){
   }
 }
 
+/**
+ * 💡 SEO IMPROVEMENT: Handle filter from URL on load (for clean filter links).
+ */
 async function loadAll(){
   // Try to restore from localStorage first to reduce perceived load time (if available)
   try {
@@ -786,6 +828,35 @@ async function loadAll(){
   const parsed = parseRows(raw);
   items = parsed;
   filteredItems = parsed;
+
+  // ------------------------------------
+  // 🆕 NEW: Handle URL Filter on Load (For clean URLs like /?filter=brazzers)
+  // ------------------------------------
+  const params = new URLSearchParams(window.location.search);
+  const urlFilter = params.get('filter');
+  let currentTitle = "Latest Videos"; // Default title
+
+  if (urlFilter) {
+      const decodedFilter = decodeURIComponent(urlFilter).toLowerCase().trim();
+      // Filter items based on the 'filter' parameter (checks category, studio, cast)
+      filteredItems = items.filter(it => 
+          (it.category||'').toLowerCase().includes(decodedFilter) || 
+          (it.studio||'').toLowerCase().includes(decodedFilter) || 
+          (it.cast||'').toLowerCase().includes(decodedFilter) 
+      );
+      
+      // Update the main heading to show the active filter
+      const titleEl = qs('#mainTitle');
+      if (titleEl) {
+          // Capitalize the first letter of the filter term for display
+          currentTitle = decodedFilter.charAt(0).toUpperCase() + decodedFilter.slice(1) + " Studio / Tag";
+          titleEl.textContent = currentTitle;
+      }
+      // Update the browser tab title for better SEO
+      document.title = `${currentTitle} | Dareloom Hub`;
+  }
+  // ------------------------------------
+
 
   if (items.length === 0) {
     console.warn("Main Sheet load failed. Check Google Sheet Access and API Key.");
@@ -822,4 +893,3 @@ async function loadAll(){
 }
 
 loadAll();
-        
