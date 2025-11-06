@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Redirecting... | Dareloom Hub</title>
+  <meta name="robots" content="noindex, nofollow" />
   <style>
     body {
       background: #0e0e0e;
@@ -30,7 +31,6 @@
       100% { transform: rotate(360deg); }
     }
   </style>
-  <meta name="robots" content="noindex, nofollow" />
 </head>
 <body>
   <div class="loader"></div>
@@ -51,6 +51,9 @@
     
     const params = new URLSearchParams(window.location.search);
     const target = params.get('target');
+    // 💡 NEW: Capture title and tags from trailer.html
+    const title = params.get('title') || ''; 
+    const tags = params.get('tags') || '';
     
     if (!target) {
       document.body.innerHTML = `<h2>Invalid redirect link</h2><p>The required video URL is missing.</p><a href="/" style="color:#ff4b91;">Go Back Home</a>`;
@@ -60,10 +63,12 @@
       
       // 2. Wait 2 seconds (to allow ad pop to fire)
       setTimeout(() => {
-        // Redirect to the watch page, passing the original (and now safe) target URL
-        window.location.href = `/watch.html?url=${encodeURIComponent(safeTarget)}`;
+        // 💡 NEW: Pass title and tags to watch.html
+        // Note: title and tags are already URI-encoded from trailer.html, so no need to encode again.
+        window.location.href = `/watch.html?url=${encodeURIComponent(safeTarget)}&title=${title}&tags=${tags}`;
       }, 2000); // 2000 milliseconds = 2 seconds
     }
   </script>
 </body>
 </html>
+
