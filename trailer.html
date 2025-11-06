@@ -45,12 +45,12 @@
       padding: 20px;
     }
     
-    /* 🛑 FIX 1: Video Player Aspect Ratio for 16:9 (using padding-top hack) */
+    /* Video Player Aspect Ratio for 16:9 */
     .video-player-container {
       position: relative;
       width: 100%; 
-      padding-top: 56.25%; /* 9 / 16 = 0.5625 (16:9 ratio) */
-      height: 0; /* Height is now controlled by padding-top */
+      padding-top: 56.25%; 
+      height: 0; 
       background: #000;
       margin-bottom: 20px;
       overflow: hidden; 
@@ -58,14 +58,12 @@
     
     .video-player-container iframe, 
     .video-player-container div#playerEmbed {
-      /* CRITICAL: Make the player fill the 16:9 container */
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 100%;
       border: none;
-      /* Ensure fallback text is centered */
       display: flex; 
       align-items: center;
       justify-content: center;
@@ -162,7 +160,7 @@
     </div>
 
     <script>
-        // --- Helper Functions (From script.js) ---
+        // --- Helper Functions ---
         const qs = sel => document.querySelector(sel);
         
         function getParam(name) {
@@ -191,63 +189,51 @@
         function makeThumbnail(it){
             if (it.poster && it.poster.trim()) return it.poster.trim();
             const y = extractYouTubeID(it.trailer || it.watch);
-            // Default YouTube HD thumbnail or generic fallback
             if (y) return `https://img.youtube.com/vi/${y}/hqdefault.jpg`; 
             return 'https://placehold.co/600x400?text=Dareloom+Hub';
         }
         
-        // 🛑 FINAL EMBED LOGIC: Supports YouTube, Streamtape, and Direct URLs
         function toEmbedUrl(url){
             if (!url) return '';
             url = url.trim();
             const y = extractYouTubeID(url);
             
-            // 1. YouTube embed (Fixed URL parameters)
             if (y) return `https://www.youtube.com/embed/${y}?autoplay=0&rel=0`; 
             
-            // 2. Streamtape embed 
             if (url.includes('streamtape.com') && url.includes('/v/')){
                 const id = url.split('/v/')[1]?.split('/')[0];
                 if (id) return `https://streamtape.com/e/${id}/`;
             }
             
-            // 3. Direct URL embed (Any other HTTP/HTTPS link)
-            // Note: Mixdrop/Streamwish links are NOT embeddable here, only direct MP4s or supported hosts.
             if (url.startsWith('http')) return url;
             
             return '';
         }
         
-        function openWatchPage(targetUrl){
+        // 🚀 UPDATED: Now passes Title and Tags to the ad-gate (/go.html)
+        function openWatchPage(targetUrl, title, tags){
             if (!targetUrl) return;
-            // Target URL is the original full link (could be multiple links)
-            const redirectPage = `/go.html?target=${encodeURIComponent(targetUrl)}`;  
+            // title and tags are already URI-encoded when called from the button.
+            const redirectPage = `/go.html?target=${encodeURIComponent(targetUrl)}&title=${title}&tags=${tags}`;  
             window.location.href = redirectPage; 
         }
 
-        /**
-         * 💡 Renders Studio, Cast, and Category tags, linking them back to the homepage filter.
-         */
         function renderTagsForItem(it){
             const parts = [];
-            // Add Studio as a filterable tag
             if (it.studio) {
                 parts.push({ name: it.studio, type: 'studio' });
             }
-            // Add Cast members as filterable tags
             if (it.cast) {
                 it.cast.split(',').map(p => p.trim()).filter(Boolean).forEach(c => 
                     parts.push({ name: c, type: 'cast' })
                 );
             }
-            // Add Categories/Tags
             if (it.category) {
                 it.category.split(',').map(p => p.trim()).filter(Boolean).forEach(c => 
                     parts.push({ name: c, type: 'category' })
                 );
             }
 
-            // Remove duplicates based on name
             const uniqueParts = [...new Map(parts.map(item => [item.name, item])).values()];
 
             return uniqueParts.map(p => {
@@ -256,9 +242,6 @@
             }).join(' ');
         }
         
-        /**
-         * 💡 Sets all necessary meta tags (Title, Description, OG/Twitter) for SEO.
-         */
         function setMetaTags(item) {
             const title = item.title || 'Untitled Video';
             const desc = item.description.substring(0, 150) + '...' || 'Watch the trailer and details for this exclusive video.';
@@ -269,12 +252,11 @@
             qs('#pageTitle').textContent = `${title} | Watch Trailer & Details`;
             qs('#metaDescription').setAttribute('content', desc);
             
-            // Build Keywords from all relevant fields
             const keywords = [title, item.studio, item.cast, item.category, 'trailer', 'watch online'].filter(Boolean).join(', ').substring(0, 200);
             qs('#metaKeywords').setAttribute('content', keywords);
             qs('#canonicalUrl').setAttribute('href', url);
 
-            // 2. Open Graph / Twitter Tags (CRITICAL FOR SOCIAL SHARING & SEO)
+            // 2. Open Graph / Twitter Tags
             qs('#ogTitle').setAttribute('content', title);
             qs('#ogDescription').setAttribute('content', desc);
             qs('#ogUrl').setAttribute('content', url);
@@ -285,9 +267,6 @@
             qs('#twitterImage').setAttribute('content', thumb);
         }
 
-        /**
-         * 💡 Creates JSON-LD VideoObject Schema for Rich Results in Google Search.
-         */
         function createVideoSchema(item) {
             const datePublished = item.date ? new Date(item.date).toISOString() : new Date().toISOString();
             const embedUrl = item.trailer ? toEmbedUrl(item.trailer) : '';
@@ -299,20 +278,19 @@
                 "description": item.description,
                 "thumbnailUrl": makeThumbnail(item),
                 "uploadDate": datePublished,
-                "contentUrl": embedUrl || item.watch, // Use embed if available, otherwise the main watch link
+                "contentUrl": embedUrl || item.watch, 
                 "embedUrl": embedUrl,
-                "duration": "PT0M0S", // Duration needs to be fetched if possible, setting to 0 for now
+                "duration": "PT0M0S", 
                 "publisher": {
                     "@type": "Organization",
                     "name": "Dareloom Hub",
                     "logo": {
                         "@type": "ImageObject",
-                        "url": "https://dareloom.fun/web-app-manifest-512x512.png" // Replace with your actual logo URL
+                        "url": "https://dareloom.fun/web-app-manifest-512x512.png" 
                     }
                 }
             };
             
-            // Add actors/cast if available
             if (item.cast) {
                 schema.actor = item.cast.split(',').map(name => ({
                     "@type": "Person",
@@ -327,7 +305,6 @@
         // --- Main Trailer Page Logic ---
         async function loadTrailerPage() {
             const id = getParam('id');
-            // CRITICAL: Loads data saved from the homepage's script.js
             const allItems = JSON.parse(localStorage.getItem('dareloom_items') || '[]');
             const item = allItems.find(i => i.id === id);
 
@@ -335,28 +312,24 @@
                 const defaultTitle = 'Error: Video details not found.';
                 qs('#videoTitle').textContent = defaultTitle;
                 qs('#description').textContent = 'Please return to the homepage and select a video. (Data may be loading or cache cleared.)';
-                
-                // Set error meta tags
                 qs('#pageTitle').textContent = defaultTitle;
                 return;
             }
 
-            // 1. SEO Setup: Set all dynamic Meta Tags and Schema Markup first
+            // 1. SEO Setup
             setMetaTags(item);
             createVideoSchema(item);
             
-            // 2. Set details (Visible UI elements)
+            // 2. Set details
             qs('#videoTitle').textContent = item.title;
-            
-            // 3. Set Description 
             qs('#description').textContent = item.description || 'No description available.';
 
-            // 4. Render Studio, Cast, Year (New Info)
+            // 3. Render Studio, Cast, Year
             if (item.studio) qs('#studioInfo').innerHTML = `<strong>Studio:</strong> <a href="/?filter=${slugify(item.studio)}" style="color:#fff;">${item.studio}</a>`;
             if (item.cast) qs('#castInfo').innerHTML = `<strong>Cast:</strong> ${item.cast}`;
             if (item.year) qs('#yearInfo').innerHTML = `<strong>Year:</strong> ${item.year}`;
 
-            // 5. Embed Player: Prioritize Trailer, then Watch Link
+            // 4. Embed Player
             const embedUrl = toEmbedUrl(item.trailer || item.watch);
             
             if (embedUrl) {
@@ -367,16 +340,20 @@
                     </iframe>
                 `;
             } else {
-                 // Fallback if no embeddable trailer or video is available
                 qs('#playerEmbed').innerHTML = '<div style="color: #fff; font-weight: bold; font-size: 1.1rem; padding: 20px;">Trailer/Video cannot be embedded here. Please use the "Open Player" button below.</div>';
             }
 
-            // 6. Render Buttons
+            // 5. Render Buttons (Updated to send Title and Tags)
             const buttonsContainer = qs('.action-buttons');
             buttonsContainer.innerHTML = ''; 
             
+            // Encode Title and Tags for URL safety before putting them into the onclick string
+            const encodedTitle = encodeURIComponent(item.title);
+            const encodedTags = encodeURIComponent(item.category || '');
+
             if (item.watch) {
-                buttonsContainer.innerHTML += `<button id="watchButton" onclick="openWatchPage('${escapeHtml(item.watch)}')">Open Full Player</button>`;
+                // Now passing watch URL, encoded title, and encoded tags
+                buttonsContainer.innerHTML += `<button id="watchButton" onclick="openWatchPage('${escapeHtml(item.watch)}', '${encodedTitle}', '${encodedTags}')">Open Full Player</button>`;
             }
             if (item.telegram) {
                  buttonsContainer.innerHTML += `<a id="telegramButton" href="${escapeHtml(item.telegram)}" target="_blank" rel="noopener noreferrer">Telegram Link</a>`;
@@ -386,7 +363,7 @@
                 buttonsContainer.innerHTML = '<p style="text-align:center; width:100%; color:#aaa;">No watch or direct link available for this title.</p>';
             }
 
-            // 7. Render Tags
+            // 6. Render Tags
             qs('#tagsContainer').innerHTML = renderTagsForItem(item);
         }
 
@@ -394,5 +371,4 @@
         loadTrailerPage();
     </script>
 </body>
-  </html>
-  
+</html>
