@@ -1,5 +1,5 @@
 // script.js
-// Dareloom Hub - FINAL V24 PRO (Updated, performance & search improvements)
+// Dareloom Hub - FINAL V24 PRO (Updated, performance & search improvements, Integrated Monetization)
 
 // -----------------------------------------------------
 // 🛠️ IMPORTANT: Configuration with Corrected Sheet ID
@@ -423,7 +423,7 @@ function openTrailerPage(it){
   }
 }
 
-// 💥 FIX: openWatchPage now accepts the item object and passes title/tags
+// 💰 MONETIZATION INTEGRATION: openWatchPage now calls the Smartlink trigger.
 function openWatchPage(item){
   if (!item || (!item.watch && !item.trailer)) return;
   const fullWatchLinks = item.watch || item.trailer;
@@ -436,13 +436,21 @@ function openWatchPage(item){
   const finalDestination = `/watch.html?url=${encodeURIComponent(fullWatchLinks)}&title=${encodedTitle}&tags=${encodedTags}`;
   const redirectPage = `/go.html?target=${encodeURIComponent(finalDestination)}`;
 
+  // 1. 💥 SMARTLINK TRIGGER (Must be loaded from Adsterra Booster script)
+  if (typeof window.triggerSmartlink === 'function') {
+      window.triggerSmartlink();
+  } else {
+      console.warn("Adsterra Smartlink trigger not found (is the booster script loaded?).");
+  }
+
+  // 2. Open the actual watch page in a new tab
   try {
     const w = window.open(redirectPage, '_blank');
     if (!w || w.closed || typeof w.closed === 'undefined'){
       alert("Please allow pop-ups to open the link in a new tab!");
     }
   } catch(e){
-    console.error(e);
+    console.error("Failed to open watch page:", e);
   }
 }
 
