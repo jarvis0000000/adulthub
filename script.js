@@ -1,5 +1,5 @@
 // script.js
-// Dareloom Hub - FINAL V24 PRO (Updated, performance & search improvements, Integrated Monetization)
+// Dareloom Hub - FINAL V24 PRO (Updated, performance & search improvements)
 
 // -----------------------------------------------------
 // 🛠️ IMPORTANT: Configuration with Corrected Sheet ID
@@ -393,7 +393,7 @@ function onPreviewClick(e){
 }
 
 // 💥 FIX: Retrieves item data before calling openWatchPage
-function function onWatchClick(e){
+function onWatchClick(e){
   e.stopPropagation();
   const id = e.currentTarget.dataset.id;
   const it = items.find(x => x.id === id);
@@ -423,7 +423,7 @@ function openTrailerPage(it){
   }
 }
 
-// 💰 MONETIZATION INTEGRATION: openWatchPage now calls the Smartlink trigger.
+// 💥 FIX: openWatchPage now accepts the item object and passes title/tags
 function openWatchPage(item){
   if (!item || (!item.watch && !item.trailer)) return;
   const fullWatchLinks = item.watch || item.trailer;
@@ -436,21 +436,13 @@ function openWatchPage(item){
   const finalDestination = `/watch.html?url=${encodeURIComponent(fullWatchLinks)}&title=${encodedTitle}&tags=${encodedTags}`;
   const redirectPage = `/go.html?target=${encodeURIComponent(finalDestination)}`;
 
-  // 1. 💥 SMARTLINK TRIGGER (Must be loaded from Adsterra Booster script)
-  if (typeof window.triggerSmartlink === 'function') {
-      window.triggerSmartlink();
-  } else {
-      console.warn("Adsterra Smartlink trigger not found (is the booster script loaded?).");
-  }
-
-  // 2. Open the actual watch page in a new tab
   try {
     const w = window.open(redirectPage, '_blank');
     if (!w || w.closed || typeof w.closed === 'undefined'){
       alert("Please allow pop-ups to open the link in a new tab!");
     }
   } catch(e){
-    console.error("Failed to open watch page:", e);
+    console.error(e);
   }
 }
 
@@ -566,10 +558,6 @@ async function openReelsPlayer() {
   if (rp) rp.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 
-  // 💡 HINT: Ad blocker popup को छिपाएँ (यदि उसकी ID 'adBlockerPopupID' है)
-  const adBlockerPopup = qs('#adBlockerPopupID'); 
-  if (adBlockerPopup) adBlockerPopup.style.display = 'none';
-
   loadNextReel();
 }
 
@@ -580,10 +568,6 @@ function closeReelsPlayer() {
   // Cleanup container
   const rc = qs('#reelsContainer');
   if (rc) rc.innerHTML = '';
-
-  // 💡 HINT: Ad blocker popup को वापस दिखाएँ
-  const adBlockerPopup = qs('#adBlockerPopupID'); 
-  if (adBlockerPopup) adBlockerPopup.style.display = 'flex'; // या 'block' या जो भी उसका डिफ़ॉल्ट है
 }
 
 function handleTouchStart(e) {
@@ -633,7 +617,7 @@ function toggleReelSound(e) {
   }
 }
 
-// 💥 FIX: loadNextReel updated with iframe sandbox attribute to prevent redirects
+// 💥 FIX: loadNextReel was cut off, completed with logic
 function loadNextReel() {
   const container = qs("#reelsContainer");
   const rp = qs('#reelsPlayer');
