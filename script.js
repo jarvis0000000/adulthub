@@ -393,7 +393,7 @@ function onPreviewClick(e){
 }
 
 // 💥 FIX: Retrieves item data before calling openWatchPage
-function onWatchClick(e){
+function function onWatchClick(e){
   e.stopPropagation();
   const id = e.currentTarget.dataset.id;
   const it = items.find(x => x.id === id);
@@ -566,6 +566,10 @@ async function openReelsPlayer() {
   if (rp) rp.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 
+  // 💡 HINT: Ad blocker popup को छिपाएँ (यदि उसकी ID 'adBlockerPopupID' है)
+  const adBlockerPopup = qs('#adBlockerPopupID'); 
+  if (adBlockerPopup) adBlockerPopup.style.display = 'none';
+
   loadNextReel();
 }
 
@@ -576,6 +580,10 @@ function closeReelsPlayer() {
   // Cleanup container
   const rc = qs('#reelsContainer');
   if (rc) rc.innerHTML = '';
+
+  // 💡 HINT: Ad blocker popup को वापस दिखाएँ
+  const adBlockerPopup = qs('#adBlockerPopupID'); 
+  if (adBlockerPopup) adBlockerPopup.style.display = 'flex'; // या 'block' या जो भी उसका डिफ़ॉल्ट है
 }
 
 function handleTouchStart(e) {
@@ -625,7 +633,7 @@ function toggleReelSound(e) {
   }
 }
 
-// 💥 FIX: loadNextReel was cut off, completed with logic
+// 💥 FIX: loadNextReel updated with iframe sandbox attribute to prevent redirects
 function loadNextReel() {
   const container = qs("#reelsContainer");
   const rp = qs('#reelsPlayer');
@@ -663,7 +671,16 @@ function loadNextReel() {
   const embed = toEmbedUrlForReels(candidate.reelLink);
 
   if (embed.type === 'iframe') {
-    mediaContainer.innerHTML = `<iframe class="reel-video-media" src="${embed.src}" frameborder="0" allow="autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+    // 💡 REDIRECT FIX: Added sandbox="allow-scripts allow-same-origin allow-popups"
+    // This prevents top-level navigation, blocking redirects from inside the iframe.
+    mediaContainer.innerHTML = `<iframe 
+      class="reel-video-media" 
+      src="${embed.src}" 
+      frameborder="0" 
+      allow="autoplay; encrypted-media; gyroscope; picture-in-picture" 
+      allowfullscreen 
+      sandbox="allow-scripts allow-same-origin allow-popups"
+    ></iframe>`;
     newReel.classList.remove('loading');
   } else if (embed.type === 'video') {
     mediaContainer.innerHTML = `<video class="reel-video-media" src="${embed.src}" autoplay muted loop playsinline></video>`;
