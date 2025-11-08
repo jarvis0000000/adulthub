@@ -1,12 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
   <sitemap>
-    <loc>https://dareloom.fun/sitemap.xml</loc>
+    <loc>https://dareloom.fun/sitemap_main.xml</loc>
+    <lastmod>2025-11-08</lastmod>
   </sitemap>
+  
   <sitemap>
-    <loc>https://dareloom.fun/sitemap-video.xml</loc>
+    <loc>https://dareloom.fun/sitemap_categories.xml</loc>
+    <lastmod>2025-11-08</lastmod>
   </sitemap>
+  
   <sitemap>
-    <loc>https://dareloom.fun/sitemap-seo.xml</loc>
+    <loc>https://dareloom.fun/sitemap_movies.xml</loc>
+    <lastmod>2025-11-09</lastmod>
   </sitemap>
+  
 </sitemapindex>
