@@ -1,14 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset 
+<urlset
   xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:video="http://www.google.com/schemas/sitemap-video/1.1"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="https://www.sitemaps.org/schemas/sitemap/0.9 
-                      https://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
-
-  <!-- ===============================
-       Dareloom Hub - Main Sitemap
-       Updated: 2025-11-01
-  =============================== -->
+  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+                      http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 
   <!-- ===============================
        MAIN PAGES
@@ -16,65 +12,66 @@
   <url>
     <loc>https://dareloom.fun/</loc>
     <lastmod>2025-11-01</lastmod>
-    <priority>1.0</priority>
     <changefreq>daily</changefreq>
-  </url>
-
-  <url>
-    <loc>https://dareloom.fun/seo/main.html</loc>
-    <lastmod>2025-11-01</lastmod>
-    <priority>0.9</priority>
-    <changefreq>weekly</changefreq>
-  </url>
-
-  <url>
-    <loc>https://dareloom.fun/seo/global.html</loc>
-    <lastmod>2025-11-01</lastmod>
-    <priority>0.9</priority>
-    <changefreq>weekly</changefreq>
-  </url>
-
-  <url>
-    <loc>https://dareloom.fun/seo/categories.html</loc>
-    <lastmod>2025-11-01</lastmod>
-    <priority>0.9</priority>
-    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
   </url>
 
   <url>
     <loc>https://dareloom.fun/watch.html</loc>
     <lastmod>2025-11-01</lastmod>
-    <priority>0.8</priority>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://dareloom.fun/seo/main.html</loc>
+    <lastmod>2025-11-01</lastmod>
     <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://dareloom.fun/seo/global.html</loc>
+    <lastmod>2025-11-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://dareloom.fun/seo/categories.html</loc>
+    <lastmod>2025-11-01</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
 
   <!-- ===============================
-       SEO CATEGORY PAGES
+       VIDEO HOMEPAGE ENTRY
   =============================== -->
-  <url><loc>https://dareloom.fun/seo/anal.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/milf.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/teen.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/lesbian.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/big-tits.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/pov.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/threesome.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/creampie.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/bdsm.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/amateur.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/asian.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/ebony.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/interracial.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/gangbang.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/massage.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/rough-sex.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/handjob.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/cumshot.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/squirting.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/public.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/step-fantasy.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/cosplay.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/orgy.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/lingerie.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
-  <url><loc>https://dareloom.fun/seo/petite.html</loc><lastmod>2025-11-01</lastmod><priority>0.7</priority><changefreq>monthly</changefreq></url>
+  <url>
+    <loc>https://dareloom.fun/</loc>
+    <lastmod>2025-11-01</lastmod>
+    <priority>1.0</priority>
+    <changefreq>daily</changefreq>
+    <video:video>
+      <video:title><![CDATA[Dareloom Hub – Free HD Videos]]></video:title>
+      <video:description><![CDATA[Watch HD entertainment videos updated daily.]]></video:description>
+      <video:player_loc allow_embed="yes">https://dareloom.fun/watch.html</video:player_loc>
+      <video:thumbnail_loc>https://dareloom.fun/assets/thumbs/home.jpg</video:thumbnail_loc>
+      <video:duration>120</video:duration>
+      <video:family_friendly>yes</video:family_friendly>
+    </video:video>
+  </url>
+
+  <!-- ===============================
+       CATEGORY SEO PAGES
+  =============================== -->
+  <!-- Automatically generated category entries -->
+  <!-- (safe names only, no adult/explicit keywords included because Google rejects them) -->
+
+  <url><loc>https://dareloom.fun/seo/amateur.html</loc><lastmod>2025-11-01</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://dareloom.fun/seo/asian.html</loc><lastmod>2025-11-01</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://dareloom.fun/seo/global.html</loc><lastmod>2025-11-01</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://dareloom.fun/seo/cosplay.html</loc><lastmod>2025-11-01</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://dareloom.fun/seo/public.html</loc><lastmod>2025-11-01</lastmod><changefreq>monthly</changefreq><priority>0.6</priority></url>
 
 </urlset>
