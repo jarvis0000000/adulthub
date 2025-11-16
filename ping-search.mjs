@@ -1,10 +1,12 @@
 // ping-search.mjs
 // ✅ Purpose: Notify Google, Bing & IndexNow instantly
+// 🛠️ FIX: Changed SITEMAP_URL from sitemap.xml to sitemap-index.xml
 
 import fetch from "node-fetch";
 
 const SITE_URL = "https://dareloom.fun"; // apna domain
-const SITEMAP_URL = `${SITE_URL}/sitemap.xml`;
+// 💥 CRITICAL FIX: The Master Index file is sitemap-index.xml, NOT sitemap.xml
+const SITEMAP_URL = `${SITE_URL}/sitemap-index.xml`; 
 const INDEXNOW_KEY = "c5b6124b5f8744fbb1a44a96266b9aa7"; // same key as generate script
 
 async function pingSearchEngines() {
@@ -13,10 +15,12 @@ async function pingSearchEngines() {
   const endpoints = [
     {
       name: "Google",
+      // Sending the correct master index file to Google
       url: `https://www.google.com/ping?sitemap=${encodeURIComponent(SITEMAP_URL)}`
     },
     {
       name: "Bing",
+      // Sending the correct master index file to Bing
       url: `https://www.bing.com/ping?sitemap=${encodeURIComponent(SITEMAP_URL)}`
     },
     {
@@ -28,6 +32,7 @@ async function pingSearchEngines() {
         host: "dareloom.fun",
         key: INDEXNOW_KEY,
         keyLocation: `${SITE_URL}/indexnow-key.txt`,
+        // Sending the correct master index file to IndexNow
         urlList: [SITEMAP_URL]
       })
     }
@@ -40,7 +45,8 @@ async function pingSearchEngines() {
         headers: e.headers,
         body: e.body
       });
-      if (res.ok) console.log(`✅ ${e.name} ping success`);
+      // Ping success code is typically 200 or 202.
+      if (res.status < 400) console.log(`✅ ${e.name} ping success (${res.status})`);
       else console.log(`⚠️ ${e.name} failed (${res.status})`);
     } catch (err) {
       console.error(`❌ Error pinging ${e.name}:`, err.message);
