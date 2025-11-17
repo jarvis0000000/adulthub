@@ -7,7 +7,6 @@
   // 🔗 Ad URLs (replace only if you get new ones)
   const POPUNDER = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
   const SOCIALBAR = "//bulletinsituatedelectronics.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js";
-  const SMARTLINK = "https://bulletinsituatedelectronics.com/b95e6swf?key=0f61d8bf1a7278d5cf9f161ab55bafbb";
 
   // 🧩 Dynamic ad loader with retry
   function loadAd(src, retries = 3) {
