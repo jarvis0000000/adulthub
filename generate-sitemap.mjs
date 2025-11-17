@@ -1,8 +1,7 @@
 /**
  * 🗺️ Dareloom.fun — Unified Sitemap + Robots.txt + SEO Meta + IndexNow (Movies + SEO)
  * ✅ Cloudflare / Vercel / Node-ready
- * ⚡ Final Optimized Version
- * 🛠️ FIX: SITEMAP_URL changed to sitemap-index.xml for better structure and consistency.
+ * ⚡ Optimized Version - Ping logic removed to prevent premature calls
  */
 
 import fs from "fs";
@@ -24,12 +23,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const ROOT = __dirname;
 
-const SITEMAP_MASTER_FILE = "sitemap-index.xml"; // नया मास्टर फ़ाइल नाम
-const SITEMAP_GZIP_FILE = "sitemap-index.xml.gz"; // नया GZIP फ़ाइल नाम
+const SITEMAP_MASTER_FILE = "sitemap-index.xml"; // मास्टर फ़ाइल नाम
+const SITEMAP_GZIP_FILE = "sitemap-index.xml.gz"; // GZIP फ़ाइल नाम
 
 const FILES = {
-  SITEMAP: path.join(ROOT, SITEMAP_MASTER_FILE), // अब यह sitemap-index.xml है
-  SITEMAP_GZ: path.join(ROOT, SITEMAP_GZIP_FILE), // अब यह sitemap-index.xml.gz है
+  SITEMAP: path.join(ROOT, SITEMAP_MASTER_FILE), 
+  SITEMAP_GZ: path.join(ROOT, SITEMAP_GZIP_FILE), 
   ROBOTS: path.join(ROOT, "robots.txt"),
   META: path.join(ROOT, "seo-meta.json"),
   HEADERS: path.join(ROOT, "_headers"),
@@ -84,35 +83,7 @@ const parseRows = (values) => {
   return out;
 };
 
-/**
- * Sitemap जनरेट होने के बाद Google, Bing, और IndexNow को पिंग करता है
- * @param {Array<string>} urls - नई/अपडेटेड URLs की लिस्ट
- */
-const pingSearchEngines = async (urls) => {
-  console.log(`📡 Pinging Google, Bing & IndexNow with ${SITEMAP_MASTER_FILE}...`);
-  try {
-    await Promise.allSettled([
-      // Google Ping को अब sitemap-index.xml पर भेजें
-      fetch(`https://www.google.com/ping?sitemap=${BASE_URL}/${SITEMAP_MASTER_FILE}`),
-      // Bing Ping को अब sitemap-index.xml पर भेजें
-      fetch(`https://www.bing.com/ping?sitemap=${BASE_URL}/${SITEMAP_MASTER_FILE}`),
-      // IndexNow API Call (Critical for instant indexing)
-      fetch("https://api.indexnow.org/indexnow", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          host: "dareloom.fun",
-          key: INDEXNOW_KEY,
-          keyLocation: `${BASE_URL}/indexnow-key.txt`,
-          urlList: urls.slice(0, 100), // IndexNow only accepts max 100 URLs per submission
-        }),
-      }),
-    ]);
-    console.log("✅ Pings sent successfully!");
-  } catch (err) {
-    console.error("⚠️ Ping failed:", err.message);
-  }
-};
+// ❌ PING FUNCTION REMOVED (No more premature pings from this script)
 
 // ========== MAIN ==========
 async function generate() {
@@ -166,14 +137,11 @@ async function generate() {
 
     xml += `</urlset>`;
     
-    // फ़ाइल नाम बदला गया: sitemap.xml -> sitemap-index.xml
     fs.writeFileSync(FILES.SITEMAP, xml.trim()); 
-    
-    // Gzipped version
     zlib.gzip(xml.trim(), (err, buf) => !err && fs.writeFileSync(FILES.SITEMAP_GZ, buf));
     console.log(`✅ ${SITEMAP_MASTER_FILE} + ${SITEMAP_GZIP_FILE} created`);
 
-    // ========== ROBOTS.TXT GENERATION (Template updated to use sitemap-index.xml) ==========
+    // ========== ROBOTS.TXT GENERATION ==========
     const robotsTxt = `# 🤖 Dareloom Robots.txt — SEO & Secure Crawling
 User-agent: GPTBot
 Disallow: /
@@ -210,7 +178,7 @@ Sitemap: ${BASE_URL}/${SITEMAP_GZIP_FILE}
     fs.writeFileSync(FILES.ROBOTS, robotsTxt);
     console.log("✅ robots.txt generated");
 
-    // ========== SEO META JSON (Optional but useful for frontend) ==========
+    // ========== SEO META JSON ==========
     const meta = items.map((i) => ({
       title: i.title,
       url: i.url,
@@ -221,7 +189,7 @@ Sitemap: ${BASE_URL}/${SITEMAP_GZIP_FILE}
     fs.writeFileSync(FILES.META, JSON.stringify(meta, null, 2));
     console.log("✅ seo-meta.json created");
 
-    // ========== HEADERS & INDEXNOW KEY (Header updated to use sitemap-index.xml) ==========
+    // ========== HEADERS & INDEXNOW KEY ==========
     const headers = `/${SITEMAP_MASTER_FILE}
   Content-Type: application/xml; charset=utf-8
 /${SITEMAP_GZIP_FILE}
@@ -237,13 +205,10 @@ Sitemap: ${BASE_URL}/${SITEMAP_GZIP_FILE}
     fs.writeFileSync(FILES.INDEXNOW, INDEXNOW_KEY);
     console.log("✅ _headers & indexnow key saved");
 
-    // Ping search engines with up to 100 movie URLs
-    await pingSearchEngines(items.map((i) => i.url));
+    console.log("🎉 DONE — Sitemap + Robots + SEO + IndexNow files generated (Manual GSC submission needed!)");
 
-    console.log("🎉 DONE — Sitemap + Robots + SEO + IndexNow fully generated!");
   } catch (err) {
     console.error("❌ ERROR:", err.message);
-    // On failure, write an empty sitemap to prevent errors in GSC
     fs.writeFileSync(
       FILES.SITEMAP,
       '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>'
