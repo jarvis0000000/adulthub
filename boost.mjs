@@ -4,7 +4,7 @@
 (function () {
   console.log("🚀 Adsterra Booster Loaded (Popunder & SocialBar)");
 
-  const POPUNDER = "//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
+  const POPUNDER = "https://rockyappliance.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
   const SOCIALBAR = "//bulletinsituatedelectronics.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js";
 
   function loadAd(src, retries = 3) {
