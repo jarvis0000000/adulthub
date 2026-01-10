@@ -27,11 +27,11 @@
     }
     
     // 2. SocialBar loads after a delay (no limit needed for Social Bar)
-    setTimeout(() => loadAd(SOCIALBAR), 4000); 
+    setTimeout(() => loadAd(SOCIALBAR), 1000); 
   }
 
   window.addEventListener("DOMContentLoaded", () => {
     // 3 seconds initial delay
-    setTimeout(startAds, 3000); 
+    setTimeout(startAds, 1000); 
   });
 })();
