@@ -7,7 +7,7 @@
   // Adsterra codes - REPLACE with YOUR real codes
   const POPUNDER     = "https://rockyappliance.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
   const SOCIAL_BAR   = "//bulletinsituatedelectronics.com/cb/63/19/cb6319838ced4608354b54fc6faddb8a.js";
-  const INPAGE_PUSH  = "YOUR_INPAGE_PUSH_CODE_HERE"; // ← Add your Adsterra In-Page Push / Web Push code for 2-5× earnings
+  const INPAGE_PUSH  = "https://rockyappliance.com/b95e6swf?key=0f61d8bf1a7278d5cf9f161ab55bafbb"; // ← Add your Adsterra In-Page Push / Web Push code for 2-5× earnings
 
   const MAX_POP_PER_DAY = 2;       // Daily cap – adjust (1-3 recommended)
   const SESSION_POP     = true;    // true = one per session (very safe)
