@@ -1,317 +1,384 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Now Watching - Dareloom Hub</title>
-<meta name="robots" content="noindex, nofollow" />
-<style>
-:root {
-  --primary: #e91e63;
-  --background: #000;
-  --text-color: #fff;
-  --muted-color: #aaa;
-  --highlight-green: #4CAF50; /* Green for Header/Glow */
-}
-body,html {
-  margin:0;padding:0;height:100%;
-  background:var(--background);color:var(--text-color);
-  font-family:sans-serif;display:flex;flex-direction:column;align-items:center;
-}
-header {
-  background:#111;padding:12px 0;text-align:center;
-  font-size:22px;font-weight:bold;width:100%;
-  box-shadow:0 2px 6px rgba(0,0,0,0.5);z-index:10;
-}
-header span.hub-highlight {
-  color: var(--highlight-green); /* Green highlight for 'Hub' */
-}
-#videoWrap {
-  width:100%;min-height:300px;display:flex;
-  justify-content:center;align-items:center;flex-direction:column;
-  padding: 10px 0;
-}
-iframe {
-  width:100%;max-height:75vh;aspect-ratio:16/9;min-height:250px;
-  border:2px solid var(--highlight-green); /* Green border for frame */
-  box-shadow: 0 0 15px rgba(76, 175, 80, 0.7); /* Subtle glow effect */
-  margin-top:10px;
-  border-radius: 6px;
-  background-color: #0d0d0d;
-}
-.ad-box {
-  margin:8px 0;width:100%;text-align:center;min-height:90px;
-  display:flex;justify-content:center;align-items:center;
-}
-.btn {
-  background:var(--primary);color:#fff;border:none;
-  padding:12px 20px;border-radius:8px;cursor:pointer;
-  font-weight:bold;margin:8px 10px;transition:background .3s,transform .1s;
-  box-shadow:0 4px 6px rgba(0,0,0,0.3);
-  text-decoration:none;display:inline-flex;align-items:center;gap:8px;font-size:16px;
-}
-.btn:hover {background:#c2185b;transform:translateY(-1px);}
-footer {text-align:center;padding:10px;color:var(--muted-color);width:100%;}
-#adblock-warning-overlay {
-  display:none;position:fixed;top:0;left:0;width:100%;height:100%;
-  background:rgba(0,0,0,0.95);color:white;text-align:center;
-  z-index:99999;backdrop-filter:blur(5px);justify-content:center;
-  align-items:center;flex-direction:column;padding:20px;box-sizing:border-box;
-}
-#main-content-wrapper {
-  display:none;flex-direction:column;align-items:center;width:95%;
-  max-width:900px;flex-grow:1;
-}
-#user-message {
-  background:#333;color:#fff;padding:10px 20px;border-radius:8px;
-  width:100%;margin-top:10px;text-align:center;font-size:16px;font-weight:500;
-}
-#controls-container {
-  display:flex;justify-content:center;width:100%;flex-wrap:wrap;margin-top:10px;
-}
-.btn-telegram {background:#0088cc!important;}
-.btn-mixdrop {background:#ff4500!important;}
-.btn-streamwish {background:#1e88e5!important;}
-.btn-streamtape {background:#6a0dad!important;}
-.btn-mega {background:#007bff!important;}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="index, follow" />
+  <title id="pageTitle">Watching — Dareloom Hub</title>
+  <meta name="description" id="metaDesc" content="Watch full HD erotic/romantic video now on Dareloom Hub. No signup, fast streaming." />
 
-/* --- NEW STYLES --- */
-#tags-container {
-  width:100%;padding:10px 0;text-align:center;
-  border-bottom: 1px solid #222;
-  margin-bottom: 15px;
-}
-.tag-link {
-  display: inline-block;
-  background: #333;
-  color: var(--highlight-green);
-  padding: 5px 10px;
-  border-radius: 4px;
-  margin: 4px;
-  text-decoration: none;
-  font-size: 14px;
-  transition: background 0.2s;
-}
-.tag-link:hover {
-  background: #555;
-  color: #fff;
-}
-#video-title {
-  color: var(--primary); 
-  text-align:center; 
-  margin-top:5px; 
-  font-size:24px;
-}
-</style>
+  <!-- Canonical to trailer page to avoid duplicate content -->
+  <link rel="canonical" id="canonical" href="https://dareloom.fun/trailer.html" />
+
+  <!-- Open Graph & Twitter for social sharing -->
+  <meta property="og:title" id="ogTitle" content="Watching on Dareloom Hub" />
+  <meta property="og:description" id="ogDesc" content="Full episode / movie streaming in HD." />
+  <meta property="og:type" content="video.other" />
+  <meta property="og:url" id="ogUrl" content="" />
+  <meta property="og:image" id="ogImage" content="https://dareloom.fun/web-app-manifest-512x512.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Video Schema (will be updated by JS) -->
+  <script type="application/ld+json" id="videoSchema"></script>
+
+  <link rel="stylesheet" href="/style.css?v=20260120" />
+
+  <style>
+    :root {
+      --primary: #ff4b91;
+      --secondary: #00d4ff;
+      --bg: #0a0a0a;
+      --card: #111;
+      --glow: rgba(255, 75, 145, 0.5);
+      --text: #f0f0f0;
+      --muted: #aaa;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: rgba(17,17,17,0.9);
+      backdrop-filter: blur(12px);
+      padding: 14px;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 700;
+      border-bottom: 1px solid rgba(255,75,145,0.3);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    header span { color: var(--secondary); }
+
+    #main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 16px;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    #video-title {
+      font-size: 1.8rem;
+      color: var(--primary);
+      margin: 16px 0 8px;
+      text-align: center;
+      text-shadow: 0 2px 10px var(--glow);
+    }
+
+    #video-player-container {
+      width: 100%;
+      max-width: 960px;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 0 40px rgba(255,75,145,0.4);
+      position: relative;
+      margin-bottom: 24px;
+    }
+
+    #video-player-container.loading::before {
+      content: "Loading video...";
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.7);
+      color: var(--muted);
+      font-size: 1.3rem;
+      z-index: 2;
+    }
+
+    iframe, video {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    #controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin: 24px 0;
+    }
+
+    .btn {
+      padding: 14px 32px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #e03e7f);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(255,75,145,0.6);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, var(--secondary), #0095ff);
+      color: white;
+    }
+
+    .btn-telegram { background: #0088cc; color: white; }
+
+    #tags-container {
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .tag {
+      display: inline-block;
+      background: rgba(255,75,145,0.15);
+      color: var(--primary);
+      padding: 8px 16px;
+      border-radius: 30px;
+      margin: 6px;
+      font-size: 0.95rem;
+    }
+
+    #loading-spinner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.7);
+      z-index: 10;
+      font-size: 1.5rem;
+      color: var(--secondary);
+    }
+
+    #adblock-warning {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.95);
+      color: white;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      backdrop-filter: blur(8px);
+      padding: 20px;
+      text-align: center;
+    }
+
+    #adblock-warning h1 { color: #ffcc00; margin-bottom: 16px; }
+
+    footer {
+      padding: 20px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      border-top: 1px solid #222;
+    }
+
+    @media (max-width: 768px) {
+      #controls { flex-direction: column; align-items: stretch; }
+      .btn { width: 100%; max-width: 360px; }
+      #video-title { font-size: 1.5rem; }
+    }
+  </style>
 </head>
 <body>
-<header>🎥 Dareloom <span class="hub-highlight">Hub</span></header>
-<div id="adblock-warning-overlay">
-  <h1 style="color:#FFD700;">🚫 Ad Blocker Detected!</h1>
-  <p style="font-size:18px;">Please disable Ad Blocker and refresh to continue watching.</p>
-</div>
-<div id="main-content-wrapper">
-  <div id="user-message">🎉 Enjoy watching! Click full screen for best experience.</div>
-  
-  <h2 id="video-title"></h2>
-  <div id="tags-container">
-    <p style="color:var(--muted-color); font-size:14px; margin-bottom: 5px;">Categories/Tags:</p>
-    <div id="current-video-tags">
+
+  <header>Dareloom <span>Hub</span> — Now Playing</header>
+
+  <div id="adblock-warning">
+    <h1>🚫 Ad Blocker Detected</h1>
+    <p style="font-size:1.2rem; max-width:500px; margin:16px auto;">
+      Please disable your ad blocker to support free streaming and enjoy the video.
+    </p>
+    <button onclick="location.reload()" style="padding:14px 32px; background:var(--primary); color:white; border:none; border-radius:50px; font-size:1.1rem; cursor:pointer;">
+      Refresh Page
+    </button>
+  </div>
+
+  <div id="main-content">
+    <h1 id="video-title">Loading...</h1>
+
+    <div id="tags-container">
+      <div id="tags-list"></div>
+    </div>
+
+    <div id="video-player-container" class="loading">
+      <div id="loading-spinner">Loading video player...</div>
+      <div id="player"></div>
+    </div>
+
+    <div id="controls">
+      <!-- Buttons will be added by JS -->
     </div>
   </div>
 
-  <div id="videoWrap"></div>
+  <footer>© Dareloom Hub • Adult 18+ Content • Enjoy Responsibly</footer>
 
-  <div class="ad-box">
-    <script type="text/javascript">
-      atOptions = {
-        'key' : 'd1be46ed95d3e2db572824c531da5082',
-        'format' : 'iframe',
-        'height' : 90,
-        'width' : 728,
-        'params' : {}
+  <script>
+    // Helpers
+    const qs = sel => document.querySelector(sel);
+    const escape = s => (s || '').toString()
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+    function getParam(name) {
+      return new URLSearchParams(location.search).get(name);
+    }
+
+    // Update meta & schema
+    function updateMetadata(title, desc, thumb, embedUrl) {
+      const safeTitle = escape(title || "Watching on Dareloom Hub");
+      const safeDesc  = escape(desc  || "Full HD adult video streaming - Dareloom Hub");
+
+      document.title = safeTitle;
+      qs('#pageTitle').textContent = safeTitle;
+      qs('#metaDesc').content = safeDesc.substring(0, 160) + '...';
+
+      qs('#ogTitle').content = safeTitle;
+      qs('#ogDesc').content = safeDesc;
+      qs('#ogUrl').content = location.href;
+      qs('#ogImage').content = thumb;
+
+      // Video Schema
+      const schema = {
+        "@context": "https://schema.org",
+        "@type": "VideoObject",
+        "name": safeTitle,
+        "description": safeDesc,
+        "thumbnailUrl": thumb,
+        "contentUrl": embedUrl || "",
+        "embedUrl": embedUrl || "",
+        "uploadDate": new Date().toISOString().split('T')[0],
+        "publisher": {
+          "@type": "Organization",
+          "name": "Dareloom Hub",
+          "url": "https://dareloom.fun/"
+        }
       };
-    </script>
-    <script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>
-  </div>
 
-  <div class="ad-box">
-    <script async="async" data-cfasync="false" src="//bulletinsituatedelectronics.com/acada87426efb7bc58c49a74cd786001/invoke.js"></script>
-    <div id="container-acada87426efb7bc58c49a74cd786001"></div>
-  </div>
-  <div id="controls-container"></div>
-  
-</div>
-<footer>© Dareloom Hub</footer>
-<script>
-// --- Helper Functions ---
-function escapeHtml(s){
-    // Security Fix: Sanitizes output for display/attributes
-    return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
-
-// Ad pop + blocker check (Kept original logic)
-const AD_POP="//bulletinsituatedelectronics.com/24/e4/33/24e43300238cf9b86a05c918e6b00561.js";
-let lastPop=0,isAdBlockerActive=false;
-function openAdsterraPop(){
-  if(isAdBlockerActive)return;
-  const now=Date.now();
-  if(now-lastPop<4000)return;
-  lastPop=now;
-  setTimeout(()=>{
-    try{
-      const s=document.createElement('script');
-      s.src=AD_POP;s.async=true;document.body.appendChild(s);
-      setTimeout(()=>{try{s.remove()}catch(e){}},5000);
-    }catch(e){}
-  },500);
-}
-function showAdBlockerWarning(){
-  isAdBlockerActive=true;
-  document.getElementById('adblock-warning-overlay').style.display='flex';
-  document.getElementById('main-content-wrapper').style.display='none';
-}
-function showContent(){
-  isAdBlockerActive=false;
-  document.getElementById('adblock-warning-overlay').style.display='none';
-  document.getElementById('main-content-wrapper').style.display='flex';
-}
-function checkAdBlocker(){
-    // Simplified: Always return false to avoid penalizing users unnecessarily, 
-    // relying on the manual check in the HTML above.
-    return Promise.resolve(false); 
-}
-// 💡 FIXED EMBED URL HANDLER
-function getEmbedUrl(url){
-  if(!url)return'';
-  let u=url.trim();
-  
-  // MixDrop Fix: /f/ को /e/ से बदलता है, चाहे डोमेन कुछ भी हो
-  if(u.includes("mixdrop.")||u.includes("/f/")){
-    let id=u.match(/(?:\/f\/|\/)([A-Za-z0-9]{6,20})/);
-    if(id&&id[1])return`https://mixdrop.co/e/${id[1]}`; // Always point to mixdrop.co/e/
-  }
-  
-  // Streamwish
-  if(u.includes("streamwish.")||u.includes("dumbalag.")||u.includes("hglink.")){
-    let id=u.match(/(?:\/file\/|\/)([A-Za-z0-9_-]{10,})$/);
-    if(id&&id[1])return`https://streamwish.to/e/${id[1]}`;
-  }
-  
-  // Streamtape
-  if(u.includes("streamtape.com/v/")){
-    const m=u.match(/\/v\/([A-Za-z0-9_-]+)/);
-    if(m&&m[1])return`https://streamtape.com/e/${m[1]}/`;
-  }
-  
-  // Google Drive
-  if(u.includes("drive.google.com")&&u.includes("/view"))
-    return u.replace("/view","/preview");
-  
-  // MEGA detect
-  if(u.includes("mega.nz"))return"MEGA";
-  
-  return u;
-}
-
-// 💡 NEW: Function to load video title from URL params
-function loadVideoTitle(title) {
-    const titleElement = document.getElementById('video-title');
-    if (title && titleElement) {
-        const decodedTitle = decodeURIComponent(title);
-        titleElement.textContent = escapeHtml(decodedTitle);
-        document.title = escapeHtml(decodedTitle) + ' - Dareloom Hub'; 
-    } else {
-         titleElement.textContent = 'Watch Video';
-         document.title = 'Watch Video - Dareloom Hub';
+      qs('#videoSchema').textContent = JSON.stringify(schema, null, 2);
     }
-}
 
-// 💡 NEW: Function to load current video tags from URL parameter
-function loadVideoTags(rawTags) {
-    const tagsContainer = document.getElementById('current-video-tags');
-    tagsContainer.innerHTML = '';
+    // Embed URL generator (same as before + more hosts)
+    function getEmbedUrl(url) {
+      if (!url) return '';
+      url = url.trim();
 
-    if (!rawTags) {
-        tagsContainer.innerHTML = '<span style="color:var(--muted-color); font-style: italic;">No tags available.</span>';
+      if (url.includes('mixdrop')) return url.replace(/\/(f|embed)\//i, '/e/');
+      if (url.includes('streamwish') || url.includes('/file/')) return url.replace('/file/', '/e/').replace(/\/([a-zA-Z0-9]+)$/, '/e/$1');
+      if (url.includes('streamtape.com/v/')) {
+        const id = url.split('/v/')[1]?.split('/')[0];
+        if (id) return `https://streamtape.com/e/${id}/`;
+      }
+      if (url.includes('drive.google.com')) return url.replace("/view", "/preview");
+      if (url.includes('mega.nz')) return "MEGA";
+
+      return url;
+    }
+
+    // Main load function
+    function loadVideo() {
+      const params = new URLSearchParams(location.search);
+      const rawUrl   = params.get("url");
+      const title    = params.get("title") || "Untitled Video";
+      const rawTags  = params.get("tags") || "";
+
+      if (!rawUrl) {
+        qs('#video-title').textContent = "No video link provided";
+        qs('#player').innerHTML = "<p style='color:#ff4b91; padding:40px;'>Please go back and select a video again.</p>";
         return;
+      }
+
+      // Update metadata
+      const thumb = "https://dareloom.fun/placeholder-video.jpg"; // Replace with real if available
+      const firstEmbed = rawUrl.split(',')[0].trim();
+      const embedUrl = getEmbedUrl(firstEmbed);
+      updateMetadata(title, `Watch ${title} full HD now on Dareloom Hub.`, thumb, embedUrl);
+
+      qs('#video-title').textContent = title;
+
+      // Tags
+      const tagsDiv = qs('#tags-list');
+      tagsDiv.innerHTML = '';
+      if (rawTags) {
+        decodeURIComponent(rawTags).split(',').map(t => t.trim()).filter(Boolean).forEach(tag => {
+          const span = document.createElement('span');
+          span.className = 'tag';
+          span.textContent = tag;
+          tagsDiv.appendChild(span);
+        });
+      } else {
+        tagsDiv.innerHTML = '<span class="tag" style="background:#222;color:#888;">No tags</span>';
+      }
+
+      // Player
+      const player = qs('#player');
+      const container = qs('#video-player-container');
+
+      if (embedUrl && embedUrl !== "MEGA") {
+        player.innerHTML = `<iframe src="${escape(embedUrl)}" allowfullscreen allow="autoplay; fullscreen; encrypted-media"></iframe>`;
+        container.classList.remove('loading');
+      } else {
+        player.innerHTML = `
+          <div style="padding:60px 20px; text-align:center;">
+            <h3>Video cannot be embedded directly</h3>
+            <p style="margin:16px 0;">Click one of the buttons below to watch on original host.</p>
+          </div>
+        `;
+      }
+
+      // Controls / Buttons
+      const controls = qs('#controls');
+      controls.innerHTML = '';
+
+      const btns = [
+        { text: "Open Full Player", class: "btn btn-primary", href: firstEmbed || "#", onclick: "window.open(this.href, '_blank'); return false;" },
+        rawTags.includes('telegram') || rawUrl.includes('t.me') ? { text: "Telegram Link", class: "btn btn-telegram", href: rawUrl.split(',').find(l => l.includes('t.me')) || "#", target: "_blank" } : null
+      ].filter(Boolean);
+
+      btns.forEach(b => {
+        const a = document.createElement('a');
+        a.className = b.class;
+        a.href = b.href;
+        a.target = b.target || "_blank";
+        a.rel = "noopener noreferrer";
+        a.textContent = b.text;
+        if (b.onclick) a.onclick = new Function(b.onclick);
+        controls.appendChild(a);
+      });
     }
 
-    // Split tags by comma, trim spaces, and filter empty ones
-    const tags = decodeURIComponent(rawTags).split(',').map(t => t.trim()).filter(Boolean);
+    // Simple ad-block simulation (optional - remove if not needed)
+    setTimeout(() => {
+      if (!qs('#player iframe')) {
+        // Could show warning, but for now just proceed
+      }
+    }, 3000);
 
-    tags.forEach(tag => {
-        const tagElement = document.createElement('a');
-        tagElement.className = 'tag-link';
-        // Tag links redirect to a search/category page
-        // Note: We escape the tag content for display and URL encoding, but the link itself is safe.
-        tagElement.href = `/?filter=${encodeURIComponent(tag.toLowerCase())}`;
-        tagElement.textContent = escapeHtml(tag).toUpperCase(); 
-        tagElement.setAttribute('onclick', 'openAdsterraPop()'); 
-        tagsContainer.appendChild(tagElement);
-    });
-}
-  
-async function loadVideo(){
-  // Removed await checkAdBlocker() to avoid user friction, keep Ad-Blocker message as fallback
-  // if ad scripts are blocked, showContent will run after a short delay
-  showContent();openAdsterraPop();
-  
-  const params=new URLSearchParams(location.search);
-  const raw=params.get("url");
-  const videoTitle = params.get("title"); // Get title
-  const videoTags = params.get("tags");   // Get tags
-
-  const videoWrap=document.getElementById("videoWrap");
-  const ctr=document.getElementById("controls-container");
-  ctr.innerHTML='';
-  
-  if(!raw){videoWrap.innerHTML="<h3>No video link</h3>";return;}
-  
-  const links=decodeURIComponent(raw).split(",").map(l=>l.trim()).filter(Boolean);
-  const host={mixdrop:'',streamwish:'',streamtape:'',mega:'',other:''};
-  let telegram='';
-  
-  for(const l of links){
-    const x=l.toLowerCase();
-    // 💡 FIX: Telegram link kept as its own variable
-    if(x.includes("t.me") || x.includes("telegram"))telegram=l; 
-    else if(x.includes("mixdrop.")||x.includes("/f/"))host.mixdrop=l;
-    else if(x.includes("streamwish.")||x.includes("dumbalag.")||x.includes("hglink."))host.streamwish=l;
-    else if(x.includes("streamtape."))host.streamtape=l;
-    else if(x.includes("mega."))host.mega=l;
-    else host.other=l;
-  }
-  
-  let embed=null,isMega=false;
-  if(host.mixdrop)embed=getEmbedUrl(host.mixdrop);
-  else if(host.streamwish)embed=getEmbedUrl(host.streamwish);
-  else if(host.streamtape)embed=getEmbedUrl(host.streamtape);
-  else if(host.other)embed=getEmbedUrl(host.other);
-  else if(host.mega){isMega=true;}
-  
-  if(isMega){
-    videoWrap.innerHTML="<h3>⚠️ MEGA links can’t play inline. Please use the button below.</h3>";
-  }else if(embed&&embed!=="MEGA"){
-    // 🛡️ Security: The embed URL is sanitized before being inserted into iframe src.
-    videoWrap.innerHTML=`<iframe src="${escapeHtml(embed)}" allowfullscreen></iframe>`;
-  }else{
-    videoWrap.innerHTML="<h3>⚠️ No valid embeddable video link found. Please use the buttons below.</h3>";
-  }
-  
-  // Buttons
-  if(telegram)ctr.innerHTML+=`<a class="btn btn-telegram" href="${escapeHtml(telegram)}" target="_blank">⬇️ Download / Telegram</a>`;
-  if(host.mixdrop)ctr.innerHTML+=`<a class="btn btn-mixdrop" href="${escapeHtml(host.mixdrop)}" target="_blank" onclick="openAdsterraPop()">🔗 MixDrop</a>`;
-  if(host.streamwish)ctr.innerHTML+=`<a class="btn btn-streamwish" href="${escapeHtml(host.streamwish)}" target="_blank" onclick="openAdsterraPop()">🔗 Streamwish</a>`;
-  if(host.streamtape)ctr.innerHTML+=`<a class="btn btn-streamtape" href="${escapeHtml(host.streamtape)}" target="_blank" onclick="openAdsterraPop()">🔗 Streamtape</a>`;
-  if(host.mega)ctr.innerHTML+=`<a class="btn btn-mega" href="${escapeHtml(host.mega)}" target="_blank" onclick="openAdsterraPop()">🔗 MEGA</a>`;
-
-  // Load new elements
-  loadVideoTitle(videoTitle); 
-  loadVideoTags(videoTags);   
-}
-  
-document.addEventListener("DOMContentLoaded",loadVideo);
-</script>
+    window.addEventListener('DOMContentLoaded', loadVideo);
+  </script>
 </body>
 </html>
