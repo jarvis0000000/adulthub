@@ -1,76 +1,65 @@
-===============================
-Dareloom Hub - robots.txt (SEO + Bot Protection)
-===============================
--------------------------------
-Block AI & Scraper Bots
--------------------------------
+# Dareloom Hub - robots.txt (Optimized for SEO + AI Protection - Jan 2026)
+# Purpose: Block AI trainers/scrapers, allow major search engines full access, protect private paths, clean params
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /private/
+Disallow: /api/
+Disallow: /node_modules/
+Disallow: /scripts/
+Disallow: /temp/
+Disallow: /*?*session=*
+Disallow: /*?*ref=*
+Disallow: /*?*utm_*
+Crawl-delay: 10  # Ignored by Google/Bing, but harmless for others
+
+# Explicitly allow query params for video/trailer pages (helps discovery)
+Allow: /*?id=*
+Allow: /*?url=*
+Allow: /*?filter=*
+
+# Block AI & Scraper Bots (strong protection for adult content)
 User-agent: GPTBot
 Disallow: /
 User-agent: ClaudeBot
 Disallow: /
 User-agent: PerplexityBot
 Disallow: /
-User-agent: Diffbot
-Disallow: /
-User-agent: OmgiliBot
-Disallow: /
-User-agent: anthropic-ai
-Disallow: /
-User-agent: ChatGPT
-Disallow: /
-User-agent: FacebookBot
-Disallow: /
-User-agent: meta-externalagent
-Disallow: /
-User-agent: DataForSeoBot
-Disallow: /
-User-agent: CCBot
+User-agent: Google-Extended
 Disallow: /
 User-agent: Bytespider
 Disallow: /
-User-agent: Google-Extended
+User-agent: CCBot
 Disallow: /
--------------------------------
-Allow Major Search Engines
--------------------------------
+User-agent: meta-externalagent
+Disallow: /
+User-agent: anthropic-ai
+Disallow: /
+User-agent: Diffbot
+Disallow: /
+User-agent: OmgiliBot
+User-agent: DataForSeoBot
+Disallow: /
+
+# Allow & Prioritize Major Search Engines
 User-agent: Googlebot
 Allow: /
-Allow: /?filter=
-Disallow: /admin/
-Disallow: /private/
 User-agent: Bingbot
 Allow: /
-Disallow: /admin/
-Disallow: /private/
 User-agent: Yandex
 Allow: /
 User-agent: DuckDuckBot
 Allow: /
 User-agent: Applebot
 Allow: /
--------------------------------
-Default Rules (All Other Bots)
--------------------------------
-User-agent: *
-Disallow: /admin/
-Disallow: /api/
-Disallow: /node_modules/
-Disallow: /scripts/
-Disallow: /private/
-Disallow: /temp/
-Disallow: /?sort=
-Disallow: /?session=
-Disallow: /?ref=
-Disallow: /?utm_
-Crawl-delay: 10
--------------------------------
-Parameter Cleanup (SEO)
--------------------------------
+
+# Parameter Cleanup (prevents duplicate content from tracking params)
 Clean-param: utm_source&utm_medium&utm_campaign&utm_term&utm_content&ref /
--------------------------------
-✅ Sitemaps (Google Will Accept These)
--------------------------------
+
+# Sitemaps (submit all in GSC too!)
 Sitemap: https://dareloom.fun/sitemap-index.xml
--------------------------------
-End of File
--------------------------------
+Sitemap: https://dareloom.fun/sitemap.xml
+Sitemap: https://dareloom.fun/sitemap-video.xml  # Critical for video indexing!
+
+# End of File
