@@ -213,7 +213,7 @@ header.site {
     text-overflow: ellipsis;
 }
 
-/* ================= LATEST LIST ================= */
+/* ================= LATEST LIST (JS se match) ================= */
 #latestList {
     display: flex;
     flex-direction: column;
@@ -249,7 +249,19 @@ header.site {
     flex: 1;
 }
 
-.latest-info h4 { color: var(--primary); margin: 0 0 10px; }
+.latest-info > div:first-child {
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--primary);
+    margin-bottom: 6px;
+}
+
+.tag-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+}
 
 .tag-btn {
     background: rgba(255,75,145,0.15);
@@ -257,12 +269,37 @@ header.site {
     border: none;
     padding: 6px 14px;
     border-radius: 30px;
-    margin: 0 6px 8px 0;
     font-size: 0.85rem;
     transition: var(--transition);
+    cursor: pointer;
 }
 
 .tag-btn:hover { background: var(--primary); color: white; }
+
+/* NEW: Buttons from JS */
+.preview-btn,
+.watch-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 30px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    margin-right: 8px;
+    transition: var(--transition);
+}
+
+.preview-btn {
+    background: var(--primary);
+    color: white;
+}
+.preview-btn:hover { background: #ff6b9d; box-shadow: var(--glow); }
+
+.watch-btn {
+    background: var(--secondary);
+    color: #000;
+}
+.watch-btn:hover { background: #00b3e0; box-shadow: var(--glow); }
 
 /* ================= PAGINATION ================= */
 #pager {
@@ -404,4 +441,4 @@ header.site {
     .title { font-size: 1.3rem; }
     .watch-movies-btn { padding: 14px 30px; font-size: 1.1rem; }
     .reel-buttons button { width: 54px; height: 54px; font-size: 1.3rem; }
-    }
+                 }
