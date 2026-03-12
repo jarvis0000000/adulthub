@@ -6,7 +6,6 @@
 <title>Now Watching - Dareloom Hub</title>
 <meta name="robots" content="noindex, nofollow" />
 
-<!-- 🔥 FULL NEON PINK THEME (same as your style.css) -->
 <style>
 :root {
   --primary: #ff4b91;
@@ -55,71 +54,32 @@ video, iframe {
   background:#000;
 }
 
-.ad-box {
-  margin:15px 0; width:100%; max-width:728px; text-align:center;
-}
+.ad-box { margin:15px 0; width:100%; max-width:728px; text-align:center; }
 
 .btn {
   background: var(--primary);
-  color: white;
-  border: none;
-  padding: 14px 24px;
-  border-radius: 50px;
-  cursor: pointer;
-  font-weight: 700;
-  margin: 8px;
-  transition: var(--transition);
-  box-shadow: var(--glow);
-  text-decoration: none;
-  display: inline-flex;
-  align-items:center;
-  gap: 8px;
-  font-size: 1rem;
+  color: white; border: none;
+  padding: 12px 20px; border-radius: 50px;
+  cursor: pointer; font-weight: 700;
+  margin: 6px; transition: var(--transition);
+  box-shadow: var(--glow); text-decoration: none;
+  display: inline-flex; align-items:center; gap: 8px; font-size: 0.9rem;
 }
-.btn:hover {
-  background: #ff6b9d;
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 0 30px var(--primary-glow);
-}
+.btn:hover { background: #ff6b9d; transform: translateY(-2px); box-shadow: 0 0 30px var(--primary-glow); }
 
 .btn-telegram { background:#0088cc !important; }
 .btn-mixdrop { background:#ff4500 !important; }
 .btn-streamwish { background:#1e88e5 !important; }
 .btn-streamtape { background:#6a0dad !important; }
-.btn-mega { background:#007bff !important; }
+.btn-mega { background:#d32f2f !important; }
 
-footer {
-  text-align:center; padding:20px; color:var(--muted); width:100%;
-  font-size:0.9rem;
-}
+#video-title { color: var(--primary); text-align:center; font-size:1.6rem; margin:15px 0 5px; font-weight:700; text-shadow: var(--glow); }
 
-#video-title {
-  color: var(--primary);
-  text-align:center;
-  font-size:1.8rem;
-  margin:15px 0 8px;
-  font-weight:700;
-  text-shadow: var(--glow);
-}
+#tags-container { width:100%; max-width:900px; padding:5px 0; text-align:center; border-bottom:1px solid #222; margin-bottom:15px; }
+.tag-link { display:inline-block; background:#222; color:var(--primary); padding:6px 14px; border-radius:30px; margin:4px; text-decoration:none; font-size:0.85rem; transition:var(--transition); }
+.tag-link:hover { background:var(--primary); color:white; }
 
-#tags-container {
-  width:100%; max-width:900px; padding:10px 0;
-  text-align:center; border-bottom:1px solid #222;
-  margin-bottom:15px;
-}
-.tag-link {
-  display:inline-block; background:#222; color:var(--primary);
-  padding:8px 16px; border-radius:30px; margin:5px;
-  text-decoration:none; font-size:0.95rem; transition:var(--transition);
-}
-.tag-link:hover { background:var(--primary); color:white; transform:scale(1.05); }
-
-/* Ad blocker overlay */
-#adblock-warning-overlay {
-  display:none; position:fixed; inset:0; background:rgba(0,0,0,0.97);
-  color:white; z-index:99999; backdrop-filter:blur(10px);
-  justify-content:center; align-items:center; flex-direction:column;
-}
+#adblock-warning-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.97); color:white; z-index:99999; backdrop-filter:blur(10px); justify-content:center; align-items:center; flex-direction:column; }
 </style>
 </head>
 <body>
@@ -128,165 +88,128 @@ footer {
 
 <div id="adblock-warning-overlay">
   <h1 style="color:#ff4b91;">🚫 Ad Blocker Detected!</h1>
-  <p style="font-size:18px;max-width:500px;text-align:center;">Please disable Ad Blocker to watch the video.<br>Refresh after disabling.</p>
+  <p>Please disable Ad Blocker to watch the video.</p>
 </div>
 
-<div id="main-content-wrapper" style="width:100%;max-width:1100px;flex-grow:1;display:flex;flex-direction:column;align-items:center;">
+<div id="main-content-wrapper" style="width:95%;max-width:1100px;flex-grow:1;display:flex;flex-direction:column;align-items:center;">
   
-  <h2 id="video-title"></h2>
+  <h2 id="video-title">Loading Video...</h2>
   
   <div id="tags-container">
-    <p style="color:var(--muted);font-size:14px;margin-bottom:8px;">Tags / Categories</p>
     <div id="current-video-tags"></div>
   </div>
 
   <div id="videoWrap"></div>
 
-  <!-- Ad Slots (kept your original) -->
+  <p style="color:var(--muted); font-size:13px; margin-top:10px;">Select Server if video doesn't load:</p>
+  <div id="controls-container" style="display:flex;justify-content:center;flex-wrap:wrap;margin-bottom:20px;"></div>
+
   <div class="ad-box">
     <script type="text/javascript">
       atOptions = {'key' : 'd1be46ed95d3e2db572824c531da5082','format' : 'iframe','height' : 90,'width' : 728,'params' : {}};
     </script>
     <script type="text/javascript" src="//www.highperformanceformat.com/d1be46ed95d3e2db572824c531da5082/invoke.js"></script>
   </div>
-
-  <div class="ad-box">
-    <script async="async" data-cfasync="false" src="//bulletinsituatedelectronics.com/acada87426efb7bc58c49a74cd786001/invoke.js"></script>
-    <div id="container-acada87426efb7bc58c49a74cd786001"></div>
-  </div>
-
-  <div id="controls-container" style="display:flex;justify-content:center;flex-wrap:wrap;margin:20px 0;"></div>
 </div>
 
-<footer>
-  © Dareloom Hub • <a href="/2257.html" style="color:var(--primary);">2257 Statement</a> • 18+ Only
-</footer>
+<footer>© Dareloom Hub • 18+ Only</footer>
 
 <script>
-// ==================== HELPERS ====================
+// --- Global Links Store ---
+let videoLinks = { mp4: '', mixdrop: '', streamwish: '', streamtape: '', mega: '', telegram: '' };
+
 function escapeHtml(s){
-    return (s||'').toString()
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-        .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    return (s||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-// ==================== EMBED + DIRECT MP4 HANDLER (UPDATED FOR YOUR SHEET) ====================
-function getVideoPlayer(url) {
-    if (!url) return '';
-    const u = url.trim().toLowerCase();
-
-    // 🔥 DIRECT MP4 (streamtape / hgcloud) → <video> player
-    if (u.includes('.mp4')) {
-        return `<video controls autoplay playsinline style="width:100%;max-height:75vh;aspect-ratio:16/9;">
-                    <source src="${escapeHtml(url)}" type="video/mp4">
-                    Your browser does not support the video tag.
-                </video>`;
-    }
-
-    // Mixdrop / Streamwish / Streamtape embed fallback
-    let embedUrl = url;
-    if (u.includes('mixdrop') || u.includes('/f/')) {
-        const id = u.match(/(?:\/f\/|\/)([A-Za-z0-9]{6,20})/);
-        if (id) embedUrl = `https://mixdrop.co/e/${id[1]}`;
-    } else if (u.includes('streamwish') || u.includes('dumbalag') || u.includes('hglink')) {
-        const id = u.match(/(?:\/file\/|\/)([A-Za-z0-9_-]{10,})/);
-        if (id) embedUrl = `https://streamwish.to/e/${id[1]}`;
-    } else if (u.includes('streamtape')) {
-        const m = u.match(/\/v\/([A-Za-z0-9_-]+)/);
-        if (m) embedUrl = `https://streamtape.com/e/${m[1]}/`;
-    }
-
-    return `<iframe src="${escapeHtml(embedUrl)}" allowfullscreen allow="autoplay" style="width:100%;max-height:75vh;aspect-ratio:16/9;"></iframe>`;
+// --- URL Transformer ---
+function getEmbedUrl(url){
+  if(!url) return '';
+  let u = url.trim();
+  if(u.includes("mixdrop.") || u.includes("/f/")){
+    let id = u.match(/(?:\/f\/|\/)([A-Za-z0-9]{6,20})/);
+    return id ? `https://mixdrop.co/e/${id[1]}` : u;
+  }
+  if(u.includes("streamwish.") || u.includes("dumbalag.") || u.includes("hglink.")){
+    let id = u.match(/(?:\/file\/|\/)([A-Za-z0-9_-]{10,})/);
+    return id ? `https://streamwish.to/e/${id[1]}` : u;
+  }
+  if(u.includes("streamtape.com/v/")){
+    let id = u.match(/\/v\/([A-Za-z0-9_-]+)/);
+    return id ? `https://streamtape.com/e/${id[1]}/` : u;
+  }
+  return u;
 }
 
-// ==================== TITLE + TAGS ====================
-function loadVideoTitle(title) {
-    const el = document.getElementById('video-title');
-    if (title) {
-        const decoded = decodeURIComponent(title);
-        el.textContent = escapeHtml(decoded);
-        document.title = escapeHtml(decoded) + ' - Dareloom Hub';
+// --- Player Switcher ---
+function switchServer(type) {
+    const videoWrap = document.getElementById("videoWrap");
+    const url = videoLinks[type];
+    if (!url) return;
+
+    if (type === 'mp4') {
+        videoWrap.innerHTML = `<video controls autoplay playsinline style="width:100%;max-height:75vh;aspect-ratio:16/9;"><source src="${escapeHtml(url)}" type="video/mp4">Your browser does not support the video tag.</video>`;
     } else {
-        el.textContent = 'Now Watching';
+        const embed = getEmbedUrl(url);
+        videoWrap.innerHTML = `<iframe src="${escapeHtml(embed)}" allowfullscreen allow="autoplay"></iframe>`;
     }
 }
 
-function loadVideoTags(rawTags) {
-    const container = document.getElementById('current-video-tags');
-    container.innerHTML = '';
-    if (!rawTags) {
-        container.innerHTML = '<span style="color:var(--muted);">No tags</span>';
-        return;
-    }
-    const tags = decodeURIComponent(rawTags).split(',').map(t => t.trim()).filter(Boolean);
-    tags.forEach(tag => {
-        const a = document.createElement('a');
-        a.className = 'tag-link';
-        a.href = `/?filter=${encodeURIComponent(tag)}`;
-        a.textContent = '#' + escapeHtml(tag.toUpperCase());
-        container.appendChild(a);
-    });
-}
-
-// ==================== MAIN VIDEO LOADER ====================
 async function loadVideo() {
-    // Show content immediately (ad blocker warning is fallback)
-    document.getElementById('adblock-warning-overlay').style.display = 'none';
-    document.getElementById('main-content-wrapper').style.display = 'flex';
-
     const params = new URLSearchParams(location.search);
     const rawUrl = params.get("url");
-    const titleParam = params.get("title");
-    const tagsParam = params.get("tags");
+    const title = params.get("title");
+    const tags = params.get("tags");
 
-    const videoWrap = document.getElementById("videoWrap");
-    const ctr = document.getElementById("controls-container");
-    ctr.innerHTML = '';
+    if (title) {
+        document.getElementById('video-title').textContent = decodeURIComponent(title);
+        document.title = decodeURIComponent(title) + ' - Dareloom Hub';
+    }
+
+    if (tags) {
+        const tagContainer = document.getElementById('current-video-tags');
+        decodeURIComponent(tags).split(',').forEach(t => {
+            const a = document.createElement('a');
+            a.className = 'tag-link';
+            a.href = `/?filter=${encodeURIComponent(t.trim())}`;
+            a.textContent = '#' + t.trim().toUpperCase();
+            tagContainer.appendChild(a);
+        });
+    }
 
     if (!rawUrl) {
-        videoWrap.innerHTML = "<h3 style='color:#ff4b91;'>No video link found</h3>";
+        document.getElementById("videoWrap").innerHTML = "<h3>No Link Provided</h3>";
         return;
     }
 
-    loadVideoTitle(titleParam);
-    loadVideoTags(tagsParam);
-
     const links = decodeURIComponent(rawUrl).split(",").map(l => l.trim()).filter(Boolean);
-    
-    let mp4Link = '';
-    let telegram = '';
-    let otherLinks = [];
+    const ctr = document.getElementById("controls-container");
 
-    for (let l of links) {
-        if (l.includes('t.me') || l.includes('telegram')) telegram = l;
-        else if (l.includes('.mp4')) mp4Link = l;
-        else otherLinks.push(l);
-    }
-
-    // 🔥 PRIORITY: Direct MP4 first (your sheet has streamtape/hgcloud mp4)
-    if (mp4Link) {
-        videoWrap.innerHTML = getVideoPlayer(mp4Link);
-    } 
-    // Fallback to embed (mixdrop etc.)
-    else if (otherLinks.length) {
-        videoWrap.innerHTML = getVideoPlayer(otherLinks[0]);
-    } 
-    else {
-        videoWrap.innerHTML = "<h3 style='color:#ff4b91;'>No playable video found</h3>";
-    }
-
-    // Control Buttons (neon style)
-    if (telegram) {
-        ctr.innerHTML += `<a class="btn btn-telegram" href="${escapeHtml(telegram)}" target="_blank">⬇️ Telegram / Download</a>`;
-    }
-    otherLinks.forEach(link => {
-        if (link.includes('mixdrop')) ctr.innerHTML += `<a class="btn btn-mixdrop" href="${escapeHtml(link)}" target="_blank">🔗 MixDrop</a>`;
-        else if (link.includes('streamwish')) ctr.innerHTML += `<a class="btn btn-streamwish" href="${escapeHtml(link)}" target="_blank">🔗 Streamwish</a>`;
-        else if (link.includes('streamtape')) ctr.innerHTML += `<a class="btn btn-streamtape" href="${escapeHtml(link)}" target="_blank">🔗 Streamtape</a>`;
+    links.forEach(l => {
+        const low = l.toLowerCase();
+        if (low.includes('.mp4')) videoLinks.mp4 = l;
+        else if (low.includes('mixdrop')) videoLinks.mixdrop = l;
+        else if (low.includes('streamwish') || low.includes('dumbalag')) videoLinks.streamwish = l;
+        else if (low.includes('streamtape')) videoLinks.streamtape = l;
+        else if (low.includes('mega.nz')) videoLinks.mega = l;
+        else if (low.includes('t.me')) videoLinks.telegram = l;
     });
+
+    // Priority Auto-Play
+    if (videoLinks.mp4) switchServer('mp4');
+    else if (videoLinks.streamwish) switchServer('streamwish');
+    else if (videoLinks.mixdrop) switchServer('mixdrop');
+    else if (videoLinks.streamtape) switchServer('streamtape');
+
+    // Create Switcher Buttons
+    if (videoLinks.mp4) ctr.innerHTML += `<button class="btn" onclick="switchServer('mp4')">⚡ Server 1 (Fast)</button>`;
+    if (videoLinks.streamwish) ctr.innerHTML += `<button class="btn btn-streamwish" onclick="switchServer('streamwish')">🔗 Streamwish</button>`;
+    if (videoLinks.mixdrop) ctr.innerHTML += `<button class="btn btn-mixdrop" onclick="switchServer('mixdrop')">🔗 MixDrop</button>`;
+    if (videoLinks.streamtape) ctr.innerHTML += `<button class="btn btn-streamtape" onclick="switchServer('streamtape')">🔗 Streamtape</button>`;
+    if (videoLinks.mega) ctr.innerHTML += `<a class="btn btn-mega" href="${escapeHtml(videoLinks.mega)}" target="_blank">📂 Mega.nz</a>`;
+    if (videoLinks.telegram) ctr.innerHTML += `<a class="btn btn-telegram" href="${escapeHtml(videoLinks.telegram)}" target="_blank">⬇️ Download</a>`;
 }
 
-// ==================== INIT ====================
 document.addEventListener("DOMContentLoaded", loadVideo);
 </script>
 </body>
