@@ -15,7 +15,7 @@
   <!-- Canonical for homepage -->
   <link rel="canonical" href="https://dareloom.fun/" />
 
-  <!-- Preload fonts (adjust path if your fonts are in /fonts/) -->
+  <!-- Preload fonts -->
   <link rel="preload" href="/fonts/Poppins-Regular.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/fonts/Poppins-Bold.woff2" as="font" type="font/woff2" crossorigin />
 
@@ -35,7 +35,10 @@
   <meta name="twitter:description" content="Daily updated erotic & romantic content in HD. No signup needed." />
   <meta name="twitter:image" content="https://dareloom.fun/web-app-manifest-512x512.png" />
 
-  <!-- Schema: WebSite + Organization + ItemList for latest videos -->
+  <!-- PapaParse (Google Sheet CSV ke liye - zaroori) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
+  <!-- Schema -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -45,37 +48,7 @@
         "@id": "https://dareloom.fun/#website",
         "url": "https://dareloom.fun/",
         "name": "Dareloom Hub",
-        "description": "Free HD streaming of erotic web series, romantic movies, uncut clips & trailers for adults 18+.",
-        "potentialAction": {
-          "@type": "SearchAction",
-          "target": "https://dareloom.fun/?s={search_term_string}",
-          "query-input": "required name=search_term_string"
-        }
-      },
-      {
-        "@type": "Organization",
-        "@id": "https://dareloom.fun/#org",
-        "name": "Dareloom Hub",
-        "url": "https://dareloom.fun/",
-        "logo": "https://dareloom.fun/web-app-manifest-512x512.png"
-      },
-      {
-        "@type": "ItemList",
-        "name": "Latest Erotic & Romantic Picks",
-        "itemListElement": [
-          {
-            "@type": "ListItem",
-            "position": 1,
-            "item": {
-              "@type": "VideoObject",
-              "name": "Featured Erotic Series Trailer",
-              "description": "Latest hot web series trailer in HD. Watch full episodes on Dareloom Hub.",
-              "thumbnailUrl": "https://dareloom.fun/placeholder-latest.jpg",
-              "url": "https://dareloom.fun/trailer.html?id=example-latest"
-            }
-          }
-          // Add 2-3 more static if you want, or JS will populate dynamically
-        ]
+        "description": "Free HD streaming of erotic web series, romantic movies, uncut clips & trailers for adults 18+."
       }
     ]
   }
@@ -83,11 +56,41 @@
 
   <link rel="stylesheet" href="/style.css?v=20260119" />
   <style>
-    /* Your original styles kept, added minor tweaks for speed/SEO */
-    body { font-display: swap; } /* Better font loading */
+    body { font-display: swap; }
     .latest-item a { color: inherit; text-decoration: none; display: block; }
     .card a { display: block; }
     noscript { padding: 20px; background: #111; border-radius: 8px; text-align: center; color: #ff4b91; }
+
+    /* Script.js ke HTML se match (latest-item + latest-thumb) */
+    #latestList.grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      padding: 20px 0;
+    }
+    .latest-item {
+      background: #18181b;
+      border-radius: 12px;
+      overflow: hidden;
+      transition: transform 0.2s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .latest-item:hover { transform: scale(1.03); }
+    .latest-thumb {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+    }
+    .latest-info {
+      padding: 14px;
+    }
+    .latest-info div:first-child {
+      font-weight: 700;
+      font-size: 15px;
+      line-height: 1.3;
+      color: #fff;
+    }
   </style>
 </head>
 
@@ -115,17 +118,8 @@
 
     <section id="latestSection">
       <h2 id="mainTitle">📺 Latest Full Series Episodes</h2>
-      <div id="latestList">
-        <!-- Static fallback for bots & no-JS users -->
-        <noscript>
-          <p>JavaScript disabled? <a href="/Movies/">Browse all erotic movies & series here</a>. Enable JS for latest updates.</p>
-        </noscript>
-        <!-- Placeholder while loading -->
-        <div style="text-align:center; padding:40px 0; color:#777;">
-          Loading latest episodes... <br>
-          Popular picks: <a href="/trailer.html?id=example-slug|123">Spideypool XXX Parody</a> | 
-          <a href="/trailer.html?id=another|456">MILFs Do It Better</a>
-        </div>
+      <div id="latestList" class="grid">
+        <!-- JS yahan fill karega (script.js) -->
       </div>
       <div id="pager"></div>
     </section>
@@ -133,10 +127,7 @@
     <section id="randomSection">
       <h2>🔥 Trending Erotic & Romantic Picks</h2>
       <div id="randomGrid" class="grid">
-        <!-- Static fallback links for discovery -->
-        <noscript>
-          <p>Enable JS or visit <a href="/Movies/">Movies section</a> for full list.</p>
-        </noscript>
+        <!-- JS yahan fill karega -->
       </div>
     </section>
   </main>
@@ -155,7 +146,7 @@
     <button onclick="document.getElementById('adNotice').remove()" style="margin-left:8px;padding:5px 10px;background:#ffcc00;border:none;border-radius:6px;cursor:pointer">Got it</button>
   </div>
 
-  <script src="/script.js?v=20260119" defer></script>
+  <script src="/script.js?v=20260120" defer></script>
   <script type="module" src="/boost.mjs"></script>
 </body>
 </html>
