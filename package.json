@@ -1,43 +1,29 @@
-{
-  "name": "dareloom-hub",
-  "version": "1.0.0",
-  "description": "Dareloom.fun SEO generator – unified sitemap, robots, and IndexNow automation",
-  "type": "module",
-  "scripts": {
-    "build-pages": "node generate-actresses.mjs",
-    "build-sitemap": "node generate-sitemap.mjs",
-    "ping": "node ping-search.mjs",
-    "auto-seo": "node auto-seo.mjs",
-    "traffic": "node auto-traffic-booster.mjs",
-    "update": "node update-site.mjs",
-    "meta": "node generate-meta-files.mjs",
-    "full": "npm run build-pages && npm run build-sitemap && npm run ping && npm run auto-seo && npm run traffic && npm run meta",
-    "cron": "npm run full",
-    "deploy": "npm run full && echo '✅ Build complete, ready to deploy to Cloudflare Pages!'"
-  },
-  "dependencies": {
-    "node-fetch": "^3.3.2",
-    "google-trends-api": "^4.9.2",
-    "xmlbuilder2": "^3.1.1",
-    "fs-extra": "^11.2.0",
-    "googleapis": "^139.0.0",
-    "dotenv": "^16.4.5"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "license": "MIT",
-  "author": "Namo",
-  "keywords": [
-    "dareloom",
-    "sitemap",
-    "seo",
-    "robots",
-    "indexnow",
-    "google-sheets",
-    "automation",
-    "cloudflare-pages",
-    "auto-update",
-    "movie-listing"
-  ]
+import fetch from 'node-fetch';
+import fs from 'fs';
+
+const BASE_URL = "https://dareloom.fun";
+const INDEXNOW_KEY = "c5b6124b5f8744fbb1a44a96266b9aa7";
+
+export async function notifyEngines(urls = []) {
+    if (urls.length === 0) return;
+    
+    console.log(`📡 Sending ${urls.length} URLs to IndexNow...`);
+    const endpoint = "https://api.indexnow.org/indexnow";
+    const data = {
+        host: "dareloom.fun",
+        key: INDEXNOW_KEY,
+        keyLocation: `${BASE_URL}/${INDEXNOW_KEY}.txt`,
+        urlList: urls
+    };
+
+    try {
+        const res = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+        if (res.ok) console.log("✅ IndexNow Notification Sent!");
+    } catch (e) {
+        console.error("❌ IndexNow Failed:", e.message);
+    }
 }
