@@ -1,65 +1,26 @@
-# Dareloom Hub - robots.txt (Optimized for SEO + AI Protection - Jan 2026)
-# Purpose: Block AI trainers/scrapers, allow major search engines full access, protect private paths, clean params
-
+# Dareloom Hub - robots.txt (Optimized for SEO + AI Protection)
 User-agent: *
 Allow: /
 Disallow: /admin/
 Disallow: /private/
 Disallow: /api/
 Disallow: /node_modules/
-Disallow: /scripts/
-Disallow: /temp/
 Disallow: /*?*session=*
 Disallow: /*?*ref=*
-Disallow: /*?*utm_*
-Crawl-delay: 10  # Ignored by Google/Bing, but harmless for others
+Crawl-delay: 10
 
-# Explicitly allow query params for video/trailer pages (helps discovery)
+# Explicitly allow dynamic video/trailer discovery
 Allow: /*?id=*
 Allow: /*?url=*
 Allow: /*?filter=*
 
-# Block AI & Scraper Bots (strong protection for adult content)
+# Block AI Bots to protect content
 User-agent: GPTBot
 Disallow: /
 User-agent: ClaudeBot
 Disallow: /
-User-agent: PerplexityBot
-Disallow: /
 User-agent: Google-Extended
 Disallow: /
-User-agent: Bytespider
-Disallow: /
-User-agent: CCBot
-Disallow: /
-User-agent: meta-externalagent
-Disallow: /
-User-agent: anthropic-ai
-Disallow: /
-User-agent: Diffbot
-Disallow: /
-User-agent: OmgiliBot
-User-agent: DataForSeoBot
-Disallow: /
 
-# Allow & Prioritize Major Search Engines
-User-agent: Googlebot
-Allow: /
-User-agent: Bingbot
-Allow: /
-User-agent: Yandex
-Allow: /
-User-agent: DuckDuckBot
-Allow: /
-User-agent: Applebot
-Allow: /
-
-# Parameter Cleanup (prevents duplicate content from tracking params)
-Clean-param: utm_source&utm_medium&utm_campaign&utm_term&utm_content&ref /
-
-# Sitemaps (submit all in GSC too!)
+# Sitemap Index Link
 Sitemap: https://dareloom.fun/sitemap-index.xml
-Sitemap: https://dareloom.fun/sitemap.xml
-Sitemap: https://dareloom.fun/sitemap-video.xml  # Critical for video indexing!
-
-# End of File
