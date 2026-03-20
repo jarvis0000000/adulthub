@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  
   <title>Dareloom Hub — Watch Erotic & Romantic Series, Trailers & Movies in HD</title>
   <meta name="description" content="Watch latest erotic web series, romantic uncut movies, bold clips & trailers in HD. Daily updates, fast streaming, no signup required. 18+ adult content." />
   <meta name="keywords" content="erotic series, romantic movies, uncut clips, HD trailers, adult streaming, watch online free, Dareloom Hub" />
@@ -12,17 +13,15 @@
   <meta name="author" content="Dareloom Hub" />
   <meta name="theme-color" content="#000000" />
 
-  <!-- Canonical for homepage -->
   <link rel="canonical" href="https://dareloom.fun/" />
 
-  <!-- Preload fonts -->
   <link rel="preload" href="/fonts/Poppins-Regular.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/fonts/Poppins-Bold.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" as="script" />
 
   <link rel="icon" href="/favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
 
-  <!-- Open Graph & Twitter -->
   <meta property="og:site_name" content="Dareloom Hub" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Dareloom Hub — Erotic & Romantic HD Streaming" />
@@ -35,10 +34,8 @@
   <meta name="twitter:description" content="Daily updated erotic & romantic content in HD. No signup needed." />
   <meta name="twitter:image" content="https://dareloom.fun/web-app-manifest-512x512.png" />
 
-  <!-- PapaParse (Google Sheet CSV ke liye - zaroori) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
-  <!-- Schema -->
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
@@ -48,70 +45,53 @@
         "@id": "https://dareloom.fun/#website",
         "url": "https://dareloom.fun/",
         "name": "Dareloom Hub",
-        "description": "Free HD streaming of erotic web series, romantic movies, uncut clips & trailers for adults 18+."
+        "description": "Free HD streaming of erotic web series, romantic movies, uncut clips & trailers for adults 18+.",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://dareloom.fun/?s={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
       }
     ]
   }
   </script>
 
-  <link rel="stylesheet" href="/style.css?v=20260119" />
+  <link rel="stylesheet" href="/style.css?v=20260320" />
   <style>
-    body { font-display: swap; }
+    body { font-display: swap; background-color: #000; color: #fff; margin: 0; font-family: 'Poppins', sans-serif; }
     .latest-item a { color: inherit; text-decoration: none; display: block; }
-    .card a { display: block; }
-    noscript { padding: 20px; background: #111; border-radius: 8px; text-align: center; color: #ff4b91; }
-
-    /* Script.js ke HTML se match (latest-item + latest-thumb) */
     #latestList.grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 20px;
       padding: 20px 0;
     }
-    .latest-item {
-      background: #18181b;
-      border-radius: 12px;
-      overflow: hidden;
-      transition: transform 0.2s;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    }
-    .latest-item:hover { transform: scale(1.03); }
-    .latest-thumb {
-      width: 100%;
-      height: auto;
-      aspect-ratio: 16/9;
-      object-fit: cover;
-    }
-    .latest-info {
-      padding: 14px;
-    }
-    .latest-info div:first-child {
-      font-weight: 700;
-      font-size: 15px;
-      line-height: 1.3;
-      color: #fff;
-    }
+    /* SEO Hidden Content: Berojgaar crawlers ke liye */
+    .seo-only { display: none; }
+    .latest-item { background: #18181b; border-radius: 12px; overflow: hidden; transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+    .latest-item:hover { transform: scale(1.02); }
+    .hero-actions .watch-movies-btn { background: #ff4b91; color: #fff; padding: 12px 24px; border-radius: 30px; text-decoration: none; font-weight: bold; }
   </style>
 </head>
 
 <body>
   <header class="site">
-    <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;">
-      <div class="brand">
-        <img src="https://i.imgur.com/9oWeV8x.png" alt="Dareloom Hub Logo" width="40" height="40" loading="lazy">
-        <h1 class="title">Dareloom Hub</h1>
+    <div class="wrap" style="display:flex;justify-content:space-between;align-items:center;padding:10px 20px;">
+      <div class="brand" style="display:flex;align-items:center;gap:10px;">
+        <img src="https://i.imgur.com/9oWeV8x.png" alt="Dareloom Hub Logo" width="40" height="40" loading="eager">
+        <h1 class="title" style="font-size:1.5rem;margin:0;">Dareloom Hub</h1>
       </div>
       <nav class="nav">
-        <input type="search" id="searchInput" placeholder="Search titles..." aria-label="Search erotic series & movies">
-        <button class="menu-toggle" aria-label="Open Reels" onclick="openReelsPlayer()">REDGIFS</button>
+        <input type="search" id="searchInput" placeholder="Search titles..." aria-label="Search erotic series & movies" style="padding:8px;border-radius:20px;border:none;">
+        <button class="menu-toggle" aria-label="Watch Reels" onclick="openReelsPlayer()" style="background:#ff4b91;border:none;color:#fff;padding:8px 15px;border-radius:20px;cursor:pointer;margin-left:10px;">REELS</button>
       </nav>
     </div>
   </header>
 
-  <main id="mainWrap" class="wrap">
-    <section class="hero section">
+  <main id="mainWrap" class="wrap" style="max-width:1200px;margin:auto;padding:20px;">
+    <section class="hero section" style="text-align:center;padding:40px 0;">
       <div class="hero-actions">
-        <h2>Ready for the latest erotic & romantic series?</h2>
+        <h2 style="font-size:2rem;margin-bottom:20px;">Ready for the latest erotic & romantic series?</h2>
         <a href="/Movies/" class="watch-movies-btn">🎬 Watch Full Movies & Episodes →</a>
       </div>
     </section>
@@ -119,34 +99,44 @@
     <section id="latestSection">
       <h2 id="mainTitle">📺 Latest Full Series Episodes</h2>
       <div id="latestList" class="grid">
-        <!-- JS yahan fill karega (script.js) -->
+        <article class="latest-item">
+            <div style="padding:20px;text-align:center;color:#555;">Loading latest erotic series...</div>
+        </article>
       </div>
       <div id="pager"></div>
     </section>
 
+    <nav class="seo-only">
+        <ul>
+            <li><a href="https://dareloom.fun/tags/romantic">Romantic Web Series</a></li>
+            <li><a href="https://dareloom.fun/tags/erotic">Erotic Movies HD</a></li>
+            <li><a href="https://dareloom.fun/tags/uncut">Uncut Scenes</a></li>
+        </ul>
+    </nav>
+
     <section id="randomSection">
       <h2>🔥 Trending Erotic & Romantic Picks</h2>
-      <div id="randomGrid" class="grid">
-        <!-- JS yahan fill karega -->
-      </div>
+      <div id="randomGrid" class="grid"></div>
     </section>
   </main>
 
-  <footer style="padding:14px;text-align:center;color:#777;">
-    © Dareloom Hub — <a href="mailto:dareloom.official@gmail.com" style="color:var(--secondary-color);">Contact Us</a>
+  <footer style="padding:40px 20px;text-align:center;color:#777;border-top:1px solid #222;">
+    <p>© 2026 Dareloom Hub — Best Erotic Streaming Platform</p>
+    <a href="mailto:dareloom.official@gmail.com" style="color:#ff4b91;text-decoration:none;">Contact Us</a> | 
+    <a href="/dmca.html" style="color:#777;text-decoration:none;margin-left:10px;">DMCA</a>
   </footer>
 
-  <div id="reelsPlayer">
-    <button id="reelsCloseBtn" onclick="closeReelsPlayer()">← Close</button>
-    <div id="reelsContainer"></div>
+  <div id="reelsPlayer" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:10000;flex-direction:column;">
+    <button id="reelsCloseBtn" onclick="closeReelsPlayer()" style="position:absolute;top:20px;left:20px;z-index:10001;background:rgba(0,0,0,0.5);color:#fff;border:none;padding:10px;border-radius:5px;cursor:pointer;">← Close</button>
+    <div id="reelsContainer" style="flex:1;display:flex;justify-content:center;align-items:center;"></div>
   </div>
 
-  <div id="adNotice" style="position:fixed;bottom:10px;left:10px;right:10px;background:#111;color:#fff;padding:10px;border-radius:8px;text-align:center;z-index:9999">
-    Free site thanks to ads 💖 Disable ad blocker if nothing loads.
-    <button onclick="document.getElementById('adNotice').remove()" style="margin-left:8px;padding:5px 10px;background:#ffcc00;border:none;border-radius:6px;cursor:pointer">Got it</button>
+  <div id="adNotice" style="position:fixed;bottom:10px;left:10px;right:10px;background:#111;border:1px solid #333;color:#fff;padding:15px;border-radius:12px;text-align:center;z-index:9999;box-shadow: 0 -5px 20px rgba(0,0,0,0.5);">
+    Enjoy Free HD Streaming! 💖 Disable ad blocker to support us.
+    <button onclick="document.getElementById('adNotice').remove()" style="margin-left:15px;padding:8px 15px;background:#ff4b91;border:none;border-radius:8px;color:#fff;cursor:pointer;font-weight:bold;">Got it</button>
   </div>
 
-  <script src="/script.js?v=20260120" defer></script>
+  <script src="/script.js?v=20260320" defer></script>
   <script type="module" src="/boost.mjs"></script>
 </body>
 </html>
